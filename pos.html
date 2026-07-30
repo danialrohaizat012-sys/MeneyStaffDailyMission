@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#ffffff" />
-  <title>Meney POS Enterprise v2.1</title>
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Meney POS" />
+  <link rel="manifest" href="./manifest-pos.json" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  <title>Meney POS Enterprise v2.3 PWA</title>
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -164,6 +170,16 @@
       .page-wrap{padding:14px}.stats,.summary-row,.flow-form{grid-template-columns:1fr}
       .flow-steps{grid-template-columns:1fr 1fr}.two,.three{grid-template-columns:1fr}
       .topbar{padding:0 14px}.topbar p,.shift-chip{display:none}
+    }
+
+    .pwa-status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800}.status-dot{width:9px;height:9px;border-radius:999px;background:#16a34a}.status-dot.offline{background:#ef4444}
+    .install-card{border:1px solid #bbf7d0;background:linear-gradient(135deg,#f0fdf4,#ffffff)}
+    .bottom-nav{display:none}
+    @media(max-width:590px){
+      body{padding-bottom:74px}.main{padding-bottom:72px}.topbar{height:62px}.page-wrap{padding-bottom:24px}
+      .bottom-nav{position:fixed;left:0;right:0;bottom:0;height:68px;background:#fff;border-top:1px solid var(--line);z-index:45;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px max(6px,env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(17,24,39,.08)}
+      .bottom-nav button{border:0;background:transparent;border-radius:11px;color:#667085;font-size:10px;font-weight:850;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.bottom-nav button span{font-size:19px;line-height:1}.bottom-nav button.active{color:#15803d;background:#ecfdf3}
+      .modal{width:calc(100vw - 20px);max-height:88vh;overflow:auto;margin:10px}.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.btn{min-height:44px}.field input,.field select,.field textarea{font-size:16px}
     }
   </style>
 </head>
@@ -494,9 +510,17 @@
           <div class="grid overview-grid">
             <div class="card section">
               <div class="section-head"><div><h3>System Settings</h3><p>Firebase project yang sama dengan Meney Daily Mission.</p></div></div>
-              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v2.2</strong></div>
+              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v2.3 PWA</strong></div>
               <div class="summary-mini"><span>Database</span><strong>Cloud Firestore</strong></div>
               <div class="summary-mini"><span>Data ownership</span><strong>Export anytime</strong></div>
+            </div>
+
+            <div class="card section install-card">
+              <div class="section-head"><div><h3>Install Meney POS</h3><p>Pasang pada telefon, tablet atau desktop seperti aplikasi sebenar.</p></div></div>
+              <div class="summary-mini"><span>Connection</span><strong id="connectionText">Online</strong></div>
+              <div class="summary-mini"><span>App mode</span><strong id="appModeText">Browser</strong></div>
+              <button id="installAppBtn" class="btn btn-green btn-block">Install Meney POS</button>
+              <p id="installHelp" class="muted" style="margin:12px 0 0;line-height:1.6">Android/Desktop: tekan butang install. iPhone/iPad: Safari → Share → Add to Home Screen.</p>
             </div>
 
             <div class="card section">
@@ -526,6 +550,14 @@
       </div>
     </main>
   </section>
+
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+    <button class="active" data-page="overview"><span>⌂</span>Home</button>
+    <button data-page="pos"><span>◉</span>Sell</button>
+    <button data-page="inventory"><span>▦</span>Stock</button>
+    <button data-page="repairs"><span>⚒</span>Repair</button>
+    <button data-page="settings"><span>⚙</span>More</button>
+  </nav>
 
   <div id="productModal" class="modal-backdrop hidden">
     <div class="modal">
@@ -695,7 +727,7 @@
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>showPage(b.dataset.go));
   function showPage(n){
     document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+n).classList.remove("hidden");
-    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===n));
+    document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===n));
     $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
   }
 
@@ -917,6 +949,32 @@
     const cashSales=state.sales.filter(x=>x.paymentMethod==="Cash"&&x.saleDate===nowDate()).reduce((a,x)=>a+Number(x.total||0),0),open=Number(s?.openingCash||0),exp=open+cashSales+cin-cout;
     $("shiftChip").textContent=s?"● SHIFT OPEN":"○ SHIFT CLOSED";$("shiftStatus").textContent=s?"OPEN":"CLOSED";$("openingCashText").textContent=money(open);$("cashSalesText").textContent=money(cashSales);$("cashInText").textContent=money(cin);$("cashOutText").textContent="-"+money(cout);$("expectedCashText").textContent=money(exp)
   }
+  // PWA installation and connectivity
+  let deferredInstallPrompt=null;
+  const installBtn=$("installAppBtn"), installHelp=$("installHelp");
+  function updateConnection(){
+    const online=navigator.onLine;
+    const text=$("connectionText"); if(text) text.textContent=online?"Online":"Offline";
+    document.querySelectorAll(".status-dot").forEach(d=>d.classList.toggle("offline",!online));
+  }
+  function isStandalone(){return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true}
+  function updateAppMode(){
+    const t=$("appModeText"); if(t)t.textContent=isStandalone()?"Installed App":"Browser";
+    if(installBtn && isStandalone()){installBtn.textContent="App Installed";installBtn.disabled=true}
+  }
+  window.addEventListener("online",updateConnection);window.addEventListener("offline",updateConnection);
+  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;if(installBtn){installBtn.disabled=false;installBtn.textContent="Install Meney POS"}});
+  window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;updateAppMode();toast("Meney POS berjaya dipasang")});
+  if(installBtn)installBtn.onclick=async()=>{
+    if(isStandalone())return;
+    if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;updateAppMode();return}
+    const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    toast(ios?"Safari → Share → Add to Home Screen":"Buka menu browser dan pilih Install App / Add to Home Screen");
+    if(installHelp)installHelp.scrollIntoView({behavior:"smooth",block:"center"});
+  };
+  updateConnection();updateAppMode();
+  if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw-pos.js").catch(err=>console.warn("SW",err)))}
+
 </script>
 </body>
 </html>
