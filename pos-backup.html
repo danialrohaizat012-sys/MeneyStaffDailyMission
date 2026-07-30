@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Meney POS Enterprise v2.1</title>
+  <style>
+    :root{
+      --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
+      --line:#e5e7eb;--line2:#eef0f3;--green:#16a34a;--green2:#15803d;--green-soft:#eaf8ef;
+      --purple:#6d28d9;--purple-soft:#f2eafe;--blue:#2563eb;--blue-soft:#eaf1ff;
+      --orange:#f59e0b;--orange-soft:#fff7e6;--red:#ef4444;--red-soft:#fff0f0;
+      --shadow:0 12px 34px rgba(17,24,39,.07);--radius:18px;--radius-sm:12px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    .muted{color:var(--muted)}
+    .app-shell{min-height:100vh}
+    .sidebar{
+      position:fixed;inset:0 auto 0 0;width:244px;background:#fff;border-right:1px solid var(--line);
+      padding:18px 14px;z-index:30;display:flex;flex-direction:column
+    }
+    .brand{display:flex;align-items:center;gap:12px;padding:2px 8px 18px}
+    .brand-logo{
+      width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#1f2937,#111827);
+      color:#a3ff12;font-weight:1000;font-size:21px;display:grid;place-items:center;box-shadow:var(--shadow)
+    }
+    .brand h1{font-size:17px;margin:0;letter-spacing:.02em}.brand p{margin:3px 0 0;font-size:11px;color:var(--muted)}
+    .role-pill{margin-left:auto;background:var(--green);color:#fff;font-size:10px;font-weight:900;border-radius:7px;padding:5px 7px}
+    .nav-section{margin-top:10px}
+    .nav-label{font-size:10px;font-weight:900;color:#98a2b3;letter-spacing:.08em;padding:0 10px 7px;text-transform:uppercase}
+    .nav{display:grid;gap:5px}
+    .nav-btn{
+      border:0;background:transparent;color:#475467;text-align:left;border-radius:10px;padding:10px 11px;font-weight:750;
+      display:flex;align-items:center;gap:10px;font-size:13px
+    }
+    .nav-btn:hover{background:#f6f7f9}.nav-btn.active{background:var(--green);color:#fff}
+    .nav-btn .ico{width:20px;text-align:center;font-size:15px}
+    .sidebar-bottom{margin-top:auto;border-top:1px solid var(--line2);padding:14px 8px 2px}
+    .user-card{display:flex;align-items:center;gap:9px}
+    .avatar{width:34px;height:34px;border-radius:50%;background:#111827;color:#fff;display:grid;place-items:center;font-weight:900}
+    .user-card strong{display:block;font-size:12px}.user-card span{font-size:11px;color:var(--muted)}
+    .logout{margin-left:auto;border:0;background:#f9fafb;border-radius:9px;width:32px;height:32px}
+    .main{margin-left:244px;min-height:100vh}
+    .topbar{
+      height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+      padding:0 24px;position:sticky;top:0;z-index:20
+    }
+    .topbar h2{margin:0;font-size:20px}.topbar p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+    .top-actions{display:flex;align-items:center;gap:10px}
+    .shift-chip{border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;font-weight:850;padding:8px 11px;border-radius:999px;font-size:11px}
+    .page-wrap{padding:22px}
+    .grid{display:grid;gap:16px}
+    .stats{grid-template-columns:repeat(4,1fr)}
+    .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .stat-card{padding:18px}
+    .stat-card .label{font-size:11px;color:var(--muted);font-weight:700}.stat-card .value{font-size:24px;font-weight:950;margin-top:9px}
+    .stat-card .trend{font-size:11px;color:var(--green);font-weight:850;margin-top:4px}
+    .section{padding:18px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:15px}
+    .section-head h3{margin:0;font-size:16px}.section-head p{margin:4px 0 0;color:var(--muted);font-size:11px}
+    .btn{border:0;border-radius:11px;padding:10px 13px;font-weight:850;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+    .btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green2)}
+    .btn-dark{background:#111827;color:#fff}.btn-light{background:#f7f8fa;border:1px solid var(--line);color:#344054}
+    .btn-purple{background:var(--purple);color:#fff}.btn-blue{background:var(--blue);color:#fff}
+    .btn-danger{background:#fee2e2;color:#991b1b}.btn-block{width:100%}
+    input,select,textarea{
+      width:100%;border:1px solid #d0d5dd;background:#fff;border-radius:10px;padding:10px 11px;outline:none;font-size:13px
+    }
+    input:focus,select:focus,textarea:focus{border-color:#98a2b3;box-shadow:0 0 0 3px rgba(17,24,39,.05)}
+    label{display:block;font-size:11px;font-weight:850;margin:0 0 6px}
+    .field{margin-bottom:12px}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:760px}
+    th,td{padding:11px 10px;border-bottom:1px solid var(--line2);text-align:left;font-size:12px;vertical-align:middle}
+    th{text-transform:uppercase;letter-spacing:.04em;font-size:10px;color:#98a2b3}
+    .badge{display:inline-flex;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900}
+    .green{background:var(--green-soft);color:#166534}.purple{background:var(--purple-soft);color:#5b21b6}
+    .blue{background:var(--blue-soft);color:#1d4ed8}.orange{background:var(--orange-soft);color:#92400e}
+    .red{background:var(--red-soft);color:#b91c1c}.gray{background:#f2f4f7;color:#475467}
+    .overview-grid{grid-template-columns:1.45fr .8fr}
+    .summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .summary-mini{border:1px solid var(--line2);border-radius:12px;padding:13px;background:var(--surface2)}
+    .summary-mini span{display:block;font-size:10px;color:var(--muted)}.summary-mini strong{display:block;margin-top:7px;font-size:18px}
+    .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .quick{
+      border:1px solid var(--line);background:#fff;border-radius:14px;padding:17px;text-align:left;min-height:110px
+    }
+    .quick:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+    .quick .qicon{font-size:22px}.quick strong{display:block;margin-top:12px}.quick span{font-size:11px;color:var(--muted)}
+    .flow-page{display:grid;grid-template-columns:1fr 315px;gap:16px}
+    .flow-main{min-width:0}
+    .flow-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+    .step{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+    .step.active{border-color:#86efac;background:#f0fdf4}.step-no{width:22px;height:22px;border-radius:50%;background:#e5e7eb;display:grid;place-items:center;font-size:10px;font-weight:900}
+    .step.active .step-no{background:var(--green);color:#fff}.step strong{display:block;font-size:11px;margin-top:8px}.step span{font-size:9px;color:var(--muted)}
+    .txn-types{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .txn-card{border:1px solid var(--line);border-radius:15px;padding:18px;background:#fff;text-align:center}
+    .txn-card:hover{border-color:#86efac}.txn-card .bigico{font-size:28px}.txn-card strong{display:block;margin-top:9px}.txn-card small{color:var(--muted)}
+    .pos-layout{display:grid;grid-template-columns:1.1fr .85fr;gap:14px}
+    .product-toolbar{display:grid;grid-template-columns:1fr 160px;gap:9px;margin-bottom:12px}
+    .product-list{display:grid;gap:9px;max-height:520px;overflow:auto;padding-right:3px}
+    .product-row{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff}
+    .product-row:hover{border-color:#86efac}.product-row h4{margin:0;font-size:12px}.product-row p{margin:4px 0 0;font-size:10px;color:var(--muted)}
+    .product-row .price{font-weight:950}.add-mini{width:30px;height:30px;border:0;border-radius:9px;background:var(--green);color:#fff;font-weight:900}
+    .cart-box{border-left:1px solid var(--line2);padding-left:14px}
+    .cart-items{max-height:310px;overflow:auto}
+    .cart-line{padding:10px 0;border-bottom:1px solid var(--line2)}
+    .cart-top{display:flex;justify-content:space-between;gap:10px}.cart-line h4{margin:0;font-size:12px}.qty{display:flex;align-items:center;gap:7px;margin-top:8px}
+    .qty button{width:27px;height:27px;border:1px solid var(--line);background:#fff;border-radius:8px}.remove{margin-left:auto;border:0;background:none;color:#b42318;font-size:10px}
+    .total-line{display:flex;justify-content:space-between;margin:8px 0;font-size:12px}.total-line.grand{font-size:18px;font-weight:950;border-top:1px solid var(--line);padding-top:10px}
+    .shift-panel{padding:16px;position:sticky;top:94px;height:max-content}
+    .cash-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--line);font-size:12px}
+    .cash-row strong.redtxt{color:#dc2626}
+    .flow-form{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .flow-col{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
+    .flow-col h4{margin:0 0 12px;font-size:12px}
+    .qc-list{display:grid;gap:7px;font-size:11px}.qc-list label{display:flex;align-items:center;gap:8px;font-weight:650;margin:0}.qc-list input{width:auto}
+    .success-box{display:grid;place-items:center;text-align:center;min-height:240px;border:1px dashed #86efac;background:#f0fdf4;border-radius:14px}
+    .success-box .check{width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:24px}
+    .reports-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:14px}
+    .chart-placeholder{height:240px;border-radius:14px;background:
+      linear-gradient(180deg,rgba(22,163,74,.07),transparent),
+      repeating-linear-gradient(to right,transparent 0 55px,#eef0f3 56px),
+      repeating-linear-gradient(to bottom,transparent 0 46px,#eef0f3 47px);position:relative;overflow:hidden}
+    .chart-line{position:absolute;left:5%;right:5%;bottom:18%;height:55%;clip-path:polygon(0 82%,10% 70%,20% 76%,30% 40%,40% 58%,50% 45%,60% 49%,70% 24%,80% 28%,90% 14%,100% 0,100% 100%,0 100%);background:linear-gradient(180deg,rgba(22,163,74,.35),rgba(22,163,74,.03))}
+    .donut{width:180px;height:180px;border-radius:50%;background:conic-gradient(#16a34a 0 34%,#2563eb 34% 58%,#f59e0b 58% 77%,#ef4444 77% 90%,#8b5cf6 90%);display:grid;place-items:center;margin:auto}
+    .donut:after{content:"RM0";width:110px;height:110px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:950}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(17,24,39,.55);display:grid;place-items:center;padding:16px;z-index:100}
+    .modal{width:min(640px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.22)}
+    .modal h3{margin:0}.modal p{margin:5px 0 17px;color:var(--muted);font-size:11px}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}
+    .toast{position:fixed;right:22px;bottom:22px;background:#111827;color:#fff;padding:12px 15px;border-radius:11px;z-index:200;font-size:12px;font-weight:800}
+    .document-sheet{border:1px solid var(--line);border-radius:14px;padding:22px;background:#fff}
+    .document-head{display:flex;justify-content:space-between;gap:18px;padding-bottom:15px;border-bottom:2px solid #111827}
+    .document-brand h2{margin:0;font-size:20px}.document-brand p{margin:4px 0 0;color:var(--muted);font-size:11px}
+    .document-meta{text-align:right;font-size:11px}.document-meta strong{display:block;font-size:16px;margin-bottom:4px}
+    .document-customer{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:16px 0;padding:12px;background:#f8fafc;border-radius:10px;font-size:11px}
+    .document-customer span{display:block;color:var(--muted);margin-bottom:3px}.document-customer strong{font-size:12px}
+    .document-table{width:100%;min-width:0}.document-table th,.document-table td{font-size:11px;padding:9px 6px}
+    .document-totals{margin-left:auto;width:min(310px,100%);margin-top:14px}.document-total{display:flex;justify-content:space-between;padding:6px 0;font-size:12px}
+    .document-total.grand{font-size:17px;font-weight:950;border-top:2px solid #111827;margin-top:5px;padding-top:10px}
+    .document-note{margin-top:18px;padding-top:12px;border-top:1px dashed var(--line);font-size:10px;color:var(--muted)}
+    .document-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+    .btn-whatsapp{background:#16a34a;color:#fff}
+    .login-page{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(145deg,#f7faf8,#eef3f0)}
+    .login-card{width:min(430px,100%);padding:30px}
+    .mobile-menu{display:none}
+    @media(max-width:1150px){
+      .stats{grid-template-columns:repeat(2,1fr)}.overview-grid,.reports-grid{grid-template-columns:1fr}
+      .flow-page{grid-template-columns:1fr}.shift-panel{position:static}.flow-form{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:860px){
+      .sidebar{transform:translateX(-100%);transition:.2s}.sidebar.open{transform:translateX(0)}
+      .main{margin-left:0}.mobile-menu{display:inline-flex}.txn-types{grid-template-columns:repeat(2,1fr)}
+      .pos-layout{grid-template-columns:1fr}.summary-row{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:590px){
+      .page-wrap{padding:14px}.stats,.summary-row,.flow-form{grid-template-columns:1fr}
+      .flow-steps{grid-template-columns:1fr 1fr}.two,.three{grid-template-columns:1fr}
+      .topbar{padding:0 14px}.topbar p,.shift-chip{display:none}
+    }
+  </style>
+</head>
+<body>
+  <section id="loginPage" class="login-page">
+    <div class="card login-card">
+      <div class="brand" style="padding:0 0 22px">
+        <div class="brand-logo">M</div>
+        <div><h1>Meney POS Enterprise</h1><p>Sell · Buy · Trade-In · Repair</p></div>
+      </div>
+      <form id="loginForm">
+        <div class="field"><label>Email</label><input id="loginEmail" type="email" required placeholder="owner@meney.com"></div>
+        <div class="field"><label>Password</label><input id="loginPassword" type="password" required placeholder="••••••••"></div>
+        <button class="btn btn-green btn-block">Log Masuk</button>
+        <div id="loginError" class="hidden" style="margin-top:12px;padding:10px;border-radius:10px;background:#fef2f2;color:#b42318;font-size:12px"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="app" class="app-shell hidden">
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">M</div>
+        <div><h1>MENEY GAMING</h1><p>Sell · Buy · Repair</p></div>
+        <span class="role-pill">CASHIER</span>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <nav class="nav">
+          <button class="nav-btn active" data-page="overview"><span class="ico">⌂</span>Overview</button>
+          <button class="nav-btn" data-page="inventory"><span class="ico">▦</span>Inventory</button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Sales</div>
+        <nav class="nav">
+          <button class="nav-btn" data-page="pos"><span class="ico">◉</span>POS / Sales</button>
+          <button class="nav-btn" data-page="buy"><span class="ico">↓</span>Buy From Customer</button>
+          <button class="nav-btn" data-page="trade"><span class="ico">⇄</span>Trade-In</button>
+          <button class="nav-btn" data-page="repairs"><span class="ico">⚒</span>Repairs</button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Management</div>
+        <nav class="nav">
+          <button class="nav-btn" data-page="customers"><span class="ico">♙</span>Customers</button>
+          <button class="nav-btn" data-page="reports"><span class="ico">◔</span>Reports</button>
+          <button class="nav-btn" data-page="settings"><span class="ico">⚙</span>Settings</button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Cash Register</div>
+        <nav class="nav">
+          <button class="nav-btn" data-page="shift"><span class="ico">◫</span>Current Shift</button>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-card">
+          <div class="avatar">D</div>
+          <div><strong id="userName">Danial</strong><span id="userRole">Owner</span></div>
+          <button id="logoutBtn" class="logout">↪</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:11px">
+          <button id="mobileMenu" class="btn btn-light mobile-menu">☰</button>
+          <div><h2 id="pageTitle">Overview</h2><p id="pageSub">Ringkasan operasi Meney.</p></div>
+        </div>
+        <div class="top-actions">
+          <span id="shiftChip" class="shift-chip">● SHIFT OPEN</span>
+          <button class="btn btn-light" data-go="pos">New Sale</button>
+        </div>
+      </header>
+
+      <div class="page-wrap">
+        <section id="page-overview" class="page">
+          <div class="grid stats">
+            <div class="card stat-card"><div class="label">Total Revenue</div><div id="ovRevenue" class="value">RM0.00</div><div class="trend">Live from Firebase</div></div>
+            <div class="card stat-card"><div class="label">Total Buy</div><div id="ovBuy" class="value">RM0.00</div><div class="trend">Customer purchases</div></div>
+            <div class="card stat-card"><div class="label">Total Sell</div><div id="ovSell" class="value">RM0.00</div><div class="trend">Completed sales</div></div>
+            <div class="card stat-card"><div class="label">Trade Profit</div><div id="ovTrade" class="value">RM0.00</div><div class="trend">Trade-in margin</div></div>
+          </div>
+
+          <div class="grid overview-grid" style="margin-top:16px">
+            <div class="card section">
+              <div class="section-head"><div><h3>Inventory Summary</h3><p>Status semasa stok Meney.</p></div><button class="btn btn-light" data-go="inventory">View All</button></div>
+              <div class="summary-row">
+                <div class="summary-mini"><span>Total Items</span><strong id="sumItems">0</strong></div>
+                <div class="summary-mini"><span>Available</span><strong id="sumAvailable">0</strong></div>
+                <div class="summary-mini"><span>Reserved</span><strong id="sumReserved">0</strong></div>
+                <div class="summary-mini"><span>Repair</span><strong id="sumRepair">0</strong></div>
+              </div>
+              <div class="table-wrap" style="margin-top:15px">
+                <table><thead><tr><th>Invoice</th><th>Customer</th><th>Items</th><th>Type</th><th>Total</th></tr></thead><tbody id="overviewSales"></tbody></table>
+              </div>
+            </div>
+            <div class="card section">
+              <div class="section-head"><div><h3>Quick Transaction</h3><p>Pilih jenis transaksi.</p></div></div>
+              <div class="quick-grid">
+                <button class="quick" data-go="pos"><div class="qicon">▤</div><strong>Sell</strong><span>Jual barang</span></button>
+                <button class="quick" data-go="buy"><div class="qicon">◈</div><strong>Buy</strong><span>Beli dari customer</span></button>
+                <button class="quick" data-go="trade"><div class="qicon">⇄</div><strong>Trade-In</strong><span>Tukar / tolak nilai</span></button>
+                <button class="quick" data-go="repairs"><div class="qicon">⚒</div><strong>Repair</strong><span>Servis / repair</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-pos" class="page hidden">
+          <div class="flow-page">
+            <div class="flow-main">
+              <div class="flow-steps">
+                <div class="step active"><div class="step-no">1</div><strong>Transaction</strong><span>Sell</span></div>
+                <div class="step active"><div class="step-no">2</div><strong>Products</strong><span>Search & select</span></div>
+                <div class="step active"><div class="step-no">3</div><strong>Cart</strong><span>Items & customer</span></div>
+                <div class="step"><div class="step-no">4</div><strong>Payment</strong><span>Method</span></div>
+                <div class="step"><div class="step-no">5</div><strong>Receipt</strong><span>Complete</span></div>
+              </div>
+              <div class="card section">
+                <div class="section-head"><div><h3>Sell Flow</h3><p>Cari produk dan masukkan ke cart.</p></div></div>
+                <div class="pos-layout">
+                  <div>
+                    <div class="product-toolbar"><input id="posSearch" placeholder="Search product / scan barcode..."><select id="posCategory"><option value="">All Category</option></select></div>
+                    <div id="productList" class="product-list"></div>
+                  </div>
+                  <div class="cart-box">
+                    <div class="section-head"><div><h3>Cart</h3><p id="cartCount">0 item</p></div><button id="clearCart" class="btn btn-light">Clear</button></div>
+                    <div id="cartItems" class="cart-items"></div>
+                    <div class="two" style="margin-top:11px">
+                      <div class="field"><label>Customer Name</label><input id="saleCustomer" placeholder="Walk-in / customer name"></div>
+                      <div class="field"><label>WhatsApp Number</label><input id="salePhone" inputmode="tel" placeholder="01XXXXXXXX"></div>
+                    </div>
+                    <div class="two">
+                      <div class="field"><label>Payment</label><select id="salePayment"><option>Cash</option><option>QR / DuitNow</option><option>Bank Transfer</option><option>Card</option><option>Split Payment</option></select></div>
+                      <div class="field"><label>Discount (RM)</label><input id="saleDiscount" type="number" min="0" step=".01" value="0"></div>
+                    </div>
+                    <div class="total-line"><span>Subtotal</span><strong id="saleSubtotal">RM0.00</strong></div>
+                    <div class="total-line"><span>Discount</span><strong id="saleDiscountText">RM0.00</strong></div>
+                    <div class="total-line grand"><span>Total</span><span id="saleTotal">RM0.00</span></div>
+                    <button id="completeSale" class="btn btn-green btn-block">Confirm Payment</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <aside class="card shift-panel">
+              <div class="section-head"><div><h3>Shift & Cash Drawer</h3><p>Current shift</p></div></div>
+              <div class="cash-row"><span>Staff</span><strong id="shiftStaff">—</strong></div>
+              <div class="cash-row"><span>Status</span><strong id="shiftStatus">OPEN</strong></div>
+              <div class="cash-row"><span>Opening Cash</span><strong id="openingCashText">RM0.00</strong></div>
+              <div class="cash-row"><span>Cash Sales</span><strong id="cashSalesText">RM0.00</strong></div>
+              <div class="cash-row"><span>Cash In</span><strong id="cashInText">RM0.00</strong></div>
+              <div class="cash-row"><span>Cash Out</span><strong id="cashOutText" class="redtxt">RM0.00</strong></div>
+              <div class="cash-row"><span>Expected Cash</span><strong id="expectedCashText">RM0.00</strong></div>
+              <button class="btn btn-light btn-block" data-go="shift" style="margin-top:13px">Manage Shift</button>
+            </aside>
+          </div>
+        </section>
+
+        <section id="page-buy" class="page hidden">
+          <div class="flow-steps">
+            <div class="step active"><div class="step-no">1</div><strong>Customer & Item</strong><span>Basic details</span></div>
+            <div class="step active"><div class="step-no">2</div><strong>QC & Condition</strong><span>Checklist</span></div>
+            <div class="step active"><div class="step-no">3</div><strong>Offer Price</strong><span>Confirm value</span></div>
+            <div class="step"><div class="step-no">4</div><strong>Payment</strong><span>Pay customer</span></div>
+            <div class="step"><div class="step-no">5</div><strong>Stock In</strong><span>Add inventory</span></div>
+          </div>
+          <form id="buyForm" class="flow-form">
+            <div class="flow-col">
+              <h4>Customer & Item</h4>
+              <div class="field"><label>Customer Name</label><input id="buyCustomer" required></div>
+              <div class="field"><label>Phone</label><input id="buyPhone"></div>
+              <div class="field"><label>Item Category</label><select id="buyCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option></select></div>
+              <div class="field"><label>Item Name</label><input id="buyItem" required></div>
+              <div class="field"><label>Serial Number</label><input id="buySerial"></div>
+            </div>
+            <div class="flow-col">
+              <h4>QC Checklist</h4>
+              <div class="qc-list">
+                <label><input type="checkbox" checked> Power On</label>
+                <label><input type="checkbox" checked> HDMI Output</label>
+                <label><input type="checkbox" checked> Disc Drive</label>
+                <label><input type="checkbox" checked> Wi-Fi / Bluetooth</label>
+                <label><input type="checkbox" checked> USB Port</label>
+                <label><input type="checkbox" checked> Controller Test</label>
+                <label><input type="checkbox" checked> Body Condition</label>
+                <label><input type="checkbox" checked> Storage</label>
+              </div>
+              <div class="field" style="margin-top:12px"><label>Condition</label><select id="buyCondition"><option>Like New</option><option>Used Good</option><option>Used Fair</option><option>Faulty</option></select></div>
+            </div>
+            <div class="flow-col">
+              <h4>Offer Price</h4>
+              <div class="field"><label>Suggested Price (RM)</label><input id="buySuggested" type="number" min="0" step=".01"></div>
+              <div class="field"><label>Your Offer (RM)</label><input id="buyOffer" type="number" min="0" step=".01" required></div>
+              <div class="field"><label>Expected Sell Price (RM)</label><input id="buySellPrice" type="number" min="0" step=".01" required></div>
+              <div class="field"><label>Notes</label><textarea id="buyNotes" rows="5"></textarea></div>
+            </div>
+            <div class="flow-col">
+              <h4>Payment & Stock In</h4>
+              <div class="field"><label>Payment Method</label><select id="buyPayment"><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option></select></div>
+              <div class="field"><label>SKU</label><input id="buySku" required></div>
+              <div class="field"><label>Low Stock Alert</label><input id="buyLowStock" type="number" min="0" value="1"></div>
+              <button class="btn btn-green btn-block" type="submit">Make Payment & Stock In</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="page-trade" class="page hidden">
+          <div class="flow-steps">
+            <div class="step active"><div class="step-no">1</div><strong>Trade-In Item</strong><span>Customer item</span></div>
+            <div class="step active"><div class="step-no">2</div><strong>New Item</strong><span>Item to buy</span></div>
+            <div class="step active"><div class="step-no">3</div><strong>Balance</strong><span>Calculate</span></div>
+            <div class="step"><div class="step-no">4</div><strong>Complete</strong><span>Payment</span></div>
+          </div>
+          <form id="tradeForm" class="flow-form">
+            <div class="flow-col">
+              <h4>Trade-In Item</h4>
+              <div class="field"><label>Customer</label><input id="tradeCustomer" required></div>
+              <div class="field"><label>Phone</label><input id="tradePhone"></div>
+              <div class="field"><label>Item Name</label><input id="tradeItem" required></div>
+              <div class="field"><label>Serial Number</label><input id="tradeSerial"></div>
+              <div class="field"><label>Condition</label><select id="tradeCondition"><option>Like New</option><option>Used Good</option><option>Used Fair</option><option>Faulty</option></select></div>
+              <div class="field"><label>Trade-In Value (RM)</label><input id="tradeValue" type="number" min="0" step=".01" required></div>
+            </div>
+            <div class="flow-col">
+              <h4>New Item</h4>
+              <div class="field"><label>Select Product</label><select id="tradeNewProduct" required></select></div>
+              <div id="tradeNewInfo" class="summary-mini"><span>Selected price</span><strong>RM0.00</strong></div>
+            </div>
+            <div class="flow-col">
+              <h4>Balance & Payment</h4>
+              <div class="cash-row"><span>New Item Price</span><strong id="tradeNewPrice">RM0.00</strong></div>
+              <div class="cash-row"><span>Trade-In Value</span><strong id="tradeValueText">RM0.00</strong></div>
+              <div class="cash-row"><span>Balance Payable</span><strong id="tradeBalance">RM0.00</strong></div>
+              <div class="field" style="margin-top:12px"><label>Payment Method</label><select id="tradePayment"><option>QR / DuitNow</option><option>Cash</option><option>Bank Transfer</option><option>Card</option></select></div>
+            </div>
+            <div class="flow-col">
+              <h4>Complete Trade-In</h4>
+              <div class="field"><label>SKU for Trade-In Item</label><input id="tradeSku" required></div>
+              <div class="field"><label>Expected Sell Price (RM)</label><input id="tradeSellPrice" type="number" min="0" step=".01" required></div>
+              <button class="btn btn-green btn-block" type="submit">Complete Trade-In</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="page-repairs" class="page hidden">
+          <div class="card section">
+            <div class="section-head">
+              <div><h3>Repair Management</h3><p>Terima repair, jejak status dan rekod bayaran.</p></div>
+              <button id="newRepairBtn" class="btn btn-green">＋ New Repair</button>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Ticket</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Estimate</th><th>Action</th></tr></thead><tbody id="repairBody"></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-inventory" class="page hidden">
+          <div class="card section">
+            <div class="section-head">
+              <div><h3>Inventory — Serial Number Tracking</h3><p>Semua stok, condition dan status.</p></div>
+              <button id="addProductBtn" class="btn btn-purple">＋ Add Product</button>
+            </div>
+            <div class="product-toolbar"><input id="inventorySearch" placeholder="Search product / serial number..."><select id="inventoryCategory"><option value="">All Category</option></select></div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Product</th><th>Serial No.</th><th>Condition</th><th>Cost</th><th>Sell Price</th><th>Status</th><th>Stock</th><th>Action</th></tr></thead><tbody id="inventoryBody"></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-customers" class="page hidden">
+          <div class="card section">
+            <div class="section-head"><div><h3>Customers</h3><p>Database customer daripada jualan, buy dan trade-in.</p></div></div>
+            <div class="table-wrap"><table><thead><tr><th>Name / Contact</th><th>Source</th><th>Last Transaction</th><th>Total</th></tr></thead><tbody id="customerBody"></tbody></table></div>
+          </div>
+        </section>
+
+        <section id="page-reports" class="page hidden">
+          <div class="reports-grid">
+            <div class="card section">
+              <div class="section-head"><div><h3>Sales Overview</h3><p>Visual ringkasan transaksi.</p></div></div>
+              <div class="chart-placeholder"><div class="chart-line"></div></div>
+            </div>
+            <div class="card section">
+              <div class="section-head"><div><h3>Category Profit</h3><p>Demo visual berdasarkan data semasa.</p></div></div>
+              <div id="profitDonut" class="donut"></div>
+            </div>
+          </div>
+          <div class="grid stats" style="margin-top:16px">
+            <div class="card stat-card"><div class="label">Best Selling</div><div id="bestSelling" class="value" style="font-size:18px">—</div></div>
+            <div class="card stat-card"><div class="label">Total Profit</div><div id="reportProfit" class="value">RM0.00</div></div>
+            <div class="card stat-card"><div class="label">Total Transactions</div><div id="reportTxn" class="value">0</div></div>
+            <div class="card stat-card"><div class="label">Inventory Value</div><div id="inventoryValue" class="value">RM0.00</div></div>
+          </div>
+        </section>
+
+        <section id="page-shift" class="page hidden">
+          <div class="grid overview-grid">
+            <div class="card section">
+              <div class="section-head"><div><h3>Current Shift</h3><p>Open, cash movement dan close shift.</p></div></div>
+              <div class="two">
+                <div class="field"><label>Opening Cash</label><input id="shiftOpening" type="number" min="0" step=".01" value="0"></div>
+                <div class="field"><label>Actual Cash (Close)</label><input id="shiftActual" type="number" min="0" step=".01" value="0"></div>
+              </div>
+              <div class="two">
+                <button id="openShiftBtn" class="btn btn-green">Open New Shift</button>
+                <button id="closeShiftBtn" class="btn btn-purple">Close Shift</button>
+              </div>
+            </div>
+            <div class="card section">
+              <div class="section-head"><div><h3>Cash In / Out</h3><p>Rekod pergerakan tunai.</p></div></div>
+              <div class="field"><label>Type</label><select id="cashMoveType"><option value="in">Cash In</option><option value="out">Cash Out</option></select></div>
+              <div class="field"><label>Amount</label><input id="cashMoveAmount" type="number" min="0" step=".01"></div>
+              <div class="field"><label>Note</label><input id="cashMoveNote"></div>
+              <button id="saveCashMove" class="btn btn-dark btn-block">Save Cash Movement</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-settings" class="page hidden">
+          <div class="grid overview-grid">
+            <div class="card section">
+              <div class="section-head"><div><h3>System Settings</h3><p>Firebase project yang sama dengan Meney Daily Mission.</p></div></div>
+              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v2.2</strong></div>
+              <div class="summary-mini"><span>Database</span><strong>Cloud Firestore</strong></div>
+              <div class="summary-mini"><span>Data ownership</span><strong>Export anytime</strong></div>
+            </div>
+
+            <div class="card section">
+              <div class="section-head"><div><h3>Full Backup</h3><p>Download semua data untuk backup atau pindah ke POS developer.</p></div></div>
+              <div class="field"><label>Backup format</label><select id="backupFormat"><option value="zip">ZIP — JSON + CSV semua collection</option><option value="xlsx">Excel Workbook (.xlsx)</option><option value="json">Single JSON (.json)</option></select></div>
+              <button id="fullBackupBtn" class="btn btn-purple btn-block">⬇ Export Full Backup</button>
+              <p class="muted" style="margin:12px 0 0;line-height:1.6">Backup merangkumi products, sales, buys, trades, repairs, shifts dan cash movements. ID dokumen dan timestamp turut disimpan.</p>
+            </div>
+          </div>
+
+          <div class="card section" style="margin-top:16px">
+            <div class="section-head"><div><h3>Export Individual Data</h3><p>Pilih collection dan format yang diperlukan.</p></div></div>
+            <div class="three">
+              <div class="field"><label>Data</label><select id="exportCollection"><option value="products">Inventory / Products</option><option value="sales">Sales</option><option value="buys">Buy From Customer</option><option value="trades">Trade-In</option><option value="repairs">Repairs</option><option value="shifts">Shifts</option><option value="cashMoves">Cash Movements</option></select></div>
+              <div class="field"><label>Format</label><select id="exportFormat"><option value="csv">CSV (.csv)</option><option value="xlsx">Excel (.xlsx)</option><option value="json">JSON (.json)</option></select></div>
+              <div class="field"><label>&nbsp;</label><button id="exportCollectionBtn" class="btn btn-green btn-block">Export Selected Data</button></div>
+            </div>
+          </div>
+
+          <div class="card section" style="margin-top:16px">
+            <div class="section-head"><div><h3>Migration Notes</h3><p>Maklumat untuk diberikan kepada developer sistem baru.</p></div></div>
+            <div class="document-note" style="margin:0">
+              Setiap fail export menyimpan <strong>documentId</strong> asal. Field bersarang seperti items akan disimpan sebagai JSON dalam CSV/Excel supaya maklumat transaksi tidak hilang. Sebelum berpindah sistem, buat satu Full Backup dan satu Excel Workbook.
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </section>
+
+  <div id="productModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h3 id="productModalTitle">Add Product</h3><p>Data disimpan dalam Firestore collection products.</p>
+      <form id="productForm">
+        <div class="two">
+          <div class="field"><label>Product Name</label><input id="productName" required></div>
+          <div class="field"><label>SKU</label><input id="productSku" required></div>
+        </div>
+        <div class="three">
+          <div class="field"><label>Category</label><select id="productCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div>
+          <div class="field"><label>Condition</label><select id="productCondition"><option>Brand New</option><option>Like New</option><option>Used Good</option><option>Used Fair</option><option>Faulty</option></select></div>
+          <div class="field"><label>Status</label><select id="productStatus"><option>Available</option><option>Reserved</option><option>Repair</option><option>Sold</option></select></div>
+        </div>
+        <div class="three">
+          <div class="field"><label>Cost Price</label><input id="productCost" type="number" min="0" step=".01" required></div>
+          <div class="field"><label>Sell Price</label><input id="productPrice" type="number" min="0" step=".01" required></div>
+          <div class="field"><label>Stock</label><input id="productStock" type="number" min="0" step="1" required></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Serial Number</label><input id="productSerial"></div>
+          <div class="field"><label>Low Stock Alert</label><input id="productLowStock" type="number" min="0" value="1"></div>
+        </div>
+        <div class="field"><label>Notes</label><textarea id="productNotes" rows="3"></textarea></div>
+        <div class="modal-actions"><button type="button" id="cancelProduct" class="btn btn-light">Cancel</button><button class="btn btn-purple">Save Product</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="repairModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h3>New Repair Ticket</h3><p>Rekod repair customer.</p>
+      <form id="repairForm">
+        <div class="two">
+          <div class="field"><label>Customer Name</label><input id="repairCustomer" required></div>
+          <div class="field"><label>Phone</label><input id="repairPhone"></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Device</label><input id="repairDevice" required></div>
+          <div class="field"><label>Serial Number</label><input id="repairSerial"></div>
+        </div>
+        <div class="field"><label>Issue</label><textarea id="repairIssue" required></textarea></div>
+        <div class="two">
+          <div class="field"><label>Estimate (RM)</label><input id="repairEstimate" type="number" min="0" step=".01"></div>
+          <div class="field"><label>Status</label><select id="repairStatus"><option>Received</option><option>Diagnosing</option><option>Waiting Parts</option><option>Ready</option><option>Completed</option></select></div>
+        </div>
+        <div class="modal-actions"><button type="button" id="cancelRepair" class="btn btn-light">Cancel</button><button class="btn btn-green">Save Repair</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="documentModal" class="modal-backdrop hidden">
+    <div class="modal" style="width:min(780px,100%)">
+      <div class="section-head"><div><h3 id="documentModalTitle">Transaction Document</h3><p>Print, save as PDF atau hantar melalui WhatsApp.</p></div><button id="closeDocument" class="btn btn-light">✕</button></div>
+      <div id="documentPreview" class="document-sheet"></div>
+      <div class="document-actions">
+        <button id="printDocument" class="btn btn-dark">🖨 Print / Save PDF</button>
+        <button id="whatsappDocument" class="btn btn-whatsapp">WhatsApp Customer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, collection, addDoc, updateDoc, deleteDoc,
+    onSnapshot, query, orderBy, serverTimestamp, runTransaction
+  } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",
+    authDomain: "meney-daily-mission.firebaseapp.com",
+    databaseURL: "https://meney-daily-mission-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "meney-daily-mission",
+    storageBucket: "meney-daily-mission.firebasestorage.app",
+    messagingSenderId: "1035705938755",
+    appId: "1:1035705938755:web:a9ec6c7ea9c9b91f4a35f6"
+  };
+
+  const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+  const $=id=>document.getElementById(id);
+  const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],cart:[],editingProduct:null,lastDocument:null,unsubs:[]};
+  const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
+  const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+  const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+  const toast=m=>{$("toast").textContent=m;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2600)}
+  const isOwner=()=>state.profile?.role==="owner";
+  const cleanPhone=phone=>{
+    let n=String(phone||"").replace(/\D/g,"");
+    if(n.startsWith("0"))n="60"+n.slice(1);
+    else if(n && !n.startsWith("60"))n="60"+n;
+    return n;
+  };
+  const docDate=()=>new Intl.DateTimeFormat("ms-MY",{dateStyle:"medium",timeStyle:"short"}).format(new Date());
+  function showTransactionDocument(data){
+    state.lastDocument=data;
+    $("documentModalTitle").textContent=data.title;
+    const rows=(data.items||[]).map((i,k)=>`<tr><td>${k+1}</td><td><strong>${esc(i.name)}</strong>${i.detail?`<br><span class="muted">${esc(i.detail)}</span>`:""}</td><td>${i.qty||1}</td><td>${money(i.unitPrice??i.amount)}</td><td><strong>${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}</strong></td></tr>`).join("");
+    const totals=(data.totals||[]).map(t=>`<div class="document-total ${t.grand?"grand":""}"><span>${esc(t.label)}</span><strong>${money(t.value)}</strong></div>`).join("");
+    $("documentPreview").innerHTML=`
+      <div class="document-head"><div class="document-brand"><h2>MENEY GAMING</h2><p>Sell · Buy · Trade-In · Repair</p></div><div class="document-meta"><strong>${esc(data.number)}</strong>${esc(data.date||docDate())}<br>${esc(data.staff||"")}</div></div>
+      <div class="document-customer"><div><span>Customer</span><strong>${esc(data.customer||"Walk-in")}</strong></div><div><span>Contact</span><strong>${esc(data.phone||"—")}</strong></div></div>
+      <table class="document-table"><thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="document-totals">${totals}</div>
+      ${data.payment?`<div class="document-note"><strong>Payment:</strong> ${esc(data.payment)}<br>${esc(data.note||"Terima kasih kerana berurusan dengan Meney Gaming.")}</div>`:`<div class="document-note">${esc(data.note||"Terima kasih kerana berurusan dengan Meney Gaming.")}</div>`}`;
+    $("documentModal").classList.remove("hidden");
+  }
+  function documentText(d){
+    const lines=[`*MENEY GAMING*`,`${d.title}`,`No: ${d.number}`,`Tarikh: ${d.date||docDate()}`,`Customer: ${d.customer||"Walk-in"}`];
+    if(d.phone)lines.push(`Telefon: ${d.phone}`);
+    lines.push("",...(d.items||[]).map((i,k)=>`${k+1}. ${i.name}${i.detail?` (${i.detail})`:""} x${i.qty||1} — ${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}`),"");
+    (d.totals||[]).forEach(t=>lines.push(`${t.label}: ${money(t.value)}`));
+    if(d.payment)lines.push(`Bayaran: ${d.payment}`);
+    lines.push("",d.note||"Terima kasih kerana berurusan dengan Meney Gaming.");
+    return lines.join("\n");
+  }
+  $("closeDocument").onclick=()=>$("documentModal").classList.add("hidden");
+  $("documentModal").onclick=e=>{if(e.target===$("documentModal"))$("documentModal").classList.add("hidden")};
+  $("printDocument").onclick=()=>{
+    if(!state.lastDocument)return;
+    const w=window.open("","_blank","width=850,height=900");
+    w.document.write(`<!doctype html><html><head><title>${esc(state.lastDocument.number)}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}.document-sheet{max-width:760px;margin:auto}.document-head{display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:14px}.document-meta{text-align:right}.document-customer{display:grid;grid-template-columns:1fr 1fr;background:#f5f5f5;padding:12px;margin:16px 0}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #ddd;padding:9px;font-size:12px}.document-totals{width:310px;margin:15px 0 0 auto}.document-total{display:flex;justify-content:space-between;padding:6px}.grand{font-size:17px;font-weight:bold;border-top:2px solid #111}.document-note{margin-top:20px;border-top:1px dashed #aaa;padding-top:12px;font-size:11px}.muted{color:#666}@media print{body{padding:0}}</style></head><body><div class="document-sheet">${$("documentPreview").innerHTML}</div><script>window.onload=()=>window.print()<\/script></body></html>`);
+    w.document.close();
+  };
+  $("whatsappDocument").onclick=()=>{
+    if(!state.lastDocument)return;
+    const phone=cleanPhone(state.lastDocument.phone),text=encodeURIComponent(documentText(state.lastDocument));
+    window.open(phone?`https://wa.me/${phone}?text=${text}`:`https://wa.me/?text=${text}`,"_blank");
+  };
+
+  $("loginForm").addEventListener("submit",async e=>{
+    e.preventDefault();$("loginError").classList.add("hidden");
+    try{await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}
+    catch(err){$("loginError").textContent="Login gagal: "+(err.code?.includes("invalid-credential")?"Email atau password salah.":err.message);$("loginError").classList.remove("hidden")}
+  });
+  $("logoutBtn").onclick=()=>signOut(auth);
+  $("mobileMenu").onclick=()=>$("sidebar").classList.toggle("open");
+
+  onAuthStateChanged(auth,async user=>{
+    state.unsubs.forEach(u=>u());state.unsubs=[];
+    if(!user){$("loginPage").classList.remove("hidden");$("app").classList.add("hidden");return}
+    state.user=user;const p=await getDoc(doc(db,"users",user.uid));state.profile=p.exists()?p.data():{name:user.email,role:"staff"};
+    $("userName").textContent=state.profile.name||user.email;$("userRole").textContent=state.profile.role||"staff";$("shiftStaff").textContent=state.profile.name||user.email;
+    $("loginPage").classList.add("hidden");$("app").classList.remove("hidden");subscribeAll()
+  });
+
+  function sub(name,sort="createdAt"){
+    const u=onSnapshot(query(collection(db,name),orderBy(sort,"desc")),snap=>{state[name]=snap.docs.map(d=>({id:d.id,...d.data()}));refresh()},err=>console.warn(name,err));
+    state.unsubs.push(u)
+  }
+  function subscribeAll(){
+    const up=onSnapshot(query(collection(db,"products"),orderBy("name")),snap=>{state.products=snap.docs.map(d=>({id:d.id,...d.data()}));refresh()},err=>toast("Products: "+err.message));
+    state.unsubs.push(up);["sales","buys","trades","repairs","shifts","cashMoves"].forEach(n=>sub(n))
+  }
+
+  const pages={
+    overview:["Overview","Ringkasan operasi Meney."],pos:["POS / Sales","Sell flow lengkap."],buy:["Buy From Customer","QC, offer dan stock in."],
+    trade:["Trade-In","Tolak nilai dan kira baki."],repairs:["Repairs","Repair ticket dan status."],inventory:["Inventory","Serial number tracking."],
+    customers:["Customers","Database customer."],reports:["Reports","Profit & analytics."],shift:["Current Shift","Cash register."],settings:["Settings","Application settings."]
+  };
+  document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>showPage(b.dataset.go));
+  function showPage(n){
+    document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+n).classList.remove("hidden");
+    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===n));
+    $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
+  }
+
+  function refresh(){populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderCustomers();renderReports();renderShift();populateTradeProducts()}
+  function populateCategories(){
+    const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort();
+    ["posCategory","inventoryCategory"].forEach(id=>{const old=$(id).value;$(id).innerHTML='<option value="">All Category</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");$(id).value=old})
+  }
+
+  $("posSearch").oninput=renderProducts;$("posCategory").onchange=renderProducts;
+  function renderProducts(){
+    const t=$("posSearch").value.toLowerCase(),c=$("posCategory").value;
+    const arr=state.products.filter(p=>(!t||`${p.name} ${p.sku} ${p.serial}`.toLowerCase().includes(t))&&(!c||p.category===c)&&Number(p.stock)>0&&p.status!=="Sold");
+    $("productList").innerHTML=arr.length?arr.map(p=>`<div class="product-row"><div><h4>${esc(p.name)}</h4><p>${esc(p.sku)} · ${esc(p.condition||"Used")} · Stock ${Number(p.stock||0)}</p></div><div style="display:flex;align-items:center;gap:9px"><span class="price">${money(p.price)}</span><button class="add-mini" onclick="window.addCart('${p.id}')">+</button></div></div>`).join(""):'<div class="muted" style="padding:25px;text-align:center">Tiada produk.</div>'
+  }
+
+  window.addCart=id=>{
+    const p=state.products.find(x=>x.id===id);if(!p)return;const item=state.cart.find(x=>x.productId===id);
+    if(item){if(item.qty>=Number(p.stock))return toast("Stok tak cukup.");item.qty++}else state.cart.push({productId:id,name:p.name,sku:p.sku,price:Number(p.price),cost:Number(p.cost||0),qty:1,stock:Number(p.stock)});
+    renderCart()
+  };
+  window.cartQty=(id,d)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;const n=i.qty+d;if(n<1)state.cart=state.cart.filter(x=>x.productId!==id);else if(n<=i.stock)i.qty=n;renderCart()};
+  window.removeCart=id=>{state.cart=state.cart.filter(x=>x.productId!==id);renderCart()};
+  $("clearCart").onclick=()=>{state.cart=[];renderCart()};$("saleDiscount").oninput=renderCart;
+  function totals(){const sub=state.cart.reduce((s,i)=>s+i.price*i.qty,0),disc=Math.min(Math.max(Number($("saleDiscount").value||0),0),sub);return{sub,disc,total:sub-disc}}
+  function renderCart(){
+    $("cartCount").textContent=state.cart.reduce((s,i)=>s+i.qty,0)+" item";
+    $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div></div>`).join(""):'<div class="muted" style="padding:28px;text-align:center">Cart kosong.</div>';
+    const t=totals();$("saleSubtotal").textContent=money(t.sub);$("saleDiscountText").textContent=money(t.disc);$("saleTotal").textContent=money(t.total)
+  }
+
+  $("completeSale").onclick=async()=>{
+    if(!state.cart.length)return toast("Cart kosong.");const btn=$("completeSale");btn.disabled=true;btn.textContent="Processing...";
+    const saleRef=doc(collection(db,"sales")),receipt=`INV-${Date.now().toString().slice(-6)}`,t=totals();
+    try{
+      await runTransaction(db,async tx=>{
+        const refs=state.cart.map(i=>doc(db,"products",i.productId)),snaps=[];
+        for(const r of refs)snaps.push(await tx.get(r));
+        snaps.forEach((s,k)=>{if(!s.exists()||Number(s.data().stock)<state.cart[k].qty)throw new Error("Stok tidak mencukupi")});
+        refs.forEach((r,k)=>tx.update(r,{stock:Number(snaps[k].data().stock)-state.cart[k].qty,updatedAt:serverTimestamp()}));
+        tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,
+          paymentMethod:$("salePayment").value,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:nowDate(),createdAt:serverTimestamp()})
+      });
+      const completedItems=state.cart.map(i=>({name:i.name,detail:i.sku,qty:i.qty,unitPrice:i.price,total:i.price*i.qty}));
+      const customer=$("saleCustomer").value.trim(),phone=$("salePhone").value.trim(),payment=$("salePayment").value;
+      state.cart=[];$("saleDiscount").value=0;$("saleCustomer").value="";$("salePhone").value="";renderCart();toast("Payment successful · "+receipt);
+      showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:"Warranty tertakluk kepada terma pada item dan keadaan barang."})
+    }catch(err){toast("Sale gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Payment"}
+  };
+
+  $("buyForm").onsubmit=async e=>{
+    e.preventDefault();
+    const productRef=doc(collection(db,"products")),buyRef=doc(collection(db,"buys"));
+    try{
+      await runTransaction(db,async tx=>{
+        tx.set(productRef,{name:$("buyItem").value.trim(),sku:$("buySku").value.trim().toUpperCase(),category:$("buyCategory").value,condition:$("buyCondition").value,status:"Available",
+          cost:Number($("buyOffer").value),price:Number($("buySellPrice").value),stock:1,lowStock:Number($("buyLowStock").value||1),serial:$("buySerial").value.trim(),notes:$("buyNotes").value.trim(),
+          createdAt:serverTimestamp(),createdBy:state.user.uid});
+        tx.set(buyRef,{customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),item:$("buyItem").value.trim(),serial:$("buySerial").value.trim(),condition:$("buyCondition").value,
+          offer:Number($("buyOffer").value),expectedSellPrice:Number($("buySellPrice").value),paymentMethod:$("buyPayment").value,productId:productRef.id,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})
+      });
+      const buyNo="BUY-"+Date.now().toString().slice(-6);
+      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name:$("buyItem").value.trim(),detail:`${$("buyCondition").value}${$("buySerial").value?" · S/N "+$("buySerial").value:""}`,qty:1,amount:Number($("buyOffer").value),total:Number($("buyOffer").value)}],totals:[{label:"Amount Paid to Customer",value:Number($("buyOffer").value),grand:true}],payment:$("buyPayment").value,note:"Customer mengesahkan barang telah diserahkan kepada Meney Gaming pada nilai yang dipersetujui."});
+      e.target.reset();toast("Buy complete · item added to inventory")
+    }catch(err){toast("Buy gagal: "+err.message)}
+  };
+
+  function populateTradeProducts(){
+    const old=$("tradeNewProduct").value;
+    $("tradeNewProduct").innerHTML='<option value="">Select product</option>'+state.products.filter(p=>Number(p.stock)>0&&p.status!=="Sold").map(p=>`<option value="${p.id}">${esc(p.name)} — ${money(p.price)}</option>`).join("");
+    $("tradeNewProduct").value=old;calcTrade()
+  }
+  $("tradeNewProduct").onchange=calcTrade;$("tradeValue").oninput=calcTrade;
+  function calcTrade(){
+    const p=state.products.find(x=>x.id===$("tradeNewProduct").value),nv=Number(p?.price||0),tv=Number($("tradeValue").value||0),bal=Math.max(nv-tv,0);
+    $("tradeNewPrice").textContent=money(nv);$("tradeValueText").textContent=money(tv);$("tradeBalance").textContent=money(bal);$("tradeNewInfo").innerHTML=`<span>Selected price</span><strong>${money(nv)}</strong>`
+  }
+  $("tradeForm").onsubmit=async e=>{
+    e.preventDefault();const newP=state.products.find(x=>x.id===$("tradeNewProduct").value);if(!newP)return toast("Pilih produk baru.");
+    const inRef=doc(collection(db,"products")),trRef=doc(collection(db,"trades")),newRef=doc(db,"products",newP.id),tradeVal=Number($("tradeValue").value),bal=Math.max(Number(newP.price)-tradeVal,0);
+    try{
+      await runTransaction(db,async tx=>{
+        const snap=await tx.get(newRef);if(!snap.exists()||Number(snap.data().stock)<1)throw new Error("Stok item baru tiada");
+        tx.update(newRef,{stock:Number(snap.data().stock)-1,updatedAt:serverTimestamp()});
+        tx.set(inRef,{name:$("tradeItem").value.trim(),sku:$("tradeSku").value.trim().toUpperCase(),category:"Console",condition:$("tradeCondition").value,status:"Available",
+          cost:tradeVal,price:Number($("tradeSellPrice").value),stock:1,lowStock:1,serial:$("tradeSerial").value.trim(),createdAt:serverTimestamp(),createdBy:state.user.uid});
+        tx.set(trRef,{customer:$("tradeCustomer").value.trim(),phone:$("tradePhone").value.trim(),tradeItem:$("tradeItem").value.trim(),tradeValue:tradeVal,newProductId:newP.id,newProductName:newP.name,newProductPrice:Number(newP.price),
+          balance:bal,paymentMethod:$("tradePayment").value,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})
+      });
+      const tradeNo="TRD-"+Date.now().toString().slice(-6);
+      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer:$("tradeCustomer").value.trim(),phone:$("tradePhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name:newP.name,detail:"New item / item purchased",qty:1,unitPrice:Number(newP.price),total:Number(newP.price)},{name:$("tradeItem").value.trim(),detail:`Trade-in value · ${$("tradeCondition").value}`,qty:1,unitPrice:-tradeVal,total:-tradeVal}],totals:[{label:"New Item Price",value:Number(newP.price)},{label:"Trade-In Value",value:-tradeVal},{label:"Balance Paid",value:bal,grand:true}],payment:$("tradePayment").value,note:"Nilai trade-in telah dipersetujui selepas pemeriksaan keadaan barang."});
+      e.target.reset();toast("Trade-in completed")
+    }catch(err){toast("Trade-in gagal: "+err.message)}
+  };
+
+  $("inventorySearch").oninput=renderInventory;$("inventoryCategory").onchange=renderInventory;
+  function renderInventory(){
+    const t=$("inventorySearch").value.toLowerCase(),c=$("inventoryCategory").value;
+    const arr=state.products.filter(p=>(!t||`${p.name} ${p.sku} ${p.serial}`.toLowerCase().includes(t))&&(!c||p.category===c));
+    $("inventoryBody").innerHTML=arr.length?arr.map(p=>`<tr><td><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.sku)}</span></td><td>${esc(p.serial||"—")}</td><td><span class="badge ${p.condition==="Like New"?"green":p.condition==="Used Good"?"orange":"gray"}">${esc(p.condition||"—")}</span></td><td>${isOwner()?money(p.cost):"Restricted"}</td><td><strong>${money(p.price)}</strong></td><td><span class="badge ${p.status==="Available"?"green":p.status==="Reserved"?"orange":p.status==="Repair"?"blue":"gray"}">${esc(p.status||"Available")}</span></td><td>${Number(p.stock||0)}</td><td>${isOwner()?`<button class="btn btn-light" style="padding:7px 9px" onclick="window.editProduct('${p.id}')">Edit</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="window.deleteProduct('${p.id}')">Delete</button>`:"—"}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Belum ada produk.</td></tr>'
+  }
+
+  $("addProductBtn").onclick=()=>openProduct();
+  $("cancelProduct").onclick=()=>closeModal("productModal");
+  $("productModal").onclick=e=>{if(e.target===$("productModal"))closeModal("productModal")};
+  function openProduct(p=null){
+    state.editingProduct=p?.id||null;$("productModalTitle").textContent=p?"Edit Product":"Add Product";
+    $("productName").value=p?.name||"";$("productSku").value=p?.sku||"";$("productCategory").value=p?.category||"Console";$("productCondition").value=p?.condition||"Used Good";
+    $("productStatus").value=p?.status||"Available";$("productCost").value=p?.cost??"";$("productPrice").value=p?.price??"";$("productStock").value=p?.stock??1;
+    $("productSerial").value=p?.serial||"";$("productLowStock").value=p?.lowStock??1;$("productNotes").value=p?.notes||"";$("productModal").classList.remove("hidden")
+  }
+  function closeModal(id){$(id).classList.add("hidden")}
+  window.editProduct=id=>openProduct(state.products.find(p=>p.id===id));
+  window.deleteProduct=async id=>{if(!confirm("Delete product?"))return;try{await deleteDoc(doc(db,"products",id));toast("Product deleted")}catch(e){toast(e.message)}};
+  $("productForm").onsubmit=async e=>{
+    e.preventDefault();const data={name:$("productName").value.trim(),sku:$("productSku").value.trim().toUpperCase(),category:$("productCategory").value,condition:$("productCondition").value,status:$("productStatus").value,
+      cost:Number($("productCost").value),price:Number($("productPrice").value),stock:Number($("productStock").value),serial:$("productSerial").value.trim(),lowStock:Number($("productLowStock").value||1),notes:$("productNotes").value.trim(),updatedAt:serverTimestamp()};
+    try{state.editingProduct?await updateDoc(doc(db,"products",state.editingProduct),data):await addDoc(collection(db,"products"),{...data,createdAt:serverTimestamp(),createdBy:state.user.uid});closeModal("productModal");e.target.reset();toast("Product saved")}
+    catch(err){toast("Save gagal: "+err.message)}
+  };
+
+  $("newRepairBtn").onclick=()=>$("repairModal").classList.remove("hidden");$("cancelRepair").onclick=()=>closeModal("repairModal");
+  $("repairForm").onsubmit=async e=>{
+    e.preventDefault();
+    const ticketNo="RPR-"+Date.now().toString().slice(-6),customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),status=$("repairStatus").value;
+    try{
+      await addDoc(collection(db,"repairs"),{ticketNo,customer,phone,device,serial,issue,estimate,status,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
+      closeModal("repairModal");
+      showTransactionDocument({title:"REPAIR QUOTATION / INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,qty:1,amount:estimate,total:estimate}],totals:[{label:"Estimated Repair Cost",value:estimate,grand:true}],payment:"Payment upon confirmation/completion",note:"Quotation ini adalah anggaran awal. Kos akhir mungkin berubah selepas diagnosis dan persetujuan customer diperlukan sebelum kerja tambahan."});
+      e.target.reset();toast("Repair ticket created")
+    }catch(err){toast(err.message)}
+  };
+  function renderRepairs(){
+    $("repairBody").innerHTML=state.repairs.length?state.repairs.map(r=>`<tr><td><strong>${esc(r.ticketNo)}</strong></td><td>${esc(r.customer)}<br><span class="muted">${esc(r.phone||"")}</span></td><td>${esc(r.device)}</td><td>${esc(r.issue)}</td><td><span class="badge ${r.status==="Completed"?"green":r.status==="Ready"?"blue":"orange"}">${esc(r.status)}</span></td><td>${money(r.estimate)}</td><td><select onchange="window.repairStatus('${r.id}',this.value)"><option ${r.status==="Received"?"selected":""}>Received</option><option ${r.status==="Diagnosing"?"selected":""}>Diagnosing</option><option ${r.status==="Waiting Parts"?"selected":""}>Waiting Parts</option><option ${r.status==="Ready"?"selected":""}>Ready</option><option ${r.status==="Completed"?"selected":""}>Completed</option></select></td></tr>`).join(""):'<tr><td colspan="7" class="muted" style="text-align:center;padding:30px">Belum ada repair.</td></tr>'
+  }
+  window.repairStatus=async(id,status)=>{try{await updateDoc(doc(db,"repairs",id),{status,updatedAt:serverTimestamp()});toast("Repair updated")}catch(e){toast(e.message)}};
+
+  function renderOverview(){
+    const sell=state.sales.reduce((s,x)=>s+Number(x.total||0),0),buy=state.buys.reduce((s,x)=>s+Number(x.offer||0),0),trade=state.trades.reduce((s,x)=>s+Number(x.balance||0),0);
+    $("ovRevenue").textContent=money(sell+trade);$("ovBuy").textContent=money(buy);$("ovSell").textContent=money(sell);$("ovTrade").textContent=money(trade);
+    $("sumItems").textContent=state.products.reduce((s,p)=>s+Number(p.stock||0),0);$("sumAvailable").textContent=state.products.filter(p=>p.status==="Available").length;$("sumReserved").textContent=state.products.filter(p=>p.status==="Reserved").length;$("sumRepair").textContent=state.repairs.filter(r=>r.status!=="Completed").length;
+    $("overviewSales").innerHTML=state.sales.slice(0,7).map(s=>`<tr><td>${esc(s.receiptNo)}</td><td>${esc(s.customer||"Walk-in")}</td><td>${s.itemCount||0}</td><td><span class="badge green">Sell</span></td><td><strong>${money(s.total)}</strong></td></tr>`).join("")||'<tr><td colspan="5" class="muted" style="text-align:center;padding:25px">Belum ada transaksi.</td></tr>'
+  }
+
+  function renderCustomers(){
+    const rows=[];
+    state.sales.filter(x=>x.customer).forEach(x=>rows.push({name:x.customer,source:"Sale",date:x.createdAt,total:x.total}));
+    state.buys.forEach(x=>rows.push({name:`${x.customer} ${x.phone||""}`,source:"Buy",date:x.createdAt,total:x.offer}));
+    state.trades.forEach(x=>rows.push({name:`${x.customer} ${x.phone||""}`,source:"Trade-In",date:x.createdAt,total:x.balance}));
+    $("customerBody").innerHTML=rows.length?rows.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td><span class="badge ${r.source==="Sale"?"green":r.source==="Buy"?"orange":"purple"}">${r.source}</span></td><td>${r.date?.toDate?r.date.toDate().toLocaleString("ms-MY"):"—"}</td><td>${money(r.total)}</td></tr>`).join(""):'<tr><td colspan="4" class="muted" style="text-align:center;padding:30px">Belum ada customer.</td></tr>'
+  }
+
+  function renderReports(){
+    const profit=state.sales.reduce((s,x)=>s+Number(x.total||0)-Number(x.items?.reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)||0),0);
+    $("reportProfit").textContent=money(profit);$("reportTxn").textContent=state.sales.length+state.buys.length+state.trades.length;$("inventoryValue").textContent=money(state.products.reduce((s,p)=>s+Number(p.cost||0)*Number(p.stock||0),0));
+    const counts={};state.sales.forEach(s=>s.items?.forEach(i=>counts[i.name]=(counts[i.name]||0)+Number(i.qty||0)));$("bestSelling").textContent=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
+    $("profitDonut").style.setProperty("--profit",profit);$("profitDonut").innerHTML=""
+  }
+
+
+  const exportCollections={products:"Inventory_Products",sales:"Sales",buys:"Buy_From_Customer",trades:"Trade_In",repairs:"Repairs",shifts:"Shifts",cashMoves:"Cash_Movements"};
+  const safeDate=()=>new Date().toISOString().replace(/[:.]/g,"-").slice(0,19);
+  function exportValue(v){
+    if(v===null||v===undefined)return "";
+    if(v?.toDate instanceof Function)return v.toDate().toISOString();
+    if(v instanceof Date)return v.toISOString();
+    if(Array.isArray(v)||typeof v==="object")return JSON.stringify(v,(k,x)=>x?.toDate instanceof Function?x.toDate().toISOString():x);
+    return v;
+  }
+  function normalizedRows(arr){
+    return arr.map(row=>{const out={documentId:row.id||""};Object.entries(row).forEach(([k,v])=>{if(k!=="id")out[k]=exportValue(v)});return out});
+  }
+  function jsonReady(arr){
+    return arr.map(row=>JSON.parse(JSON.stringify({documentId:row.id||"",...row},(k,v)=>v?.toDate instanceof Function?v.toDate().toISOString():v)));
+  }
+  function toCsv(rows){
+    if(!rows.length)return "documentId\n";
+    const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];
+    const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+    return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\r\n");
+  }
+  function downloadBlob(content,name,type){
+    const blob=content instanceof Blob?content:new Blob([content],{type});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
+  }
+  async function exportOne(key,format){
+    const label=exportCollections[key]||key,rows=normalizedRows(state[key]||[]),stamp=safeDate();
+    if(format==="csv")downloadBlob("\ufeff"+toCsv(rows),`${label}_${stamp}.csv`,"text/csv;charset=utf-8");
+    else if(format==="json")downloadBlob(JSON.stringify(jsonReady(state[key]||[]),null,2),`${label}_${stamp}.json`,"application/json");
+    else{
+      if(!window.XLSX)throw new Error("Excel library belum dimuatkan. Pastikan internet aktif.");
+      const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,label.slice(0,31));XLSX.writeFile(wb,`${label}_${stamp}.xlsx`);
+    }
+  }
+  async function fullBackup(format){
+    const stamp=safeDate(),payload={meta:{application:"Meney POS Enterprise",version:"2.2",exportedAt:new Date().toISOString(),firebaseProject:"meney-daily-mission"},collections:{}};
+    Object.keys(exportCollections).forEach(k=>payload.collections[k]=jsonReady(state[k]||[]));
+    if(format==="json")return downloadBlob(JSON.stringify(payload,null,2),`Meney_POS_Full_Backup_${stamp}.json`,"application/json");
+    if(format==="xlsx"){
+      if(!window.XLSX)throw new Error("Excel library belum dimuatkan. Pastikan internet aktif.");
+      const wb=XLSX.utils.book_new();
+      Object.entries(exportCollections).forEach(([k,label])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(normalizedRows(state[k]||[])),label.slice(0,31)));
+      const meta=XLSX.utils.json_to_sheet([payload.meta]);XLSX.utils.book_append_sheet(wb,meta,"Backup_Info");XLSX.writeFile(wb,`Meney_POS_Full_Backup_${stamp}.xlsx`);return;
+    }
+    if(!window.JSZip)throw new Error("ZIP library belum dimuatkan. Pastikan internet aktif.");
+    const zip=new JSZip();zip.file("backup-info.json",JSON.stringify(payload.meta,null,2));zip.file("full-backup.json",JSON.stringify(payload,null,2));
+    Object.entries(exportCollections).forEach(([k,label])=>{zip.file(`${label}.csv`,"\ufeff"+toCsv(normalizedRows(state[k]||[])));zip.file(`${label}.json`,JSON.stringify(payload.collections[k],null,2))});
+    const blob=await zip.generateAsync({type:"blob"});downloadBlob(blob,`Meney_POS_Full_Backup_${stamp}.zip`,"application/zip");
+  }
+  $("exportCollectionBtn").onclick=async()=>{try{await exportOne($("exportCollection").value,$("exportFormat").value);toast("Export siap")}catch(e){toast(e.message)}};
+  $("fullBackupBtn").onclick=async()=>{if(!isOwner())return toast("Owner sahaja boleh export full backup.");try{$("fullBackupBtn").disabled=true;$("fullBackupBtn").textContent="Preparing backup...";await fullBackup($("backupFormat").value);toast("Full backup siap")}catch(e){toast(e.message)}finally{$("fullBackupBtn").disabled=false;$("fullBackupBtn").textContent="⬇ Export Full Backup"}};
+
+  $("openShiftBtn").onclick=async()=>{try{await addDoc(collection(db,"shifts"),{status:"open",openingCash:Number($("shiftOpening").value||0),staffId:state.user.uid,staffName:state.profile.name||state.user.email,openedAt:serverTimestamp(),createdAt:serverTimestamp()});toast("Shift opened")}catch(e){toast(e.message)}};
+  $("closeShiftBtn").onclick=async()=>{const s=currentShift();if(!s)return toast("Tiada shift terbuka.");try{await updateDoc(doc(db,"shifts",s.id),{status:"closed",actualCash:Number($("shiftActual").value||0),closedAt:serverTimestamp()});toast("Shift closed")}catch(e){toast(e.message)}};
+  $("saveCashMove").onclick=async()=>{const s=currentShift();if(!s)return toast("Open shift dahulu.");try{await addDoc(collection(db,"cashMoves"),{shiftId:s.id,type:$("cashMoveType").value,amount:Number($("cashMoveAmount").value||0),note:$("cashMoveNote").value.trim(),createdAt:serverTimestamp(),staffName:state.profile.name||state.user.email});toast("Cash movement saved")}catch(e){toast(e.message)}};
+  function currentShift(){return state.shifts.find(s=>s.status==="open")}
+  function renderShift(){
+    const s=currentShift(),moves=s?state.cashMoves.filter(m=>m.shiftId===s.id):[],cin=moves.filter(m=>m.type==="in").reduce((a,m)=>a+Number(m.amount||0),0),cout=moves.filter(m=>m.type==="out").reduce((a,m)=>a+Number(m.amount||0),0);
+    const cashSales=state.sales.filter(x=>x.paymentMethod==="Cash"&&x.saleDate===nowDate()).reduce((a,x)=>a+Number(x.total||0),0),open=Number(s?.openingCash||0),exp=open+cashSales+cin-cout;
+    $("shiftChip").textContent=s?"● SHIFT OPEN":"○ SHIFT CLOSED";$("shiftStatus").textContent=s?"OPEN":"CLOSED";$("openingCashText").textContent=money(open);$("cashSalesText").textContent=money(cashSales);$("cashInText").textContent=money(cin);$("cashOutText").textContent="-"+money(cout);$("expectedCashText").textContent=money(exp)
+  }
+</script>
+</body>
+</html>
