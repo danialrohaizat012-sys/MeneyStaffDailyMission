@@ -1,6 +1,411 @@
-<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080a08"><title>MENEY Daily Mission</title><style>
-:root{--g:#7dff46;--bg:#070807;--p:#121512;--l:#293029;--t:#f5f7f5;--m:#9ba39b}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,rgba(125,255,70,.14),transparent 30%),var(--bg);color:var(--t);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.app{max-width:720px;margin:auto;padding:16px 14px 90px}.top{display:flex;align-items:center;gap:12px;margin-bottom:16px}.logo{width:50px;height:50px;object-fit:cover;border-radius:14px;border:1px solid #36502f}.top h1{font-size:17px;margin:0}.top p{font-size:12px;color:var(--m);margin:3px 0}.hero{padding:20px;border:1px solid #35532d;border-radius:24px;background:linear-gradient(135deg,rgba(125,255,70,.13),rgba(125,255,70,.02));box-shadow:0 20px 50px #0007}.eyebrow{color:var(--g);font-size:11px;font-weight:900;letter-spacing:.15em}.hero h2{font-size:27px;line-height:1.08;margin:8px 0}.hero>p{color:var(--m);font-size:13px}.bar{height:10px;border-radius:99px;background:#202620;overflow:hidden;margin-top:14px}.bar div{height:100%;width:0;background:linear-gradient(90deg,#48c91e,var(--g));transition:.25s}.progress{display:flex;justify-content:space-between;font-size:12px;margin-top:7px;color:var(--m)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.stat{padding:10px;border-radius:14px;background:#0004;border:1px solid #ffffff0f}.stat b{display:block;font-size:17px}.stat span{font-size:10px;color:var(--m)}.title{display:flex;justify-content:space-between;margin:22px 2px 10px}.title h3{font-size:14px;margin:0}.title span{font-size:11px;color:var(--m)}.cat{border:1px solid var(--l);background:var(--p);border-radius:18px;margin-bottom:10px;overflow:hidden}.head{display:flex;align-items:center;justify-content:space-between;padding:14px;cursor:pointer}.left{display:flex;gap:11px;align-items:center}.ico{width:38px;height:38px;border-radius:12px;background:#7dff4615;color:var(--g);display:grid;place-items:center}.head h4{margin:0;font-size:13px}.head p{margin:3px 0 0;font-size:10px;color:var(--m)}.tasks{display:none;border-top:1px solid var(--l);padding:5px 12px 10px}.cat.open .tasks{display:block}.task{display:grid;grid-template-columns:25px 1fr auto;gap:9px;align-items:center;padding:11px 2px;border-bottom:1px solid #ffffff0a}.task:last-child{border-bottom:0}.task input{display:none}.check{width:22px;height:22px;border:1px solid #414941;border-radius:7px;display:grid;place-items:center}.task input:checked+.check{background:var(--g);border-color:var(--g);color:#071006}.task input:checked+.check:after{content:'✓';font-weight:900}.text{font-size:12.5px;line-height:1.35}.done .text{text-decoration:line-through;color:#6e766e}.xp{font-size:10px;color:var(--g);font-weight:800}.gold{margin-top:15px;padding:15px;border-radius:17px;background:#eaffdf;color:#10210b}.gold b{font-size:11px;letter-spacing:.1em}.gold p{font-size:12.5px;margin:5px 0 0;line-height:1.45}textarea{width:100%;min-height:90px;border-radius:15px;border:1px solid var(--l);background:var(--p);color:var(--t);padding:12px;resize:vertical}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}button{border:0;border-radius:14px;padding:13px;font-weight:800;cursor:pointer}.primary{background:var(--g);color:#071006}.secondary{background:#171b17;color:var(--t);border:1px solid var(--l)}.danger{grid-column:1/-1;background:transparent;color:#ff8f8f;border:1px solid #ff646440}.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);opacity:0;background:#eaffdf;color:#10210b;padding:10px 15px;border-radius:999px;font-size:12px;font-weight:800;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}@media(max-width:460px){.hero h2{font-size:24px}.actions{grid-template-columns:1fr}.danger{grid-column:auto}}
-</style></head><body><main class="app"><div class="top"><img class="logo" src="meney-logo.jpeg"><div><h1>MENEY Daily Mission</h1><p id="date"></p></div></div><section class="hero"><div class="eyebrow">TODAY'S MISSION</div><h2>Good evening, Amirul 👋</h2><p>Siapkan misi mengikut keutamaan. Jangan tunggu arahan apabila kedai sedang tenang.</p><div class="bar"><div id="bar"></div></div><div class="progress"><span id="count">0/0 completed</span><span id="pct">0%</span></div><div class="stats"><div class="stat"><b id="xp">0 XP</b><span>Earned today</span></div><div class="stat"><b id="rank">Rookie</b><span>Current rank</span></div><div class="stat"><b id="remain">0</b><span>Tasks remaining</span></div></div></section><div class="title"><h3>Mission Categories</h3><span>Tap to open</span></div><div id="cats"></div><div class="gold"><b>MENEY GOLDEN RULE</b><p>Tiada pelanggan bukan bermaksud tiada kerja. Rujuk Daily Mission dan teruskan tugasan seterusnya tanpa menunggu arahan.</p></div><div class="title"><h3>Catatan Hari Ini</h3><span>Optional</span></div><textarea id="notes" placeholder="Contoh: 2 walk-in, 1 repair masuk, stok DS4 hampir habis..."></textarea><div class="actions"><button class="primary" id="copy">Salin Laporan WhatsApp</button><button class="secondary" id="finish">Tamatkan Hari</button><button class="danger" id="reset">Reset Checklist</button></div></main><div class="toast" id="toast"></div><script>
-const D=[['opening','☀️','Opening','Priority A • Mesti siap',[['Buka roller shutter dan pintu kedai',10],['Hidupkan lampu, aircond dan peralatan diperlukan',10],['Buka POS dan semak cash drawer',15],['Lap counter serta kemaskan ruang pelanggan',10],['Susun console, controller dan aksesori',10],['Pastikan kedai bersedia sebelum pelanggan masuk',15]]],['service','🤝','Customer & Service','Priority A • Sepanjang hari',[['Sambut setiap pelanggan yang masuk',15],['Tanya keperluan sebelum memberi cadangan',15],['Rekod setiap transaksi dalam POS',20],['Catat setiap repair atau trade-in dengan lengkap',20],['Susun semula barang selepas pelanggan melihatnya',10]]],['idle','⚡','Bila Kedai Tenang','Priority B • Jangan tunggu arahan',[['Bersihkan rak, console dan controller',10],['Kemas stor atau ruang kerja',15],['Kira stok satu kategori',20],['QC sekurang-kurangnya satu barang',20],['Semak status repair yang masih terbuka',15],['Ambil gambar satu produk untuk pemasaran',20],['Naikkan satu WhatsApp Status / posting produk',25],['Belajar satu produk selama 15 minit',15]]],['inventory','📦','Inventory','Priority B • Kawalan stok',[['Pastikan semua barang pameran mempunyai harga',15],['Cas controller yang perlu dicas',10],['Maklumkan stok rendah atau stok bermasalah',15],['Asingkan barang belum QC daripada barang sedia jual',20]]],['closing','🌙','Closing','Priority A • Sebelum balik',[['Kemas counter dan ruang pelanggan',10],['Kunci atau simpan barang bernilai tinggi',15],['Tutup POS dan semak transaksi harian',20],['Tutup console demo, aircond dan lampu',10],['Pastikan semua pintu serta roller shutter dikunci',20],['Hantar laporan Daily Mission ke group KPI',25]]]];
-const key='meney_'+new Date().toISOString().slice(0,10);let S=JSON.parse(localStorage.getItem(key)||'{"done":{},"notes":""}');const $=x=>document.getElementById(x);function save(){S.notes=$('notes').value;localStorage.setItem(key,JSON.stringify(S))}function render(){let root=$('cats');root.innerHTML='';D.forEach((c,ci)=>{let done=c[4].filter((_,i)=>S.done[c[0]+'_'+i]).length;let el=document.createElement('div');el.className='cat'+(ci===0?' open':'');el.innerHTML=`<div class="head"><div class="left"><div class="ico">${c[1]}</div><div><h4>${c[2]}</h4><p>${c[3]} • ${done}/${c[4].length}</p></div></div><span>⌄</span></div><div class="tasks">${c[4].map((t,i)=>{let id=c[0]+'_'+i,ch=!!S.done[id];return `<div class="task ${ch?'done':''}"><input id="${id}" type="checkbox" ${ch?'checked':''}><label class="check" for="${id}"></label><label class="text" for="${id}">${t[0]}</label><span class="xp">+${t[1]} XP</span></div>`}).join('')}</div>`;el.querySelector('.head').onclick=()=>el.classList.toggle('open');el.querySelectorAll('input').forEach(i=>i.onchange=()=>{S.done[i.id]=i.checked;save();render();stats()});root.appendChild(el)});$('notes').value=S.notes||''}function stats(){let all=D.flatMap(c=>c[4].map((t,i)=>({id:c[0]+'_'+i,x:t[1]}))),done=all.filter(a=>S.done[a.id]),p=Math.round(done.length/all.length*100),xp=done.reduce((s,a)=>s+a.x,0),r=p>=100?'Perfect Day':p>=80?'Store Guardian':p>=55?'Game Specialist':p>=30?'Active Player':'Rookie';$('bar').style.width=p+'%';$('count').textContent=done.length+'/'+all.length+' completed';$('pct').textContent=p+'%';$('xp').textContent=xp+' XP';$('rank').textContent=r;$('remain').textContent=all.length-done.length}function pop(m){$('toast').textContent=m;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1600)}function report(){let lines=D.map(c=>'• '+c[2]+': '+c[4].filter((_,i)=>S.done[c[0]+'_'+i]).length+'/'+c[4].length).join('\n'),all=D.flatMap(c=>c[4].map((t,i)=>({id:c[0]+'_'+i,x:t[1]}))),done=all.filter(a=>S.done[a.id]),p=Math.round(done.length/all.length*100),xp=done.reduce((s,a)=>s+a.x,0);return `*MENEY DAILY MISSION*\nTarikh: ${new Date().toLocaleDateString('ms-MY')}\nStaff: Amirul\n\n${lines}\n\n*Progress:* ${p}%\n*XP:* ${xp}\n\n*Catatan:*\n${$('notes').value.trim()||'Tiada catatan.'}`}$('copy').onclick=async()=>{save();try{await navigator.clipboard.writeText(report())}catch(e){let t=document.createElement('textarea');t.value=report();document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}pop('Laporan disalin')};$('finish').onclick=()=>pop('Hari ditandakan selesai');$('reset').onclick=()=>{if(confirm('Reset semua checklist hari ini?')){S={done:{},notes:''};save();render();stats();pop('Checklist direset')}};$('notes').oninput=save;$('date').textContent=new Date().toLocaleDateString('ms-MY',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});render();stats();
-</script></body></html>
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071007">
+  <title>MENEY Daily Mission</title>
+  <style>
+    :root{
+      --green:#7dff46;--green-dark:#48c91e;--bg:#070807;--panel:#121512;
+      --line:#293029;--text:#f5f7f5;--muted:#9ba39b;--danger:#ff7676;
+      --warning:#ffc857;--info:#71b7ff
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(circle at 80% 0,rgba(125,255,70,.14),transparent 30%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    .shell{max-width:900px;margin:auto;padding:18px 14px 80px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:50px;height:50px;border-radius:15px;background:var(--green);color:#071006;display:grid;place-items:center;font-size:21px;font-weight:1000}
+    .brand h1{font-size:18px;margin:0}.brand p{font-size:12px;color:var(--muted);margin:4px 0 0}
+    .btn{border:0;border-radius:14px;padding:12px 15px;font-weight:850}
+    .btn.primary{background:var(--green);color:#071006}
+    .btn.secondary{background:#171b17;color:var(--text);border:1px solid var(--line)}
+    .btn.danger{background:transparent;color:#ff9b9b;border:1px solid #ff646455}
+    .btn.small{padding:9px 12px;border-radius:11px;font-size:12px}
+    .card{border:1px solid var(--line);background:var(--panel);border-radius:22px;padding:18px}
+    .login-wrap{min-height:82vh;display:grid;place-items:center}
+    .login-card{width:min(430px,100%);padding:24px;border:1px solid #35532d;border-radius:26px;background:linear-gradient(145deg,rgba(125,255,70,.12),rgba(18,21,18,.98));box-shadow:0 25px 70px #0009}
+    .eyebrow{color:var(--green);font-size:11px;font-weight:900;letter-spacing:.16em}
+    .login-card h2{font-size:29px;margin:10px 0 6px}.login-card>p{color:var(--muted);font-size:13px;line-height:1.55}
+    label{display:block;font-size:12px;font-weight:750;margin:14px 0 7px}
+    input,textarea,select{width:100%;border-radius:14px;border:1px solid var(--line);background:#0b0d0b;color:var(--text);padding:13px;outline:none}
+    input:focus,textarea:focus,select:focus{border-color:var(--green)}
+    textarea{min-height:105px;resize:vertical}
+    .login-card .btn{width:100%;margin-top:16px}
+    .error{min-height:18px;margin-top:10px;color:#ff9b9b;font-size:12px}
+    .hero{padding:22px;border:1px solid #35532d;border-radius:25px;background:linear-gradient(135deg,rgba(125,255,70,.13),rgba(125,255,70,.02));box-shadow:0 20px 50px #0007}
+    .hero-line{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}
+    .hero h2{font-size:28px;line-height:1.1;margin:8px 0}.hero p{color:var(--muted);font-size:13px;margin:0}
+    .role-pill{border:1px solid #7dff4655;background:#7dff4615;color:var(--green);padding:8px 11px;border-radius:999px;font-size:11px;font-weight:900;text-transform:uppercase}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:17px}
+    .stat{padding:12px;border-radius:15px;background:#0004;border:1px solid #ffffff0f}
+    .stat b{display:block;font-size:20px}.stat span{font-size:10px;color:var(--muted)}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 2px 11px}
+    .toolbar h3{font-size:15px;margin:0}.toolbar p{font-size:11px;color:var(--muted);margin:3px 0 0}
+    .filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+    .filter{border:1px solid var(--line);background:#111411;color:var(--muted);border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800}
+    .filter.active{background:var(--green);color:#071006;border-color:var(--green)}
+    .mission-list{display:grid;gap:11px}
+    .mission{border:1px solid var(--line);background:var(--panel);border-radius:19px;padding:16px}
+    .mission-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .mission h4{font-size:15px;margin:0 0 6px}.mission .desc{color:var(--muted);font-size:12px;line-height:1.5;margin:0}
+    .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+    .badge{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:850;border:1px solid var(--line);color:var(--muted)}
+    .badge.pending{color:var(--warning);border-color:#ffc85755;background:#ffc85712}
+    .badge.in_progress{color:var(--info);border-color:#71b7ff55;background:#71b7ff12}
+    .badge.completed{color:var(--green);border-color:#7dff4655;background:#7dff4612}
+    .badge.high{color:#ff9696;border-color:#ff767655}.badge.medium{color:#ffd37b;border-color:#ffc85755}.badge.low{color:#9ed6ff;border-color:#71b7ff55}
+    .mission-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .empty{padding:38px 18px;text-align:center;border:1px dashed var(--line);border-radius:20px;color:var(--muted);font-size:13px}
+    .modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:16px;z-index:20}
+    .modal-card{width:min(560px,100%);max-height:92vh;overflow:auto;border:1px solid #35532d;border-radius:24px;background:#0f120f;padding:21px}
+    .modal-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.modal-head h3{margin:0}
+    .close{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:#171b17;color:var(--text)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;background:#eaffdf;color:#10210b;padding:11px 16px;border-radius:999px;font-size:12px;font-weight:850;transition:.2s;z-index:50}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    .loading{padding:35px;text-align:center;color:var(--muted)}
+    @media(max-width:650px){
+      .stats{grid-template-columns:1fr 1fr}.hero-line{display:block}.role-pill{display:inline-block;margin-top:12px}
+      .grid2{grid-template-columns:1fr}.toolbar{align-items:flex-end}.top{align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="login-wrap">
+      <div class="login-card">
+        <div class="eyebrow">MENEY OPERATIONS</div>
+        <h2>Daily Mission</h2>
+        <p>Log masuk untuk menerima, mengurus dan memantau tugasan harian Meney dari mana-mana.</p>
+        <form id="loginForm">
+          <label for="email">E-mel</label>
+          <input id="email" type="email" autocomplete="username" placeholder="danial@meney.local" required>
+          <label for="password">Kata laluan</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="Masukkan kata laluan" required>
+          <button id="loginBtn" class="btn primary" type="submit">Log Masuk</button>
+          <div id="loginError" class="error"></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="appView" class="hidden">
+      <header class="top">
+        <div class="brand">
+          <div class="logo">M</div>
+          <div><h1>MENEY Daily Mission</h1><p id="todayText"></p></div>
+        </div>
+        <button id="logoutBtn" class="btn secondary small">Log Keluar</button>
+      </header>
+
+      <section class="hero">
+        <div class="hero-line">
+          <div>
+            <div class="eyebrow">TODAY'S MISSION</div>
+            <h2 id="greeting">Selamat datang</h2>
+            <p id="heroMessage">Memuatkan tugasan...</p>
+          </div>
+          <div id="rolePill" class="role-pill">USER</div>
+        </div>
+        <div class="stats">
+          <div class="stat"><b id="totalStat">0</b><span>Jumlah tugasan</span></div>
+          <div class="stat"><b id="pendingStat">0</b><span>Pending</span></div>
+          <div class="stat"><b id="progressStat">0</b><span>In progress</span></div>
+          <div class="stat"><b id="completedStat">0</b><span>Completed</span></div>
+        </div>
+      </section>
+
+      <div class="toolbar">
+        <div><h3 id="listTitle">Mission List</h3><p id="syncText">Live sync melalui Firebase</p></div>
+        <button id="createBtn" class="btn primary small hidden">+ Create Mission</button>
+      </div>
+
+      <div class="filters">
+        <button class="filter active" data-filter="all">Semua</button>
+        <button class="filter" data-filter="pending">Pending</button>
+        <button class="filter" data-filter="in_progress">In Progress</button>
+        <button class="filter" data-filter="completed">Completed</button>
+      </div>
+
+      <div id="missionList" class="mission-list"><div class="loading">Memuatkan tugasan...</div></div>
+    </section>
+  </main>
+
+  <div id="missionModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head"><h3>Create Mission</h3><button id="closeModal" class="close">✕</button></div>
+      <form id="missionForm">
+        <label for="missionTitle">Tajuk tugasan</label>
+        <input id="missionTitle" maxlength="100" placeholder="Contoh: QC PS5 Slim" required>
+        <label for="missionDescription">Penerangan</label>
+        <textarea id="missionDescription" maxlength="500" placeholder="Terangkan hasil yang perlu dicapai..."></textarea>
+        <div class="grid2">
+          <div>
+            <label for="assignedTo">Assign kepada</label>
+            <select id="assignedTo" required></select>
+          </div>
+          <div>
+            <label for="priority">Priority</label>
+            <select id="priority">
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <label for="dueDate">Tarikh siap</label>
+        <input id="dueDate" type="date" required>
+        <button id="saveMissionBtn" class="btn primary" style="width:100%;margin-top:17px" type="submit">Simpan Mission</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import {
+      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, addDoc, onSnapshot,
+      query, where, updateDoc, serverTimestamp, Timestamp, getDocs
+    } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",
+      authDomain: "meney-daily-mission.firebaseapp.com",
+      databaseURL: "https://meney-daily-mission-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "meney-daily-mission",
+      storageBucket: "meney-daily-mission.firebasestorage.app",
+      messagingSenderId: "1035705938755",
+      appId: "1:1035705938755:web:a9ec6c7ea9c9b91f4a35f6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const $ = id => document.getElementById(id);
+    const state = { user:null, profile:null, missions:[], users:[], filter:"all", unsubscribe:null };
+
+    const todayISO = () => {
+      const d = new Date();
+      const offset = d.getTimezoneOffset();
+      return new Date(d.getTime() - offset*60000).toISOString().slice(0,10);
+    };
+    $("dueDate").value = todayISO();
+    $("todayText").textContent = new Date().toLocaleDateString("ms-MY",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+
+    function pop(message){
+      $("toast").textContent=message;
+      $("toast").classList.add("show");
+      setTimeout(()=>$("toast").classList.remove("show"),1800);
+    }
+
+    function humanError(error){
+      const code=error?.code||"";
+      if(code.includes("invalid-credential")) return "E-mel atau kata laluan tidak tepat.";
+      if(code.includes("too-many-requests")) return "Terlalu banyak cubaan. Cuba semula sebentar lagi.";
+      if(code.includes("permission-denied")) return "Akses ditolak. Semak Firestore Rules.";
+      return error?.message || "Ralat tidak diketahui.";
+    }
+
+    $("loginForm").addEventListener("submit", async e=>{
+      e.preventDefault();
+      $("loginError").textContent="";
+      $("loginBtn").disabled=true;
+      $("loginBtn").textContent="Sedang log masuk...";
+      try{
+        await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);
+      }catch(error){
+        $("loginError").textContent=humanError(error);
+      }finally{
+        $("loginBtn").disabled=false;
+        $("loginBtn").textContent="Log Masuk";
+      }
+    });
+
+    $("logoutBtn").onclick=()=>signOut(auth);
+    $("createBtn").onclick=()=>{$("missionModal").classList.remove("hidden");$("missionTitle").focus()};
+    $("closeModal").onclick=()=>$("missionModal").classList.add("hidden");
+    $("missionModal").addEventListener("click",e=>{if(e.target===$("missionModal"))$("missionModal").classList.add("hidden")});
+
+    document.querySelectorAll(".filter").forEach(btn=>{
+      btn.onclick=()=>{
+        document.querySelectorAll(".filter").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        state.filter=btn.dataset.filter;
+        renderMissions();
+      };
+    });
+
+    onAuthStateChanged(auth, async user=>{
+      if(state.unsubscribe){state.unsubscribe();state.unsubscribe=null}
+      if(!user){
+        state.user=null;state.profile=null;state.missions=[];
+        $("appView").classList.add("hidden");
+        $("loginView").classList.remove("hidden");
+        return;
+      }
+      try{
+        const profileSnap=await getDoc(doc(db,"users",user.uid));
+        if(!profileSnap.exists()) throw new Error("Profil pengguna tiada dalam collection users.");
+        const profile=profileSnap.data();
+        if(profile.active===false) throw new Error("Akaun ini telah dinyahaktifkan.");
+        state.user=user;state.profile=profile;
+        $("loginView").classList.add("hidden");
+        $("appView").classList.remove("hidden");
+        setupDashboard();
+        await loadAssignableUsers();
+        listenToMissions();
+      }catch(error){
+        alert(humanError(error));
+        await signOut(auth);
+      }
+    });
+
+    function setupDashboard(){
+      const name=state.profile.name||state.user.email;
+      const hour=new Date().getHours();
+      const salam=hour<12?"Selamat pagi":hour<18?"Selamat petang":"Selamat malam";
+      $("greeting").textContent=`${salam}, ${name} 👋`;
+      $("rolePill").textContent=state.profile.role||"user";
+      const owner=state.profile.role==="owner";
+      $("createBtn").classList.toggle("hidden",!owner);
+      $("listTitle").textContent=owner?"Semua Mission Staff":"Mission Saya";
+      $("heroMessage").textContent=owner
+        ?"Cipta tugasan dan pantau kemajuan staff secara masa nyata."
+        :"Siapkan tugasan mengikut keutamaan dan kemas kini status tanpa menunggu arahan.";
+    }
+
+    async function loadAssignableUsers(){
+      if(state.profile.role!=="owner") return;
+      const snap=await getDocs(collection(db,"users"));
+      state.users=snap.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>u.active!==false && u.role!=="owner");
+      $("assignedTo").innerHTML=state.users.length
+        ? state.users.map(u=>`<option value="${escapeHtml(u.uid)}">${escapeHtml(u.name||u.email||u.uid)}</option>`).join("")
+        : `<option value="">Tiada staff aktif</option>`;
+    }
+
+    function listenToMissions(){
+      const missionsRef=collection(db,"missions");
+      const q=state.profile.role==="owner"
+        ? missionsRef
+        : query(missionsRef,where("assignedTo","==",state.user.uid));
+      state.unsubscribe=onSnapshot(q,snap=>{
+        state.missions=snap.docs.map(d=>({id:d.id,...d.data()}));
+        state.missions.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+        renderMissions();
+      },error=>{
+        $("missionList").innerHTML=`<div class="empty">Gagal membaca mission: ${escapeHtml(humanError(error))}</div>`;
+      });
+    }
+
+    $("missionForm").addEventListener("submit",async e=>{
+      e.preventDefault();
+      if(state.profile.role!=="owner") return;
+      const assignedUID=$("assignedTo").value;
+      const assigned=state.users.find(u=>u.uid===assignedUID);
+      if(!assigned){pop("Pilih staff yang sah");return}
+      const dateParts=$("dueDate").value.split("-").map(Number);
+      const dueDate=Timestamp.fromDate(new Date(dateParts[0],dateParts[1]-1,dateParts[2],23,59,59));
+      $("saveMissionBtn").disabled=true;
+      $("saveMissionBtn").textContent="Menyimpan...";
+      try{
+        await addDoc(collection(db,"missions"),{
+          title:$("missionTitle").value.trim(),
+          description:$("missionDescription").value.trim(),
+          assignedTo:assignedUID,
+          assignedToName:assigned.name||assigned.email||"Staff",
+          createdBy:state.user.uid,
+          createdByName:state.profile.name||"Owner",
+          status:"pending",
+          priority:$("priority").value,
+          dueDate,
+          createdAt:serverTimestamp(),
+          updatedAt:serverTimestamp(),
+          completedAt:null
+        });
+        $("missionForm").reset();
+        $("dueDate").value=todayISO();
+        $("priority").value="medium";
+        $("missionModal").classList.add("hidden");
+        pop("Mission berjaya dicipta");
+      }catch(error){alert(humanError(error))}
+      finally{
+        $("saveMissionBtn").disabled=false;
+        $("saveMissionBtn").textContent="Simpan Mission";
+      }
+    });
+
+    async function changeStatus(id,status){
+      try{
+        const patch={status,updatedAt:serverTimestamp()};
+        if(status==="completed") patch.completedAt=serverTimestamp();
+        else patch.completedAt=null;
+        await updateDoc(doc(db,"missions",id),patch);
+        pop(status==="in_progress"?"Mission dimulakan":"Mission disiapkan");
+      }catch(error){alert(humanError(error))}
+    }
+
+    async function reopenMission(id){
+      try{
+        await updateDoc(doc(db,"missions",id),{status:"pending",completedAt:null,updatedAt:serverTimestamp()});
+        pop("Mission dibuka semula");
+      }catch(error){alert(humanError(error))}
+    }
+
+    window.changeStatus=changeStatus;
+    window.reopenMission=reopenMission;
+
+    function renderMissions(){
+      const list=state.filter==="all"?state.missions:state.missions.filter(m=>m.status===state.filter);
+      const all=state.missions;
+      $("totalStat").textContent=all.length;
+      $("pendingStat").textContent=all.filter(m=>m.status==="pending").length;
+      $("progressStat").textContent=all.filter(m=>m.status==="in_progress").length;
+      $("completedStat").textContent=all.filter(m=>m.status==="completed").length;
+      if(!list.length){
+        $("missionList").innerHTML=`<div class="empty">Tiada mission dalam kategori ini.</div>`;
+        return;
+      }
+      $("missionList").innerHTML=list.map(m=>{
+        const status=m.status||"pending";
+        const due=m.dueDate?.toDate?m.dueDate.toDate():null;
+        const dueText=due?due.toLocaleDateString("ms-MY",{day:"2-digit",month:"short",year:"numeric"}):"Tiada tarikh";
+        const owner=state.profile.role==="owner";
+        let actions="";
+        if(!owner && status==="pending") actions=`<button class="btn primary small" onclick="changeStatus('${m.id}','in_progress')">Start Mission</button>`;
+        if(!owner && status==="in_progress") actions=`<button class="btn primary small" onclick="changeStatus('${m.id}','completed')">Complete Mission</button>`;
+        if(owner && status==="completed") actions=`<button class="btn secondary small" onclick="reopenMission('${m.id}')">Buka Semula</button>`;
+        return `<article class="mission">
+          <div class="mission-top">
+            <div>
+              <h4>${escapeHtml(m.title||"Tanpa tajuk")}</h4>
+              <p class="desc">${escapeHtml(m.description||"Tiada penerangan.")}</p>
+            </div>
+            <span class="badge ${escapeHtml(status)}">${formatStatus(status)}</span>
+          </div>
+          <div class="badges">
+            <span class="badge ${escapeHtml(m.priority||"medium")}">Priority: ${escapeHtml(capitalize(m.priority||"medium"))}</span>
+            <span class="badge">Staff: ${escapeHtml(m.assignedToName||"-")}</span>
+            <span class="badge">Due: ${escapeHtml(dueText)}</span>
+          </div>
+          ${actions?`<div class="mission-actions">${actions}</div>`:""}
+        </article>`;
+      }).join("");
+    }
+
+    function escapeHtml(value){
+      return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+    }
+    function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+    function formatStatus(s){return s==="in_progress"?"IN PROGRESS":s.toUpperCase()}
+  </script>
+</body>
+</html>
