@@ -228,7 +228,7 @@
 
   <div class="splash-footer">
     Powered by Meney Gaming<br>
-    Version 1.0
+    Version 1.1
   </div>
 </div>
   <main class="shell">
@@ -292,7 +292,7 @@
 
   <div id="missionModal" class="modal hidden">
     <div class="modal-card">
-      <div class="modal-head"><h3>Create Mission</h3><button id="closeModal" class="close">✕</button></div>
+      <div class="modal-head"><h3 id="missionModalTitle">Create Mission</h3><button id="closeModal" class="close">✕</button></div>
       <form id="missionForm">
         <label for="missionTitle">Tajuk tugasan</label>
         <input id="missionTitle" maxlength="100" placeholder="Contoh: QC PS5 Slim" required>
@@ -328,7 +328,7 @@
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
     import {
       getFirestore, doc, getDoc, collection, addDoc, onSnapshot,
-      query, where, updateDoc, serverTimestamp, Timestamp, getDocs
+      query, where, updateDoc, deleteDoc, serverTimestamp, Timestamp, getDocs
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -346,7 +346,7 @@
     const db = getFirestore(app);
 
     const $ = id => document.getElementById(id);
-    const state = { user:null, profile:null, missions:[], users:[], filter:"all", unsubscribe:null };
+    const state = { user:null, profile:null, missions:[], users:[], filter:"all", unsubscribe:null, editingMissionId:null };
 
     const todayISO = () => {
       const d = new Date();
@@ -386,9 +386,28 @@
     });
 
     $("logoutBtn").onclick=()=>signOut(auth);
-    $("createBtn").onclick=()=>{$("missionModal").classList.remove("hidden");$("missionTitle").focus()};
-    $("closeModal").onclick=()=>$("missionModal").classList.add("hidden");
-    $("missionModal").addEventListener("click",e=>{if(e.target===$("missionModal"))$("missionModal").classList.add("hidden")});
+
+    function resetMissionForm(){
+      state.editingMissionId=null;
+      $("missionForm").reset();
+      $("dueDate").value=todayISO();
+      $("priority").value="medium";
+      $("missionModalTitle").textContent="Create Mission";
+      $("saveMissionBtn").textContent="Simpan Mission";
+    }
+
+    function closeMissionModal(){
+      $("missionModal").classList.add("hidden");
+      resetMissionForm();
+    }
+
+    $("createBtn").onclick=()=>{
+      resetMissionForm();
+      $("missionModal").classList.remove("hidden");
+      $("missionTitle").focus();
+    };
+    $("closeModal").onclick=closeMissionModal;
+    $("missionModal").addEventListener("click",e=>{if(e.target===$("missionModal"))closeMissionModal()});
 
     document.querySelectorAll(".filter").forEach(btn=>{
       btn.onclick=()=>{
@@ -464,37 +483,50 @@
     $("missionForm").addEventListener("submit",async e=>{
       e.preventDefault();
       if(state.profile.role!=="owner") return;
+
       const assignedUID=$("assignedTo").value;
       const assigned=state.users.find(u=>u.uid===assignedUID);
       if(!assigned){pop("Pilih staff yang sah");return}
+
       const dateParts=$("dueDate").value.split("-").map(Number);
       const dueDate=Timestamp.fromDate(new Date(dateParts[0],dateParts[1]-1,dateParts[2],23,59,59));
+      const isEditing=Boolean(state.editingMissionId);
+
       $("saveMissionBtn").disabled=true;
-      $("saveMissionBtn").textContent="Menyimpan...";
+      $("saveMissionBtn").textContent=isEditing?"Menyimpan perubahan...":"Menyimpan...";
+
       try{
-        await addDoc(collection(db,"missions"),{
+        const missionData={
           title:$("missionTitle").value.trim(),
           description:$("missionDescription").value.trim(),
           assignedTo:assignedUID,
           assignedToName:assigned.name||assigned.email||"Staff",
-          createdBy:state.user.uid,
-          createdByName:state.profile.name||"Owner",
-          status:"pending",
           priority:$("priority").value,
           dueDate,
-          createdAt:serverTimestamp(),
-          updatedAt:serverTimestamp(),
-          completedAt:null
-        });
-        $("missionForm").reset();
-        $("dueDate").value=todayISO();
-        $("priority").value="medium";
-        $("missionModal").classList.add("hidden");
-        pop("Mission berjaya dicipta");
-      }catch(error){alert(humanError(error))}
-      finally{
+          updatedAt:serverTimestamp()
+        };
+
+        if(isEditing){
+          await updateDoc(doc(db,"missions",state.editingMissionId),missionData);
+          pop("Mission berjaya dikemas kini");
+        }else{
+          await addDoc(collection(db,"missions"),{
+            ...missionData,
+            createdBy:state.user.uid,
+            createdByName:state.profile.name||"Owner",
+            status:"pending",
+            createdAt:serverTimestamp(),
+            completedAt:null
+          });
+          pop("Mission berjaya dicipta");
+        }
+
+        closeMissionModal();
+      }catch(error){
+        alert(humanError(error));
+      }finally{
         $("saveMissionBtn").disabled=false;
-        $("saveMissionBtn").textContent="Simpan Mission";
+        $("saveMissionBtn").textContent=state.editingMissionId?"Simpan Perubahan":"Simpan Mission";
       }
     });
 
@@ -515,8 +547,51 @@
       }catch(error){alert(humanError(error))}
     }
 
+    function editMission(id){
+      if(state.profile.role!=="owner") return;
+      const mission=state.missions.find(m=>m.id===id);
+      if(!mission){pop("Mission tidak dijumpai");return}
+
+      state.editingMissionId=id;
+      $("missionModalTitle").textContent="Edit Mission";
+      $("saveMissionBtn").textContent="Simpan Perubahan";
+      $("missionTitle").value=mission.title||"";
+      $("missionDescription").value=mission.description||"";
+      $("assignedTo").value=mission.assignedTo||"";
+      $("priority").value=mission.priority||"medium";
+
+      const due=mission.dueDate?.toDate?mission.dueDate.toDate():null;
+      if(due){
+        const offset=due.getTimezoneOffset();
+        $("dueDate").value=new Date(due.getTime()-offset*60000).toISOString().slice(0,10);
+      }else{
+        $("dueDate").value=todayISO();
+      }
+
+      $("missionModal").classList.remove("hidden");
+      $("missionTitle").focus();
+    }
+
+    async function deleteMission(id){
+      if(state.profile.role!=="owner") return;
+      const mission=state.missions.find(m=>m.id===id);
+      if(!mission){pop("Mission tidak dijumpai");return}
+
+      const confirmed=confirm(`Padam mission “${mission.title||"Tanpa tajuk"}”?\n\nTindakan ini tidak boleh dibatalkan.`);
+      if(!confirmed) return;
+
+      try{
+        await deleteDoc(doc(db,"missions",id));
+        pop("Mission berjaya dipadam");
+      }catch(error){
+        alert(humanError(error));
+      }
+    }
+
     window.changeStatus=changeStatus;
     window.reopenMission=reopenMission;
+    window.editMission=editMission;
+    window.deleteMission=deleteMission;
 
     function renderMissions(){
       const list=state.filter==="all"?state.missions:state.missions.filter(m=>m.status===state.filter);
@@ -537,7 +612,16 @@
         let actions="";
         if(!owner && status==="pending") actions=`<button class="btn primary small" onclick="changeStatus('${m.id}','in_progress')">Start Mission</button>`;
         if(!owner && status==="in_progress") actions=`<button class="btn primary small" onclick="changeStatus('${m.id}','completed')">Complete Mission</button>`;
-        if(owner && status==="completed") actions=`<button class="btn secondary small" onclick="reopenMission('${m.id}')">Buka Semula</button>`;
+        if(owner){
+          const reopenButton=status==="completed"
+            ? `<button class="btn secondary small" onclick="reopenMission('${m.id}')">Buka Semula</button>`
+            : "";
+          actions=`
+            <button class="btn secondary small" onclick="editMission('${m.id}')">✏️ Edit</button>
+            ${reopenButton}
+            <button class="btn danger small" onclick="deleteMission('${m.id}')">🗑 Delete</button>
+          `;
+        }
         return `<article class="mission">
           <div class="mission-top">
             <div>
