@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise v3.1.1 PWA</title>
+  <title>Meney POS Enterprise v3.2 Premium UI</title>
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -193,7 +193,78 @@
       .bottom-nav button{border:0;background:transparent;border-radius:11px;color:#667085;font-size:10px;font-weight:850;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.bottom-nav button span{font-size:19px;line-height:1}.bottom-nav button.active{color:#15803d;background:#ecfdf3}
       .modal{width:calc(100vw - 20px);max-height:88vh;overflow:auto;margin:10px}.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.btn{min-height:44px}.field input,.field select,.field textarea{font-size:16px}
     }
-  </style>
+  
+    /* ===== Meney POS v3.2 Premium UI ===== */
+    :root{
+      --bg:#f3f6f4;--surface:#fff;--surface2:#f8faf9;--text:#101828;--muted:#667085;
+      --line:#e4e9e6;--line2:#eef2ef;--green:#159947;--green2:#0f7d39;--green-soft:#eaf8ef;
+      --lime:#a3ff12;--charcoal:#111827;--shadow:0 14px 40px rgba(16,24,40,.075);
+      --shadow-sm:0 7px 20px rgba(16,24,40,.055);--radius:20px;--radius-sm:13px;
+    }
+    html{scroll-behavior:smooth}
+    body{background:radial-gradient(circle at 85% 0%,rgba(22,163,74,.07),transparent 25%),var(--bg)}
+    .sidebar{background:linear-gradient(180deg,#fff 0%,#fbfdfb 100%);border-right:1px solid #e7ece9;box-shadow:10px 0 35px rgba(16,24,40,.035);padding:20px 14px}
+    .brand{padding:0 8px 20px}
+    .brand-logo{width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#202a37,#0b111c);color:var(--lime);box-shadow:0 12px 28px rgba(17,24,39,.22),inset 0 1px 0 rgba(255,255,255,.08);transform:rotate(-2deg)}
+    .brand h1{font-size:16px;font-weight:950;letter-spacing:.045em}
+    .role-pill{background:#111827;color:var(--lime);border:1px solid rgba(163,255,18,.28);border-radius:999px;padding:5px 8px}
+    .nav-label{padding-left:12px;color:#98a2b3}.nav{gap:6px}
+    .nav-btn{min-height:42px;padding:11px 12px;border-radius:12px;font-weight:800;transition:.18s ease}
+    .nav-btn:hover{background:#f0f5f2;color:#101828;transform:translateX(2px)}
+    .nav-btn.active{background:linear-gradient(135deg,#159947,#0f7d39);color:#fff;box-shadow:0 8px 18px rgba(21,153,71,.22)}
+    .topbar{height:76px;padding:0 26px;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(228,233,230,.9)}
+    .topbar h2{font-size:21px;font-weight:950;letter-spacing:-.02em}.page-wrap{padding:24px}
+    .card{border:1px solid rgba(228,233,230,.95);box-shadow:var(--shadow-sm);transition:box-shadow .2s ease,transform .2s ease,border-color .2s ease}
+    .stat-card{position:relative;overflow:hidden;padding:20px;background:linear-gradient(145deg,#fff,#fbfdfb)}
+    .stat-card:before{content:"";position:absolute;right:-28px;top:-30px;width:100px;height:100px;border-radius:50%;background:rgba(21,153,71,.07)}
+    .stat-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.055em;font-weight:850}
+    .stat-card .value{font-size:27px;letter-spacing:-.04em}
+    .stat-card .trend{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#edf9f1;color:#147a3a}
+    .section{padding:20px}.section-head{margin-bottom:17px}.section-head h3{font-size:17px;font-weight:950;letter-spacing:-.015em}
+    .summary-mini{background:linear-gradient(145deg,#fbfcfb,#f5f8f6);border:1px solid #e8eeea;padding:15px}.summary-mini strong{font-size:20px}
+    .quick{min-height:116px;padding:18px;border-color:#e5ebe7;transition:.18s ease;background:linear-gradient(145deg,#fff,#fbfdfb)}
+    .quick:hover{transform:translateY(-3px);border-color:#a9d8b8;box-shadow:0 14px 28px rgba(16,24,40,.08)}
+    .quick .qicon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#ecf8f0;color:#147a3a;font-size:20px}
+    .btn{border-radius:12px;min-height:40px;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+    .btn:hover{transform:translateY(-1px);filter:saturate(1.05)}.btn:active{transform:translateY(0)}
+    .btn-green{background:linear-gradient(135deg,#18a64d,#10803a);box-shadow:0 8px 18px rgba(22,163,74,.18)}
+    .btn-purple{background:linear-gradient(135deg,#7c3aed,#5b21b6);box-shadow:0 8px 18px rgba(109,40,217,.16)}
+    .btn-dark{background:linear-gradient(135deg,#202938,#101828)}.btn-light{background:#fff;border-color:#dce4df}
+    input,select,textarea{min-height:42px;border-color:#d6ddd8;background:#fff;transition:border-color .15s ease,box-shadow .15s ease}
+    input:focus,select:focus,textarea:focus{border-color:#56b779;box-shadow:0 0 0 4px rgba(22,163,74,.09)}
+    table{border-collapse:separate;border-spacing:0}th{background:#f7faf8;color:#7b8794;border-top:1px solid var(--line2)}
+    th:first-child{border-top-left-radius:10px}th:last-child{border-top-right-radius:10px}
+    tbody tr{transition:background .15s ease}tbody tr:hover{background:#fafcfb}td{padding-top:13px;padding-bottom:13px}
+    .badge{padding:6px 9px;letter-spacing:.02em}
+    .flow-steps{gap:10px}.step{padding:12px;border-color:#e4eae6;background:linear-gradient(145deg,#fff,#fafcfb)}
+    .step.active{border-color:#a7dfb9;background:#edf9f1}.step-no{width:24px;height:24px}
+    .product-toolbar{grid-template-columns:minmax(260px,1fr) 180px}.product-list{gap:10px}
+    .product-row{min-height:78px;padding:13px 14px;border-radius:15px;border:1px solid #e3e9e5;background:linear-gradient(145deg,#fff,#fbfdfc);box-shadow:0 4px 13px rgba(16,24,40,.035);transition:.17s ease}
+    .product-row:hover{border-color:#9bd6ae;transform:translateY(-2px);box-shadow:0 10px 24px rgba(16,24,40,.075)}
+    .product-row h4{font-size:13px;font-weight:900}.product-row p{font-size:10.5px}
+    .product-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+    .product-chip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 7px;font-size:9px;font-weight:900;letter-spacing:.035em;text-transform:uppercase}
+    .product-chip.new{background:#e9f8ee;color:#087a35}.product-chip.used{background:#eef4ff;color:#1d4ed8}.product-chip.stock{background:#f2f4f7;color:#475467}
+    .product-row .price{font-size:14px;color:#101828}
+    .add-mini{width:auto;min-width:62px;height:36px;padding:0 12px;border-radius:10px;background:linear-gradient(135deg,#18a64d,#10803a);box-shadow:0 7px 15px rgba(22,163,74,.18)}
+    .cart-box{border-left:0;padding:15px;border-radius:16px;background:#f8faf9;border:1px solid #e6ece8}
+    .cart-line{background:#fff;border:1px solid #e5ebe7;border-radius:13px;padding:12px;margin-bottom:9px;box-shadow:0 4px 12px rgba(16,24,40,.03)}
+    .total-line.grand{background:#111827;color:#fff;border:0;border-radius:13px;padding:13px 14px;margin:12px 0}
+    .shift-panel{border-top:4px solid var(--green)}
+    .modal-backdrop{backdrop-filter:blur(6px)}.modal{border:1px solid rgba(255,255,255,.75);box-shadow:0 36px 100px rgba(0,0,0,.26);animation:premiumModal .18s ease-out}
+    @keyframes premiumModal{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+    .page:not(.hidden){animation:premiumPage .18s ease-out}@keyframes premiumPage{from{opacity:.25;transform:translateY(5px)}to{opacity:1;transform:none}}
+    .document-sheet{border:1px solid #dfe6e1;border-radius:18px;padding:26px;box-shadow:0 16px 34px rgba(16,24,40,.08);background:linear-gradient(180deg,#fff,#fdfefd)}
+    .document-head{border-bottom:3px solid #101828;padding-bottom:18px;align-items:flex-start}
+    .document-brand h2{font-size:23px;letter-spacing:.04em}.document-brand h2:after{content:"";display:block;width:42px;height:4px;border-radius:999px;background:var(--green);margin-top:9px}
+    .document-meta strong{display:inline-block;background:#101828;color:#fff;border-radius:9px;padding:7px 10px;margin-bottom:7px;font-size:13px}
+    .document-customer{background:#f3f7f4;border:1px solid #e4ebe6;padding:14px;border-radius:12px}
+    .document-table th{background:#101828;color:#fff;border:0;font-size:9px;padding:10px 7px}.document-table td{padding:11px 7px}
+    .document-total.grand{background:#edf9f1;color:#0b6b31;border:1px solid #bfe4cb;border-radius:10px;padding:11px 12px;margin-top:8px}
+    .document-note{background:#f8faf9;border:1px dashed #bdc9c1;border-radius:10px;padding:12px;margin-top:20px;color:#475467}
+    @media(max-width:590px){.page-wrap{padding:14px}.product-toolbar{grid-template-columns:1fr}.product-row{min-height:82px}.document-sheet{padding:18px}}
+
+</style>
 </head>
 <body>
   <section id="loginPage" class="login-page">
@@ -271,7 +342,7 @@
         </div>
         <div class="top-actions">
           <span id="shiftChip" class="shift-chip">● SHIFT OPEN</span>
-          <button class="btn btn-light" data-go="pos">New Sale</button>
+          <button class="btn btn-light" data-go="pos">＋ New Sale</button>
         </div>
       </header>
 
@@ -349,7 +420,7 @@
                     <div class="total-line"><span>Subtotal</span><strong id="saleSubtotal">RM0.00</strong></div>
                     <div class="total-line"><span>Discount</span><strong id="saleDiscountText">RM0.00</strong></div>
                     <div class="total-line grand"><span>Total</span><span id="saleTotal">RM0.00</span></div>
-                    <button id="completeSale" class="btn btn-green btn-block">Confirm Payment</button>
+                    <button id="completeSale" class="btn btn-green btn-block">Confirm Payment →</button>
                   </div>
                 </div>
               </div>
@@ -470,7 +541,7 @@
           <div class="card section">
             <div class="section-head">
               <div><h3>Repair Management</h3><p>Terima repair, jejak status dan rekod bayaran.</p></div>
-              <button id="newRepairBtn" class="btn btn-green">＋ New Repair</button>
+              <button id="newRepairBtn" class="btn btn-green">🛠 New Repair</button>
             </div>
             <div class="table-wrap">
               <table><thead><tr><th>Ticket</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Estimate</th><th>Action</th></tr></thead><tbody id="repairBody"></tbody></table>
@@ -482,7 +553,7 @@
           <div class="card section">
             <div class="section-head">
               <div><h3>Inventory</h3><p>Produk diasingkan mengikut Item Type: New atau Used sahaja.</p></div>
-              <button id="addProductBtn" class="btn btn-purple">＋ Add Product</button>
+              <button id="addProductBtn" class="btn btn-purple">📦 Add Product</button>
             </div>
             <div class="notice" style="margin-bottom:12px"><strong>Simple Inventory Mode:</strong> Setiap produk hanya diasingkan kepada New atau Used. Tiada grading condition tambahan.</div><div class="product-toolbar"><input id="inventorySearch" placeholder="Search product / serial number..."><select id="inventoryCategory"><option value="">All Category</option></select></div>
             <div class="table-wrap">
@@ -564,7 +635,7 @@
           <div class="grid overview-grid">
             <div class="card section">
               <div class="section-head"><div><h3>System Settings</h3><p>Firebase project yang sama dengan Meney Daily Mission.</p></div></div>
-              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v3.1.1 Item Warranty PWA</strong></div>
+              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v3.2 Premium UI Edition</strong></div>
               <div class="summary-mini"><span>Database</span><strong>Cloud Firestore</strong></div>
               <div class="summary-mini"><span>Data ownership</span><strong>Export anytime</strong></div>
             </div>
@@ -754,12 +825,12 @@
   function showTransactionDocument(data){
     state.lastDocument=data;
     $("documentModalTitle").textContent=data.title;
-    const rows=(data.items||[]).map((i,k)=>`<tr><td>${k+1}</td><td><strong>${esc(i.name)}</strong>${i.detail?`<br><span class="muted">${esc(i.detail)}</span>`:""}${i.warranty?`<br><span><strong>Warranty:</strong> ${esc(i.warranty)}</span>`:""}</td><td>${i.qty||1}</td><td>${money(i.unitPrice??i.amount)}</td><td><strong>${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}</strong></td></tr>`).join("");
+    const rows=(data.items||[]).map((i,k)=>`<tr><td>${k+1}</td><td><strong>${esc(i.name)}</strong>${i.detail?`<br><span class="muted">${esc(i.detail)}</span>`:""}</td><td>${esc(String(i.warranty||"").trim()||"—")}</td><td>${i.qty||1}</td><td>${money(i.unitPrice??i.amount)}</td><td><strong>${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}</strong></td></tr>`).join("");
     const totals=(data.totals||[]).map(t=>`<div class="document-total ${t.grand?"grand":""}"><span>${esc(t.label)}</span><strong>${money(t.value)}</strong></div>`).join("");
     $("documentPreview").innerHTML=`
       <div class="document-head"><div class="document-brand"><h2>MENEY GAMING</h2><p>Sell · Buy · Trade-In · Repair</p></div><div class="document-meta"><strong>${esc(data.number)}</strong>${esc(data.date||docDate())}<br>${esc(data.staff||"")}</div></div>
       <div class="document-customer"><div><span>Customer</span><strong>${esc(data.customer||"Walk-in")}</strong></div><div><span>Contact</span><strong>${esc(data.phone||"—")}</strong></div></div>
-      <table class="document-table"><thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
+      <table class="document-table"><thead><tr><th>#</th><th>Description</th><th>Warranty</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
       <div class="document-totals">${totals}</div>
       ${data.payment?`<div class="document-note"><strong>Payment:</strong> ${esc(data.payment)}<br>${esc(data.note||"Terima kasih kerana berurusan dengan Meney Gaming.")}</div>`:`<div class="document-note">${esc(data.note||"Terima kasih kerana berurusan dengan Meney Gaming.")}</div>`}`;
     $("documentModal").classList.remove("hidden");
@@ -778,7 +849,26 @@
   $("printDocument").onclick=()=>{
     if(!state.lastDocument)return;
     const w=window.open("","_blank","width=850,height=900");
-    w.document.write(`<!doctype html><html><head><title>${esc(state.lastDocument.number)}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}.document-sheet{max-width:760px;margin:auto}.document-head{display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:14px}.document-meta{text-align:right}.document-customer{display:grid;grid-template-columns:1fr 1fr;background:#f5f5f5;padding:12px;margin:16px 0}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #ddd;padding:9px;font-size:12px}.document-totals{width:310px;margin:15px 0 0 auto}.document-total{display:flex;justify-content:space-between;padding:6px}.grand{font-size:17px;font-weight:bold;border-top:2px solid #111}.document-note{margin-top:20px;border-top:1px dashed #aaa;padding-top:12px;font-size:11px}.muted{color:#666}@media print{body{padding:0}}</style></head><body><div class="document-sheet">${$("documentPreview").innerHTML}</div><script>window.onload=()=>window.print()<\/script></body></html>`);
+    w.document.write(`<!doctype html><html><head><title>${esc(state.lastDocument.number)}</title><style>
+body{font-family:Arial,sans-serif;padding:28px;color:#101828;background:#fff}
+.document-sheet{max-width:760px;margin:auto}
+.document-head{display:flex;justify-content:space-between;gap:18px;border-bottom:3px solid #101828;padding-bottom:16px}
+.document-brand h2{margin:0;font-size:23px;letter-spacing:.04em}
+.document-brand p{margin:7px 0 0;color:#667085;font-size:11px;font-weight:bold}
+.document-meta{text-align:right;font-size:11px}
+.document-meta strong{display:inline-block;background:#101828;color:#fff;border-radius:7px;padding:7px 9px;margin-bottom:7px}
+.document-customer{display:grid;grid-template-columns:1fr 1fr;background:#f3f7f4;border:1px solid #e2e8e4;border-radius:10px;padding:12px;margin:16px 0}
+.document-customer span{display:block;color:#667085;font-size:10px;margin-bottom:3px}
+table{width:100%;border-collapse:collapse}
+th{background:#101828;color:#fff;text-transform:uppercase;letter-spacing:.04em}
+th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:11px}
+.document-totals{width:310px;margin:15px 0 0 auto}
+.document-total{display:flex;justify-content:space-between;padding:6px}
+.grand{font-size:17px;font-weight:bold;border:1px solid #bfe4cb!important;background:#edf9f1;border-radius:8px;color:#0b6b31;padding:10px!important;margin-top:6px}
+.document-note{margin-top:20px;border:1px dashed #aeb9b2;background:#f8faf9;border-radius:9px;padding:11px;font-size:10px;color:#475467}
+.muted{color:#667085}
+@media print{body{padding:0}.document-sheet{max-width:none}}
+</style></head><body><div class="document-sheet">${$("documentPreview").innerHTML}</div><script>window.onload=()=>window.print()<\/script></body></html>`);
     w.document.close();
   };
   $("whatsappDocument").onclick=()=>{
@@ -835,7 +925,7 @@
   function renderProducts(){
     const t=$("posSearch").value.toLowerCase(),c=$("posCategory").value;
     const arr=state.products.filter(p=>(!t||`${p.name} ${p.sku} ${p.serial}`.toLowerCase().includes(t))&&(!c||p.category===c)&&Number(p.stock)>0);
-    $("productList").innerHTML=arr.length?arr.map(p=>`<div class="product-row"><div><h4>${esc(p.name)}</h4><p>${esc(p.sku)} · Stock ${Number(p.stock||0)}</p></div><div style="display:flex;align-items:center;gap:9px"><span class="price">${money(p.price)}</span><button class="add-mini" onclick="window.addCart('${p.id}')">+</button></div></div>`).join(""):'<div class="muted" style="padding:25px;text-align:center">Tiada produk.</div>'
+    $("productList").innerHTML=arr.length?arr.map(p=>`<div class="product-row"><div><h4>${esc(p.name)}</h4><p>${esc(p.sku)}${p.category?` · ${esc(p.category)}`:""}</p><div class="product-meta"><span class="product-chip ${(p.itemType||"Used").toLowerCase()}">${esc(p.itemType||"Used")}</span><span class="product-chip stock">Stock ${Number(p.stock||0)}</span></div></div><div style="display:flex;align-items:center;gap:10px"><span class="price">${money(p.price)}</span><button class="add-mini" onclick="window.addCart('${p.id}')">Add</button></div></div>`).join(""):'<div class="muted" style="padding:25px;text-align:center">Tiada produk.</div>' 
   }
 
   window.addCart=id=>{
@@ -887,13 +977,18 @@
     $("cartCount").textContent=state.cart.reduce((s,i)=>s+i.qty,0)+" item";
     $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div><div class="field" style="margin-top:10px">
   <label>Warranty for this item <span class="muted">(optional)</span></label>
-  <input value="${esc(i.warranty||"")}" oninput="window.cartWarranty('${i.productId}',this.value)" placeholder="Leave blank / No Warranty / e.g. 30 Days Shop Warranty">
+  <input class="cart-warranty-input" data-product-id="${esc(i.productId)}" value="${esc(i.warranty||"")}" oninput="window.cartWarranty('${i.productId}',this.value)" onchange="window.cartWarranty('${i.productId}',this.value)" placeholder="Leave blank / No Warranty / e.g. 30 Days Shop Warranty">
   <span class="field-help">Warranty ini khusus untuk item ini dan akan tertera pada receipt.</span>
 </div></div>`).join(""):'<div class="muted" style="padding:28px;text-align:center">Cart kosong.</div>';
     const t=totals();$("saleSubtotal").textContent=money(t.sub);$("saleDiscountText").textContent=money(t.disc);$("saleTotal").textContent=money(t.total);renderSplitPaymentSummary()
   }
 
   $("completeSale").onclick=async()=>{
+    // Force-sync every visible warranty field before saving or generating receipt.
+    document.querySelectorAll(".cart-warranty-input").forEach(input=>{
+      const item=state.cart.find(x=>x.productId===input.dataset.productId);
+      if(item)item.warranty=String(input.value||"").trim();
+    });
     if(!state.cart.length)return toast("Cart kosong.");
     const t=totals(),isSplit=$("salePayment").value==="Split Payment",payments=isSplit?splitPaymentData():[{method:$("salePayment").value,amount:Number(t.total.toFixed(2))}],totalPaid=payments.reduce((sum,p)=>sum+Number(p.amount||0),0);
     if(t.total<=0)return toast("Jumlah jualan mesti lebih daripada RM0.");
