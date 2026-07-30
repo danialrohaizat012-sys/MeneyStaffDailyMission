@@ -70,7 +70,136 @@
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;background:#eaffdf;color:#10210b;padding:11px 16px;border-radius:999px;font-size:12px;font-weight:850;transition:.2s;z-index:50}
     .toast.show{opacity:1;transform:translate(-50%,0)}
-    .loading{padding:35px;text-align:center;color:var(--muted)}
+    .loading{padding:35px;text-align:center;color:var(--muted)}/* ===== MENEY SPLASH SCREEN ===== */
+
+#splashScreen{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 50% 35%,rgba(125,255,70,.13),transparent 32%),
+    #070807;
+  transition:opacity .5s ease,visibility .5s ease;
+}
+
+#splashScreen.splash-hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+.splash-content{
+  width:min(340px,85%);
+  text-align:center;
+  animation:splashEnter .75s ease both;
+}
+
+.splash-logo{
+  width:104px;
+  height:104px;
+  margin:0 auto 24px;
+  border-radius:30px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#94ff65,#55d92b);
+  color:#071006;
+  font-size:46px;
+  font-weight:1000;
+  box-shadow:
+    0 0 0 1px rgba(125,255,70,.3),
+    0 20px 60px rgba(0,0,0,.7),
+    0 0 45px rgba(125,255,70,.18);
+  animation:logoPulse 1.6s ease-in-out infinite;
+}
+
+.splash-title{
+  margin:0;
+  font-size:27px;
+  font-weight:900;
+  letter-spacing:-.03em;
+}
+
+.splash-subtitle{
+  margin:8px 0 28px;
+  color:#9ba39b;
+  font-size:13px;
+}
+
+.splash-loader{
+  width:100%;
+  height:4px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#202520;
+}
+
+.splash-loader-bar{
+  width:45%;
+  height:100%;
+  border-radius:999px;
+  background:#7dff46;
+  animation:splashLoading 1.25s ease-in-out infinite;
+}
+
+.splash-status{
+  margin:13px 0 0;
+  color:#7dff46;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.splash-footer{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:30px;
+  text-align:center;
+  color:#687068;
+  font-size:10px;
+  line-height:1.7;
+}
+
+@keyframes splashEnter{
+  from{
+    opacity:0;
+    transform:translateY(14px) scale(.97);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+@keyframes logoPulse{
+  0%,100%{
+    transform:scale(1);
+    box-shadow:
+      0 0 0 1px rgba(125,255,70,.3),
+      0 20px 60px rgba(0,0,0,.7),
+      0 0 35px rgba(125,255,70,.14);
+  }
+  50%{
+    transform:scale(1.035);
+    box-shadow:
+      0 0 0 1px rgba(125,255,70,.45),
+      0 24px 70px rgba(0,0,0,.8),
+      0 0 58px rgba(125,255,70,.27);
+  }
+}
+
+@keyframes splashLoading{
+  0%{
+    transform:translateX(-120%);
+  }
+  100%{
+    transform:translateX(250%);
+  }
+}
     @media(max-width:650px){
       .stats{grid-template-columns:1fr 1fr}.hero-line{display:block}.role-pill{display:inline-block;margin-top:12px}
       .grid2{grid-template-columns:1fr}.toolbar{align-items:flex-end}.top{align-items:flex-start}
@@ -83,7 +212,25 @@
       navigator.serviceWorker.register("./service-worker.js");
     });
   }
-</script><body>
+</script><body><div id="splashScreen" aria-label="Meney Mission sedang dimuatkan">
+  <div class="splash-content">
+    <div class="splash-logo">M</div>
+
+    <h1 class="splash-title">Meney Mission</h1>
+    <p class="splash-subtitle">Daily Mission Management</p>
+
+    <div class="splash-loader">
+      <div class="splash-loader-bar"></div>
+    </div>
+
+    <p id="splashStatus" class="splash-status">Initializing Mission...</p>
+  </div>
+
+  <div class="splash-footer">
+    Powered by Meney Gaming<br>
+    Version 1.0
+  </div>
+</div>
   <main class="shell">
     <section id="loginView" class="login-wrap">
       <div class="login-card">
@@ -415,5 +562,40 @@
     function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1)}
     function formatStatus(s){return s==="in_progress"?"IN PROGRESS":s.toUpperCase()}
   </script>
-</body>
+<script>
+  window.addEventListener("load", () => {
+    const splashScreen = document.getElementById("splashScreen");
+    const splashStatus = document.getElementById("splashStatus");
+
+    const messages = [
+      "Loading Staff Profile...",
+      "Connecting Firebase...",
+      "Loading Daily Missions...",
+      "Mission Ready"
+    ];
+
+    let messageIndex = 0;
+
+    const statusInterval = setInterval(() => {
+      messageIndex++;
+
+      if (messageIndex < messages.length) {
+        splashStatus.textContent = messages[messageIndex];
+      }
+    }, 380);
+
+    setTimeout(() => {
+      clearInterval(statusInterval);
+      splashStatus.textContent = "Mission Ready";
+
+      setTimeout(() => {
+        splashScreen.classList.add("splash-hide");
+
+        setTimeout(() => {
+          splashScreen.remove();
+        }, 550);
+      }, 250);
+    }, 1500);
+  });
+</script></body>
 </html>
