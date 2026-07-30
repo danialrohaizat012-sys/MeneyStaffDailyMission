@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise v2.6 PWA</title>
+  <title>Meney POS Enterprise v2.6.1 PWA</title>
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -535,7 +535,7 @@
           <div class="grid overview-grid">
             <div class="card section">
               <div class="section-head"><div><h3>System Settings</h3><p>Firebase project yang sama dengan Meney Daily Mission.</p></div></div>
-              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v2.6 PWA</strong></div>
+              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v2.6.1 PWA</strong></div>
               <div class="summary-mini"><span>Database</span><strong>Cloud Firestore</strong></div>
               <div class="summary-mini"><span>Data ownership</span><strong>Export anytime</strong></div>
             </div>
@@ -863,11 +863,17 @@
     const btn=$("completeSale");btn.disabled=true;btn.textContent="Processing...";
     const saleRef=doc(collection(db,"sales"));let receipt="";
     try{
-      receipt=await reserveDocumentNumber("invoice","INV");
       await runTransaction(db,async tx=>{
+        // Firestore requires every read to happen before the first write.
+        // Read and validate all product stocks first.
         const refs=state.cart.map(i=>doc(db,"products",i.productId)),snaps=[];
         for(const r of refs)snaps.push(await tx.get(r));
         snaps.forEach((s,k)=>{if(!s.exists()||Number(s.data().stock)<state.cart[k].qty)throw new Error("Stok tidak mencukupi")});
+
+        // Generate the invoice number inside the same atomic transaction.
+        // If stock validation or sale saving fails, the counter is rolled back too.
+        receipt=await nextDocumentNumber(tx,"invoice","INV");
+
         refs.forEach((r,k)=>tx.update(r,{stock:Number(snaps[k].data().stock)-state.cart[k].qty,updatedAt:serverTimestamp()}));
         tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
           paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:nowDate(),shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})
