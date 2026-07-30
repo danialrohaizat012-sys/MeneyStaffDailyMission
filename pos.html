@@ -418,43 +418,51 @@
 
         <section id="page-trade" class="page hidden">
           <div class="flow-steps">
-            <div class="step active"><div class="step-no">1</div><strong>Stock In</strong><span>Item customer</span></div>
-            <div class="step active"><div class="step-no">2</div><strong>Stock Out</strong><span>Item Meney</span></div>
-            <div class="step active"><div class="step-no">3</div><strong>Balance</strong><span>Kiraan bersih</span></div>
-            <div class="step"><div class="step-no">4</div><strong>Complete</strong><span>Receipt</span></div>
+            <div class="step active"><div class="step-no">1</div><strong>Customer</strong><span>Maklumat pelanggan</span></div>
+            <div class="step active"><div class="step-no">2</div><strong>Stock In</strong><span>Barang customer</span></div>
+            <div class="step active"><div class="step-no">3</div><strong>Stock Out</strong><span>Barang Meney</span></div>
+            <div class="step active"><div class="step-no">4</div><strong>Complete</strong><span>Balance & receipt</span></div>
           </div>
-          <form id="tradeForm">
+          <form id="tradeForm" novalidate>
             <div class="card section" style="margin-bottom:16px">
-              <div class="section-head"><div><h3>Customer Details</h3><p>Satu transaksi boleh mengandungi banyak item masuk dan keluar.</p></div></div>
-              <div class="form-grid cols-2"><div class="field"><label>Customer</label><input id="tradeCustomer" required></div><div class="field"><label>Phone</label><input id="tradePhone"></div></div>
+              <div class="section-head"><div><h3>Trade-In Transaction</h3><p>Tambah seberapa banyak item Stock In dan Stock Out sebelum melengkapkan transaksi.</p></div><button id="clearTradeDraft" class="btn btn-light" type="button">Clear Draft</button></div>
+              <div class="form-grid cols-2"><div class="field"><label>Customer Name</label><input id="tradeCustomer" required placeholder="Contoh: Ahmad"></div><div class="field"><label>Phone</label><input id="tradePhone" placeholder="Contoh: 60123456789"></div></div>
             </div>
-            <div class="flow-form" style="grid-template-columns:1fr 1fr">
+
+            <div class="flow-form" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start">
               <div class="flow-col">
-                <h4>Stock In — Item Customer</h4>
-                <div class="field"><label>Item Name</label><input id="tradeItem"></div>
-                <div class="form-grid cols-2"><div class="field"><label>Category</label><select id="tradeCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div><div class="field"><label>Condition</label><select id="tradeCondition"><option>Like New</option><option>Used Good</option><option>Used Fair</option><option>Faulty</option></select></div></div>
-                <div class="form-grid cols-2"><div class="field"><label>Serial Number</label><input id="tradeSerial"></div><div class="field"><label>Quantity</label><input id="tradeInQty" type="number" min="1" value="1"></div></div>
-                <div class="form-grid cols-2"><div class="field"><label>Total Trade Value (RM)</label><input id="tradeValue" type="number" min="0" step=".01"></div><div class="field"><label>Expected Sell Price / Unit (RM)</label><input id="tradeSellPrice" type="number" min="0" step=".01"></div></div>
-                <button class="btn btn-light btn-block" type="button" id="addTradeInItem">+ Add Stock In Item</button>
-                <div style="overflow:auto;margin-top:12px"><table><thead><tr><th>Item</th><th>Qty</th><th>Value</th><th></th></tr></thead><tbody id="tradeInBody"><tr><td colspan="4" class="muted">Belum ada item.</td></tr></tbody></table></div>
+                <div class="section-head"><div><h4>Stock In — Barang Customer</h4><p id="tradeInCount">0 item dalam draft</p></div></div>
+                <div class="field"><label>Item Name</label><input id="tradeItem" placeholder="Contoh: PS4 Slim 500GB"></div>
+                <div class="form-grid cols-2"><div class="field"><label>Category</label><select id="tradeCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div><div class="field"><label>Condition</label><select id="tradeCondition"><option>Like New</option><option selected>Used Good</option><option>Used Fair</option><option>Faulty</option></select></div></div>
+                <div class="form-grid cols-2"><div class="field"><label>Serial Number</label><input id="tradeSerial" placeholder="Kosongkan jika tiada"></div><div class="field"><label>Quantity</label><input id="tradeInQty" type="number" min="1" step="1" value="1"></div></div>
+                <div class="form-grid cols-2"><div class="field"><label>Total Trade Value (RM)</label><input id="tradeValue" type="number" min="0" step=".01" placeholder="Jumlah untuk semua unit"></div><div class="field"><label>Expected Sell Price / Unit (RM)</label><input id="tradeSellPrice" type="number" min="0" step=".01"></div></div>
+                <button class="btn btn-purple btn-block" type="button" id="addTradeInItem">＋ Add to Stock In List</button>
+                <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Item</th><th>Qty</th><th>Trade Value</th><th>Action</th></tr></thead><tbody id="tradeInBody"><tr><td colspan="4" class="muted">Belum ada item Stock In.</td></tr></tbody></table></div>
               </div>
+
               <div class="flow-col">
-                <h4>Stock Out — Item Meney</h4>
-                <div class="field"><label>Select Product</label><select id="tradeNewProduct"></select></div>
-                <div class="field"><label>Quantity</label><input id="tradeOutQty" type="number" min="1" value="1"></div>
-                <div id="tradeNewInfo" class="summary-mini"><span>Selected price</span><strong>RM0.00</strong></div>
-                <button class="btn btn-light btn-block" type="button" id="addTradeOutItem">+ Add Stock Out Item</button>
-                <div style="overflow:auto;margin-top:12px"><table><thead><tr><th>Item</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody id="tradeOutBody"><tr><td colspan="4" class="muted">Belum ada item.</td></tr></tbody></table></div>
+                <div class="section-head"><div><h4>Stock Out — Barang Meney</h4><p id="tradeOutCount">0 item dalam draft</p></div></div>
+                <div class="field"><label>Select Product</label><select id="tradeNewProduct"><option value="">Select product</option></select></div>
+                <div class="form-grid cols-2"><div class="field"><label>Quantity</label><input id="tradeOutQty" type="number" min="1" step="1" value="1"></div><div class="field"><label>Unit Sell Price (RM)</label><input id="tradeOutPrice" type="number" min="0" step=".01" placeholder="Auto ikut inventory"></div></div>
+                <div id="tradeNewInfo" class="summary-mini"><span>Select a product</span><strong>RM0.00</strong></div>
+                <button class="btn btn-purple btn-block" type="button" id="addTradeOutItem">＋ Add to Stock Out List</button>
+                <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Item</th><th>Qty</th><th>Total</th><th>Action</th></tr></thead><tbody id="tradeOutBody"><tr><td colspan="4" class="muted">Belum ada item Stock Out.</td></tr></tbody></table></div>
               </div>
             </div>
+
             <div class="card section" style="margin-top:16px">
+              <div class="section-head"><div><h3>Trade Summary</h3><p>Semak semua nilai sebelum complete.</p></div></div>
               <div class="form-grid cols-2">
                 <div>
                   <div class="cash-row"><span>Total Stock Out</span><strong id="tradeNewPrice">RM0.00</strong></div>
-                  <div class="cash-row"><span>Total Trade-In Value</span><strong id="tradeValueText">RM0.00</strong></div>
-                  <div class="cash-row"><span id="tradeBalanceLabel">Customer Pays</span><strong id="tradeBalance">RM0.00</strong></div>
+                  <div class="cash-row"><span>Total Stock In / Trade Value</span><strong id="tradeValueText">RM0.00</strong></div>
+                  <div class="cash-row" style="font-size:17px"><span id="tradeBalanceLabel">Customer Pays</span><strong id="tradeBalance">RM0.00</strong></div>
                 </div>
-                <div><div class="field"><label>Payment Method</label><select id="tradePayment"><option>QR / DuitNow</option><option>Cash</option><option>Bank Transfer</option><option>Card</option></select></div><button class="btn btn-green btn-block" type="submit">Complete Trade-In & Generate Receipt</button></div>
+                <div>
+                  <div class="field"><label>Payment Method</label><select id="tradePayment"><option>QR / DuitNow</option><option>Cash</option><option>Bank Transfer</option><option>Card</option><option>No Payment / Even Trade</option></select></div>
+                  <div class="field"><label>Notes</label><textarea id="tradeNotes" rows="3" placeholder="Optional notes"></textarea></div>
+                  <button id="completeTradeBtn" class="btn btn-green btn-block" type="submit">Complete Trade-In & Generate Receipt</button>
+                </div>
               </div>
             </div>
           </form>
@@ -943,60 +951,179 @@
   };
 
   function populateTradeProducts(){
-    const old=$("tradeNewProduct").value;
-    $("tradeNewProduct").innerHTML='<option value="">Select product</option>'+state.products.filter(p=>Number(p.stock)>0&&p.status!=="Sold").map(p=>`<option value="${p.id}">${esc(p.name)} — ${money(p.price)} · Stock ${Number(p.stock||0)}</option>`).join("");
-    $("tradeNewProduct").value=old;calcTrade()
+    const select=$("tradeNewProduct"),old=select.value;
+    select.innerHTML='<option value="">Select product</option>'+state.products
+      .filter(p=>Number(p.stock||0)>0&&p.status!=="Sold")
+      .map(p=>`<option value="${p.id}">${esc(p.name)} — ${money(p.price)} · Stock ${Number(p.stock||0)}</option>`).join("");
+    if(state.products.some(p=>p.id===old&&Number(p.stock||0)>0))select.value=old;
+    updateTradeOutSelection();
+    calcTrade();
   }
-  $("tradeNewProduct").onchange=()=>{const p=state.products.find(x=>x.id===$("tradeNewProduct").value);$("tradeNewInfo").innerHTML=`<span>${p?`Available stock: ${Number(p.stock||0)}`:"Selected price"}</span><strong>${money(p?.price||0)}</strong>`};
+
+  function updateTradeOutSelection(){
+    const p=state.products.find(x=>x.id===$("tradeNewProduct").value);
+    if(p){
+      $("tradeOutPrice").value=Number(p.price||0).toFixed(2);
+      $("tradeNewInfo").innerHTML=`<span>Available stock: ${Number(p.stock||0)} · ${esc(p.sku||"")}</span><strong>${money(p.price||0)}</strong>`;
+    }else{
+      $("tradeOutPrice").value="";
+      $("tradeNewInfo").innerHTML='<span>Select a product</span><strong>RM0.00</strong>';
+    }
+  }
+  $("tradeNewProduct").addEventListener("change",updateTradeOutSelection);
+
+  function tradeTotals(){
+    const stockIn=state.tradeInItems.reduce((s,i)=>s+Number(i.tradeValue||0),0);
+    const stockOut=state.tradeOutItems.reduce((s,i)=>s+(Number(i.price||0)*Number(i.qty||0)),0);
+    return {stockIn,stockOut,balance:stockOut-stockIn};
+  }
+
   function calcTrade(){
-    const outTotal=state.tradeOutItems.reduce((s,i)=>s+Number(i.price)*Number(i.qty),0),inTotal=state.tradeInItems.reduce((s,i)=>s+Number(i.tradeValue),0),net=outTotal-inTotal;
-    $("tradeNewPrice").textContent=money(outTotal);$("tradeValueText").textContent=money(inTotal);$("tradeBalance").textContent=money(Math.abs(net));$("tradeBalanceLabel").textContent=net>=0?"Customer Pays":"Meney Pays Customer";
+    const {stockIn,stockOut,balance}=tradeTotals();
+    $("tradeNewPrice").textContent=money(stockOut);
+    $("tradeValueText").textContent=money(stockIn);
+    $("tradeBalance").textContent=money(Math.abs(balance));
+    $("tradeBalanceLabel").textContent=balance>0?"Customer Pays":balance<0?"Meney Pays Customer":"Even Trade";
+    if(balance===0)$("tradePayment").value="No Payment / Even Trade";
+    $("tradeInCount").textContent=`${state.tradeInItems.reduce((s,i)=>s+Number(i.qty||0),0)} unit · ${state.tradeInItems.length} line item`;
+    $("tradeOutCount").textContent=`${state.tradeOutItems.reduce((s,i)=>s+Number(i.qty||0),0)} unit · ${state.tradeOutItems.length} line item`;
     renderTradeItems();
   }
+
   function renderTradeItems(){
-    $("tradeInBody").innerHTML=state.tradeInItems.length?state.tradeInItems.map((i,k)=>`<tr><td><strong>${esc(i.name)}</strong><br><span class="muted">${esc(i.condition)}${i.serial?" · S/N "+esc(i.serial):""}</span></td><td>${i.qty}</td><td>${money(i.tradeValue)}</td><td><button type="button" class="btn btn-danger" style="padding:6px 8px" onclick="window.removeTradeIn(${k})">×</button></td></tr>`).join(""):'<tr><td colspan="4" class="muted">Belum ada item.</td></tr>';
-    $("tradeOutBody").innerHTML=state.tradeOutItems.length?state.tradeOutItems.map((i,k)=>`<tr><td><strong>${esc(i.name)}</strong><br><span class="muted">${esc(i.sku||"")}</span></td><td>${i.qty}</td><td>${money(i.price*i.qty)}</td><td><button type="button" class="btn btn-danger" style="padding:6px 8px" onclick="window.removeTradeOut(${k})">×</button></td></tr>`).join(""):'<tr><td colspan="4" class="muted">Belum ada item.</td></tr>';
+    $("tradeInBody").innerHTML=state.tradeInItems.length?state.tradeInItems.map((i,k)=>`<tr>
+      <td><strong>${esc(i.name)}</strong><br><span class="muted">${esc(i.category)} · ${esc(i.condition)}${i.serial?" · S/N "+esc(i.serial):""}<br>Expected sell: ${money(i.sellPrice)} / unit</span></td>
+      <td>${i.qty}</td><td>${money(i.tradeValue)}</td>
+      <td><button type="button" class="btn btn-light" style="padding:6px 8px" onclick="window.editTradeIn(${k})">Edit</button> <button type="button" class="btn btn-danger" style="padding:6px 8px" onclick="window.removeTradeIn(${k})">Delete</button></td></tr>`).join(""):'<tr><td colspan="4" class="muted">Belum ada item Stock In.</td></tr>';
+    $("tradeOutBody").innerHTML=state.tradeOutItems.length?state.tradeOutItems.map((i,k)=>`<tr>
+      <td><strong>${esc(i.name)}</strong><br><span class="muted">${esc(i.sku||"")}${i.serial?" · S/N "+esc(i.serial):""}<br>${money(i.price)} / unit</span></td>
+      <td>${i.qty}</td><td>${money(Number(i.price)*Number(i.qty))}</td>
+      <td><button type="button" class="btn btn-light" style="padding:6px 8px" onclick="window.editTradeOut(${k})">Edit</button> <button type="button" class="btn btn-danger" style="padding:6px 8px" onclick="window.removeTradeOut(${k})">Delete</button></td></tr>`).join(""):'<tr><td colspan="4" class="muted">Belum ada item Stock Out.</td></tr>';
   }
+
+  function resetTradeInInputs(){
+    $("tradeItem").value="";$("tradeSerial").value="";$("tradeInQty").value=1;$("tradeValue").value="";$("tradeSellPrice").value="";$("tradeCategory").value="Console";$("tradeCondition").value="Used Good";
+    delete $("addTradeInItem").dataset.editIndex;$("addTradeInItem").textContent="＋ Add to Stock In List";
+  }
+  function resetTradeOutInputs(){
+    $("tradeNewProduct").value="";$("tradeOutQty").value=1;$("tradeOutPrice").value="";updateTradeOutSelection();
+    delete $("addTradeOutItem").dataset.editIndex;$("addTradeOutItem").textContent="＋ Add to Stock Out List";
+  }
+  function clearTradeDraft(confirmFirst=true){
+    if(confirmFirst&&(state.tradeInItems.length||state.tradeOutItems.length)&&!confirm("Clear semua item dalam draft Trade-In?"))return;
+    state.tradeInItems=[];state.tradeOutItems=[];resetTradeInInputs();resetTradeOutInputs();calcTrade();
+  }
+  $("clearTradeDraft").addEventListener("click",()=>clearTradeDraft(true));
+
   window.removeTradeIn=k=>{state.tradeInItems.splice(k,1);calcTrade()};
   window.removeTradeOut=k=>{state.tradeOutItems.splice(k,1);calcTrade()};
-  $("addTradeInItem").onclick=()=>{
-    const name=$("tradeItem").value.trim(),category=$("tradeCategory").value,condition=$("tradeCondition").value,serial=$("tradeSerial").value.trim(),qty=Number($("tradeInQty").value||1),tradeValue=Number($("tradeValue").value),sellPrice=Number($("tradeSellPrice").value);
-    if(!name||qty<1||tradeValue<0||sellPrice<0||$("tradeValue").value===""||$("tradeSellPrice").value==="")return toast("Lengkapkan detail stock in.");
-    if(serial&&qty!==1)return toast("Item berserial mesti quantity 1.");
+  window.editTradeIn=k=>{
+    const i=state.tradeInItems[k];if(!i)return;
+    $("tradeItem").value=i.name;$("tradeCategory").value=i.category;$("tradeCondition").value=i.condition;$("tradeSerial").value=i.serial||"";$("tradeInQty").value=i.qty;$("tradeValue").value=i.tradeValue;$("tradeSellPrice").value=i.sellPrice;
+    $("addTradeInItem").dataset.editIndex=String(k);$("addTradeInItem").textContent="Save Stock In Changes";
+  };
+  window.editTradeOut=k=>{
+    const i=state.tradeOutItems[k];if(!i)return;
+    $("tradeNewProduct").value=i.productId;$("tradeOutQty").value=i.qty;$("tradeOutPrice").value=i.price;updateTradeOutSelection();$("tradeOutPrice").value=i.price;
+    $("addTradeOutItem").dataset.editIndex=String(k);$("addTradeOutItem").textContent="Save Stock Out Changes";
+  };
+
+  $("addTradeInItem").addEventListener("click",()=>{
+    const name=$("tradeItem").value.trim(),category=$("tradeCategory").value,condition=$("tradeCondition").value,serial=$("tradeSerial").value.trim();
+    const qty=Number($("tradeInQty").value),tradeValue=Number($("tradeValue").value),sellPrice=Number($("tradeSellPrice").value);
+    if(!name)return toast("Masukkan nama item Stock In.");
+    if(!Number.isInteger(qty)||qty<1)return toast("Quantity Stock In mesti nombor bulat sekurang-kurangnya 1.");
+    if($("tradeValue").value===""||!Number.isFinite(tradeValue)||tradeValue<0)return toast("Masukkan Total Trade Value yang sah.");
+    if($("tradeSellPrice").value===""||!Number.isFinite(sellPrice)||sellPrice<0)return toast("Masukkan Expected Sell Price yang sah.");
+    if(serial&&qty!==1)return toast("Item dengan serial number mesti quantity 1.");
+    const editIndex=$("addTradeInItem").dataset.editIndex;
     const duplicate=duplicateSerial(serial);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
-    if(serial&&state.tradeInItems.some(i=>normalizeSerial(i.serial)===normalizeSerial(serial)))return toast("Serial number duplicate dalam transaksi ini.");
-    state.tradeInItems.push({name,category,condition,serial,qty,tradeValue,sellPrice});
-    $("tradeItem").value="";$("tradeSerial").value="";$("tradeInQty").value=1;$("tradeValue").value="";$("tradeSellPrice").value="";calcTrade();
-  };
-  $("addTradeOutItem").onclick=()=>{
-    const p=state.products.find(x=>x.id===$("tradeNewProduct").value),qty=Number($("tradeOutQty").value||1);if(!p)return toast("Pilih item Meney.");if(qty<1)return toast("Quantity tidak sah.");
-    const already=state.tradeOutItems.filter(i=>i.productId===p.id).reduce((s,i)=>s+i.qty,0);if(already+qty>Number(p.stock||0))return toast(`Stok ${p.name} tidak cukup.`);
-    const found=state.tradeOutItems.find(i=>i.productId===p.id);if(found)found.qty+=qty;else state.tradeOutItems.push({productId:p.id,name:p.name,sku:p.sku,serial:p.serial||"",price:Number(p.price),qty});
-    $("tradeOutQty").value=1;calcTrade();
-  };
-  $("tradeForm").onsubmit=async e=>{
-    e.preventDefault();if(!state.tradeInItems.length)return toast("Tambah sekurang-kurangnya satu stock in item.");if(!state.tradeOutItems.length)return toast("Tambah sekurang-kurangnya satu stock out item.");
-    const customer=$("tradeCustomer").value.trim(),phone=$("tradePhone").value.trim(),paymentMethod=$("tradePayment").value;
-    const inItems=state.tradeInItems.map(i=>({...i})),outItems=state.tradeOutItems.map(i=>({...i}));
-    const inTotal=inItems.reduce((s,i)=>s+i.tradeValue,0),outTotal=outItems.reduce((s,i)=>s+i.price*i.qty,0),netBalance=outTotal-inTotal;
+    if(serial&&state.tradeInItems.some((i,k)=>String(k)!==String(editIndex)&&normalizeSerial(i.serial)===normalizeSerial(serial)))return toast("Serial number duplicate dalam draft ini.");
+    const row={name,category,condition,serial,qty,tradeValue:Number(tradeValue.toFixed(2)),sellPrice:Number(sellPrice.toFixed(2))};
+    if(editIndex!==undefined)state.tradeInItems[Number(editIndex)]=row;else state.tradeInItems.push(row);
+    resetTradeInInputs();calcTrade();toast("Item ditambah ke Stock In list.");
+  });
+
+  $("addTradeOutItem").addEventListener("click",()=>{
+    const p=state.products.find(x=>x.id===$("tradeNewProduct").value),qty=Number($("tradeOutQty").value),price=Number($("tradeOutPrice").value);
+    if(!p)return toast("Pilih item Meney untuk Stock Out.");
+    if(!Number.isInteger(qty)||qty<1)return toast("Quantity Stock Out mesti nombor bulat sekurang-kurangnya 1.");
+    if($("tradeOutPrice").value===""||!Number.isFinite(price)||price<0)return toast("Masukkan harga Stock Out yang sah.");
+    const editIndex=$("addTradeOutItem").dataset.editIndex;
+    const reserved=state.tradeOutItems.reduce((s,i,k)=>s+(i.productId===p.id&&String(k)!==String(editIndex)?Number(i.qty):0),0);
+    if(reserved+qty>Number(p.stock||0))return toast(`Stok ${p.name} tidak cukup. Available: ${Number(p.stock||0)}, sudah dalam draft: ${reserved}.`);
+    const row={productId:p.id,name:p.name,sku:p.sku||"",serial:p.serial||"",price:Number(price.toFixed(2)),qty};
+    if(editIndex!==undefined)state.tradeOutItems[Number(editIndex)]=row;
+    else{
+      const existingIndex=state.tradeOutItems.findIndex(i=>i.productId===p.id&&Number(i.price)===Number(row.price));
+      if(existingIndex>=0)state.tradeOutItems[existingIndex].qty+=qty;else state.tradeOutItems.push(row);
+    }
+    resetTradeOutInputs();calcTrade();toast("Item ditambah ke Stock Out list.");
+  });
+
+  function buildTradeInventoryPlan(items){
+    const plan=[];
+    for(const raw of items){
+      const item={...raw};
+      const existing=mergeCandidate(item);
+      const key=existing?`existing:${existing.id}`:`new:${normalizeText(item.name)}|${item.category}|${item.condition}|${normalizeSerial(item.serial)}`;
+      const row=plan.find(x=>x.key===key);
+      if(row&&!item.serial){
+        const combinedQty=Number(row.qty)+Number(item.qty),combinedValue=Number(row.tradeValue)+Number(item.tradeValue);
+        row.qty=combinedQty;row.tradeValue=Number(combinedValue.toFixed(2));row.sellPrice=item.sellPrice;
+      }else plan.push({...item,key,existingId:existing?.id||null,sku:existing?.sku||null,inventoryAction:existing?"merged":"created"});
+    }
+    return plan;
+  }
+
+  $("tradeForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const completeBtn=$("completeTradeBtn");
+    if(!state.tradeInItems.length)return toast("Tambah sekurang-kurangnya satu item Stock In.");
+    if(!state.tradeOutItems.length)return toast("Tambah sekurang-kurangnya satu item Stock Out.");
+    const customer=$("tradeCustomer").value.trim();if(!customer)return toast("Masukkan nama customer.");
+    const phone=$("tradePhone").value.trim(),paymentMethod=$("tradePayment").value,notes=$("tradeNotes").value.trim();
+    const rawIn=state.tradeInItems.map(i=>({...i})),outItems=state.tradeOutItems.map(i=>({...i}));
+    const inItems=buildTradeInventoryPlan(rawIn),{stockIn:inTotal,stockOut:outTotal,balance:netBalance}=tradeTotals();
     const trRef=doc(collection(db,"trades"));let tradeNo="";
+    completeBtn.disabled=true;completeBtn.textContent="Processing Trade-In...";
     try{
       tradeNo=await reserveDocumentNumber("trade","TRD");
-      for(const item of inItems){const existing=mergeCandidate(item);item.inventoryAction=existing?"merged":"created";item.productId=existing?.id||doc(collection(db,"products")).id;if(existing)item.sku=existing.sku;else item.sku=await reserveSku(item.category)}
+      for(const item of inItems){
+        item.productId=item.existingId||doc(collection(db,"products")).id;
+        if(!item.sku)item.sku=await reserveSku(item.category);
+      }
       await runTransaction(db,async tx=>{
-        const outRefs=outItems.map(i=>doc(db,"products",i.productId)),outSnaps=[];for(const r of outRefs)outSnaps.push(await tx.get(r));
-        const mergeRows=inItems.filter(i=>i.inventoryAction==="merged"),mergeRefs=mergeRows.map(i=>doc(db,"products",i.productId)),mergeSnaps=[];for(const r of mergeRefs)mergeSnaps.push(await tx.get(r));
-        outItems.forEach((i,k)=>{const snap=outSnaps[k];if(!snap.exists()||Number(snap.data().stock)<i.qty)throw new Error(`Stok ${i.name} tidak cukup`)});
-        mergeRows.forEach((i,k)=>{if(!mergeSnaps[k].exists())throw new Error(`Produk stock in ${i.name} tidak ditemui`)});
-        outItems.forEach((i,k)=>tx.update(outRefs[k],{stock:Number(outSnaps[k].data().stock)-i.qty,updatedAt:serverTimestamp()}));
-        let mi=0;for(const item of inItems){if(item.inventoryAction==="merged"){const snap=mergeSnaps[mi],ref=mergeRefs[mi++],oldQty=Number(snap.data().stock||0),unitCost=Number(item.tradeValue)/Number(item.qty),averageCost=weightedAverageCost(oldQty,snap.data().cost,item.qty,unitCost);tx.update(ref,{stock:oldQty+item.qty,cost:averageCost,lastIncomingCost:unitCost,lastIncomingQty:item.qty,previousCost:Number(snap.data().cost||0),price:item.sellPrice,updatedAt:serverTimestamp()})}else{tx.set(doc(db,"products",item.productId),{name:item.name,sku:item.sku,category:item.category,condition:item.condition,status:"Available",cost:Number(item.tradeValue)/Number(item.qty),price:item.sellPrice,stock:item.qty,lowStock:1,serial:item.serial,createdAt:serverTimestamp(),createdBy:state.user.uid})}}
-        tx.set(trRef,{tradeNo,customer,phone,stockInItems:inItems,stockOutItems:outItems,totalTradeValue:inTotal,totalStockOut:outTotal,balance:Math.abs(netBalance),netBalance,paymentDirection:netBalance>=0?"customer_pays":"meney_pays",paymentMethod,status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
+        const outRefs=outItems.map(i=>doc(db,"products",i.productId));
+        const mergeItems=inItems.filter(i=>i.inventoryAction==="merged");
+        const mergeRefs=mergeItems.map(i=>doc(db,"products",i.productId));
+        const outSnaps=[];for(const ref of outRefs)outSnaps.push(await tx.get(ref));
+        const mergeSnaps=[];for(const ref of mergeRefs)mergeSnaps.push(await tx.get(ref));
+        outItems.forEach((i,k)=>{const snap=outSnaps[k];if(!snap.exists())throw new Error(`Produk ${i.name} tidak ditemui.`);if(Number(snap.data().stock||0)<Number(i.qty))throw new Error(`Stok ${i.name} tidak cukup.`)});
+        mergeItems.forEach((i,k)=>{if(!mergeSnaps[k].exists())throw new Error(`Produk Stock In ${i.name} tidak ditemui.`)});
+        outItems.forEach((i,k)=>tx.update(outRefs[k],{stock:Number(outSnaps[k].data().stock||0)-Number(i.qty),updatedAt:serverTimestamp()}));
+        let mergeIndex=0;
+        for(const item of inItems){
+          const unitCost=Number(item.tradeValue)/Number(item.qty);
+          if(item.inventoryAction==="merged"){
+            const snap=mergeSnaps[mergeIndex],ref=mergeRefs[mergeIndex++],oldQty=Number(snap.data().stock||0),oldCost=Number(snap.data().cost||0);
+            const averageCost=weightedAverageCost(oldQty,oldCost,item.qty,unitCost);
+            tx.update(ref,{stock:oldQty+Number(item.qty),cost:averageCost,lastIncomingCost:unitCost,lastIncomingQty:Number(item.qty),previousCost:oldCost,price:Number(item.sellPrice),updatedAt:serverTimestamp()});
+          }else{
+            tx.set(doc(db,"products",item.productId),{name:item.name,sku:item.sku,category:item.category,condition:item.condition,status:"Available",cost:unitCost,price:Number(item.sellPrice),stock:Number(item.qty),lowStock:1,serial:item.serial||"",createdAt:serverTimestamp(),createdBy:state.user.uid});
+          }
+        }
+        tx.set(trRef,{tradeNo,customer,phone,stockInItems:inItems.map(({key,existingId,...i})=>i),stockOutItems:outItems,totalTradeValue:inTotal,totalStockOut:outTotal,balance:Math.abs(netBalance),netBalance,paymentDirection:netBalance>0?"customer_pays":netBalance<0?"meney_pays":"even_trade",paymentMethod,notes,status:"completed",transactionStatus:"active",staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
       });
-      const receiptItems=[...outItems.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:i.price,total:i.price*i.qty})),...inItems.map(i=>({name:i.name,detail:`STOCK IN · ${i.condition} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:-(i.tradeValue/i.qty),total:-i.tradeValue}))];
-      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer,phone,staff:state.profile.name||state.user.email,items:receiptItems,totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:netBalance>=0?"Amount Paid by Customer":"Amount Paid by Meney",value:Math.abs(netBalance),grand:true}],payment:paymentMethod,note:`Stock Out: ${outItems.reduce((s,i)=>s+i.qty,0)} unit · Stock In: ${inItems.reduce((s,i)=>s+i.qty,0)} unit.`});
-      state.tradeInItems=[];state.tradeOutItems=[];e.target.reset();$("tradeInQty").value=1;$("tradeOutQty").value=1;calcTrade();toast(`${tradeNo} completed dan receipt dijana.`)
-    }catch(err){toast("Trade-in gagal: "+err.message);console.error("Trade-in error",err)}
-  };
+      const receiptItems=[
+        ...outItems.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:i.price,total:i.price*i.qty})),
+        ...inItems.map(i=>({name:i.name,detail:`STOCK IN · ${i.condition} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:-(i.tradeValue/i.qty),total:-i.tradeValue}))
+      ];
+      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer,phone,staff:state.profile.name||state.user.email,items:receiptItems,totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:netBalance>0?"Amount Paid by Customer":netBalance<0?"Amount Paid by Meney":"Even Trade Balance",value:Math.abs(netBalance),grand:true}],payment:paymentMethod,note:notes||`Stock Out: ${outItems.reduce((s,i)=>s+i.qty,0)} unit · Stock In: ${inItems.reduce((s,i)=>s+i.qty,0)} unit.`});
+      state.tradeInItems=[];state.tradeOutItems=[];e.target.reset();resetTradeInInputs();resetTradeOutInputs();calcTrade();toast(`${tradeNo} completed dan receipt dijana.`);
+    }catch(err){console.error("Trade-in error",err);toast("Trade-in gagal: "+err.message)}
+    finally{completeBtn.disabled=false;completeBtn.textContent="Complete Trade-In & Generate Receipt"}
+  });
 
   $("inventorySearch").oninput=renderInventory;$("inventoryCategory").onchange=renderInventory;
   function renderInventory(){
