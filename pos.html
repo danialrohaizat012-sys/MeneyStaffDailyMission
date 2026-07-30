@@ -875,7 +875,6 @@
   $("addSplitPayment").onclick=()=>addSplitPaymentRow("Cash",0);
   $("buyCategory").onchange=()=>$("buySku").value=`${skuPrefix($("buyCategory").value)}-AUTO`;
   $("buySku").value=`${skuPrefix($("buyCategory").value)}-AUTO`;
-  $("tradeSku").value="CON-AUTO";
 
   function totals(){const sub=state.cart.reduce((s,i)=>s+i.price*i.qty,0),disc=Math.min(Math.max(Number($("saleDiscount").value||0),0),sub);return{sub,disc,total:sub-disc}}
   function renderCart(){
