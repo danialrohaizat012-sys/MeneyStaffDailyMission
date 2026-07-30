@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise v2.5 PWA</title>
+  <title>Meney POS Enterprise v2.6 PWA</title>
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -135,6 +135,7 @@
     .variance-box{margin-top:14px;padding:14px;border-radius:13px;border:1px solid var(--line);background:#f8fafc}
     .variance-box.balanced{background:#ecfdf3;border-color:#bbf7d0;color:#166534}.variance-box.shortage{background:#fef2f2;border-color:#fecaca;color:#b91c1c}.variance-box.excess{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
     .variance-box strong{display:block;font-size:15px;margin-bottom:4px}.variance-box span{font-size:11px}
+    .auto-field{background:#f8fafc!important;color:#475467;font-weight:800}.field-help{display:block;margin-top:5px;font-size:10px;color:var(--muted);line-height:1.4}.sku-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
     .flow-form{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
     .flow-col{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
     .flow-col h4{margin:0 0 12px;font-size:12px}
@@ -407,7 +408,7 @@
             <div class="flow-col">
               <h4>Payment & Stock In</h4>
               <div class="field"><label>Payment Method</label><select id="buyPayment"><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option></select></div>
-              <div class="field"><label>SKU</label><input id="buySku" required></div>
+              <div class="field"><label>SKU</label><input id="buySku" class="auto-field" readonly value="Auto-generated upon save"><span class="field-help">SKU dijana automatik mengikut kategori. Item sama tanpa serial akan ditambah ke stok sedia ada.</span></div>
               <div class="field"><label>Low Stock Alert</label><input id="buyLowStock" type="number" min="0" value="1"></div>
               <button class="btn btn-green btn-block" type="submit">Make Payment & Stock In</button>
             </div>
@@ -445,7 +446,7 @@
             </div>
             <div class="flow-col">
               <h4>Complete Trade-In</h4>
-              <div class="field"><label>SKU for Trade-In Item</label><input id="tradeSku" required></div>
+              <div class="field"><label>SKU for Trade-In Item</label><input id="tradeSku" class="auto-field" readonly value="Auto-generated upon save"><span class="field-help">SKU dijana automatik. Serial number yang sama akan diblok.</span></div>
               <div class="field"><label>Expected Sell Price (RM)</label><input id="tradeSellPrice" type="number" min="0" step=".01" required></div>
               <button class="btn btn-green btn-block" type="submit">Complete Trade-In</button>
             </div>
@@ -534,7 +535,7 @@
           <div class="grid overview-grid">
             <div class="card section">
               <div class="section-head"><div><h3>System Settings</h3><p>Firebase project yang sama dengan Meney Daily Mission.</p></div></div>
-              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v2.5 PWA</strong></div>
+              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v2.6 PWA</strong></div>
               <div class="summary-mini"><span>Database</span><strong>Cloud Firestore</strong></div>
               <div class="summary-mini"><span>Data ownership</span><strong>Export anytime</strong></div>
             </div>
@@ -589,7 +590,7 @@
       <form id="productForm">
         <div class="two">
           <div class="field"><label>Product Name</label><input id="productName" required></div>
-          <div class="field"><label>SKU</label><input id="productSku" required></div>
+          <div class="field"><label>SKU</label><div class="sku-row"><input id="productSku" class="auto-field" readonly value="Auto-generated upon save"><button type="button" id="unlockSkuBtn" class="btn btn-light" style="padding:10px">Unlock</button></div><span id="skuHelp" class="field-help">SKU dijana automatik mengikut kategori. Owner boleh unlock untuk override.</span></div>
         </div>
         <div class="three">
           <div class="field"><label>Category</label><select id="productCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div>
@@ -671,6 +672,38 @@
   const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],cart:[],editingProduct:null,lastDocument:null,unsubs:[]};
   const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
   const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+  const compactDate=()=>nowDate().replaceAll("-","");
+  const normalizeText=v=>String(v||"").trim().toLowerCase().replace(/\s+/g," ");
+  const normalizeSerial=v=>String(v||"").trim().toUpperCase().replace(/\s+/g,"");
+  const skuPrefixes={Console:"CON",Controller:"CTR",Games:"GAM",Accessories:"ACC","Repair Parts":"RPT",Others:"OTH"};
+  const skuPrefix=category=>skuPrefixes[category]||"OTH";
+  async function nextCounter(tx,key){
+    const ref=doc(db,"counters",key),snap=await tx.get(ref),next=(snap.exists()?Number(snap.data().value||0):0)+1;
+    tx.set(ref,{value:next,updatedAt:serverTimestamp()},{merge:true});
+    return next;
+  }
+  async function nextDocumentNumber(tx,type,prefix,dateBased=true){
+    const date=dateBased?compactDate():"ALL",key=`${type}_${date}`,next=await nextCounter(tx,key);
+    return dateBased?`${prefix}-${date}-${String(next).padStart(4,"0")}`:`${prefix}-${String(next).padStart(6,"0")}`;
+  }
+  async function nextSku(tx,category){
+    const prefix=skuPrefix(category),next=await nextCounter(tx,`sku_${prefix}`);
+    return `${prefix}-${String(next).padStart(6,"0")}`;
+  }
+  async function reserveDocumentNumber(type,prefix,dateBased=true){
+    let number="";await runTransaction(db,async tx=>{number=await nextDocumentNumber(tx,type,prefix,dateBased)});return number;
+  }
+  async function reserveSku(category){
+    let sku="";await runTransaction(db,async tx=>{sku=await nextSku(tx,category)});return sku;
+  }
+  function duplicateSerial(serial,excludeId=null){
+    const key=normalizeSerial(serial);if(!key)return null;
+    return state.products.find(p=>p.id!==excludeId&&normalizeSerial(p.serial)===key)||null;
+  }
+  function mergeCandidate({name,category,condition,serial},excludeId=null){
+    if(normalizeSerial(serial))return null;
+    return state.products.find(p=>p.id!==excludeId&&!normalizeSerial(p.serial)&&normalizeText(p.name)===normalizeText(name)&&p.category===category&&p.condition===condition)||null;
+  }
   const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
   const toast=m=>{$("toast").textContent=m;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2600)}
   const isOwner=()=>state.profile?.role==="owner";
@@ -808,6 +841,9 @@
   }
   $("salePayment").onchange=()=>{const split=$("salePayment").value==="Split Payment";$("splitPaymentBox").classList.toggle("hidden",!split);if(split&&!splitPayments.length)resetSplitPayments();renderSplitPaymentSummary()};
   $("addSplitPayment").onclick=()=>addSplitPaymentRow("Cash",0);
+  $("buyCategory").onchange=()=>$("buySku").value=`${skuPrefix($("buyCategory").value)}-AUTO`;
+  $("buySku").value=`${skuPrefix($("buyCategory").value)}-AUTO`;
+  $("tradeSku").value="CON-AUTO";
 
   function totals(){const sub=state.cart.reduce((s,i)=>s+i.price*i.qty,0),disc=Math.min(Math.max(Number($("saleDiscount").value||0),0),sub);return{sub,disc,total:sub-disc}}
   function renderCart(){
@@ -825,8 +861,9 @@
       if(Math.abs(totalPaid-t.total)>=0.01)return toast(totalPaid<t.total?`Bayaran belum cukup: ${money(t.total-totalPaid)}`:`Bayaran terlebih: ${money(totalPaid-t.total)}`);
     }
     const btn=$("completeSale");btn.disabled=true;btn.textContent="Processing...";
-    const saleRef=doc(collection(db,"sales")),receipt=`INV-${Date.now().toString().slice(-6)}`;
+    const saleRef=doc(collection(db,"sales"));let receipt="";
     try{
+      receipt=await reserveDocumentNumber("invoice","INV");
       await runTransaction(db,async tx=>{
         const refs=state.cart.map(i=>doc(db,"products",i.productId)),snaps=[];
         for(const r of refs)snaps.push(await tx.get(r));
@@ -844,18 +881,26 @@
 
   $("buyForm").onsubmit=async e=>{
     e.preventDefault();
-    const productRef=doc(collection(db,"products")),buyRef=doc(collection(db,"buys"));
+    const name=$("buyItem").value.trim(),category=$("buyCategory").value,condition=$("buyCondition").value,serial=$("buySerial").value.trim();
+    const duplicate=duplicateSerial(serial);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
+    const existing=mergeCandidate({name,category,condition,serial});
+    const buyRef=doc(collection(db,"buys"));let buyNo="",sku="",productId="";
     try{
+      buyNo=await reserveDocumentNumber("buy","BUY");
+      if(!existing)sku=await reserveSku(category);
       await runTransaction(db,async tx=>{
-        tx.set(productRef,{name:$("buyItem").value.trim(),sku:$("buySku").value.trim().toUpperCase(),category:$("buyCategory").value,condition:$("buyCondition").value,status:"Available",
-          cost:Number($("buyOffer").value),price:Number($("buySellPrice").value),stock:1,lowStock:Number($("buyLowStock").value||1),serial:$("buySerial").value.trim(),notes:$("buyNotes").value.trim(),
-          createdAt:serverTimestamp(),createdBy:state.user.uid});
-        tx.set(buyRef,{customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),item:$("buyItem").value.trim(),serial:$("buySerial").value.trim(),condition:$("buyCondition").value,
-          offer:Number($("buyOffer").value),expectedSellPrice:Number($("buySellPrice").value),paymentMethod:$("buyPayment").value,productId:productRef.id,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})
+        if(existing){
+          const ref=doc(db,"products",existing.id),snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk sedia ada tidak ditemui");
+          sku=snap.data().sku;productId=existing.id;
+          tx.update(ref,{stock:Number(snap.data().stock||0)+1,cost:Number($("buyOffer").value),price:Number($("buySellPrice").value),lowStock:Number($("buyLowStock").value||1),notes:$("buyNotes").value.trim(),updatedAt:serverTimestamp()});
+        }else{
+          const productRef=doc(collection(db,"products"));productId=productRef.id;
+          tx.set(productRef,{name,sku,category,condition,status:"Available",cost:Number($("buyOffer").value),price:Number($("buySellPrice").value),stock:1,lowStock:Number($("buyLowStock").value||1),serial,notes:$("buyNotes").value.trim(),createdAt:serverTimestamp(),createdBy:state.user.uid});
+        }
+        tx.set(buyRef,{buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),item:name,sku,serial,condition,offer:Number($("buyOffer").value),expectedSellPrice:Number($("buySellPrice").value),paymentMethod:$("buyPayment").value,productId,inventoryAction:existing?"merged":"created",staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
       });
-      const buyNo="BUY-"+Date.now().toString().slice(-6);
-      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name:$("buyItem").value.trim(),detail:`${$("buyCondition").value}${$("buySerial").value?" · S/N "+$("buySerial").value:""}`,qty:1,amount:Number($("buyOffer").value),total:Number($("buyOffer").value)}],totals:[{label:"Amount Paid to Customer",value:Number($("buyOffer").value),grand:true}],payment:$("buyPayment").value,note:"Customer mengesahkan barang telah diserahkan kepada Meney Gaming pada nilai yang dipersetujui."});
-      e.target.reset();toast("Buy complete · item added to inventory")
+      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name,detail:`${condition} · SKU ${sku}${serial?" · S/N "+serial:""}`,qty:1,amount:Number($("buyOffer").value),total:Number($("buyOffer").value)}],totals:[{label:"Amount Paid to Customer",value:Number($("buyOffer").value),grand:true}],payment:$("buyPayment").value,note:existing?"Item ditambah kepada stok produk sedia ada.":"Item baru telah didaftarkan ke inventory."});
+      e.target.reset();$("buySku").value="Auto-generated upon save";toast(`${buyNo} complete · ${existing?"stock updated":"new SKU "+sku}`)
     }catch(err){toast("Buy gagal: "+err.message)}
   };
 
@@ -871,19 +916,28 @@
   }
   $("tradeForm").onsubmit=async e=>{
     e.preventDefault();const newP=state.products.find(x=>x.id===$("tradeNewProduct").value);if(!newP)return toast("Pilih produk baru.");
-    const inRef=doc(collection(db,"products")),trRef=doc(collection(db,"trades")),newRef=doc(db,"products",newP.id),tradeVal=Number($("tradeValue").value),bal=Math.max(Number(newP.price)-tradeVal,0);
+    const name=$("tradeItem").value.trim(),category="Console",condition=$("tradeCondition").value,serial=$("tradeSerial").value.trim();
+    const duplicate=duplicateSerial(serial);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
+    const existing=mergeCandidate({name,category,condition,serial}),trRef=doc(collection(db,"trades")),newRef=doc(db,"products",newP.id),tradeVal=Number($("tradeValue").value),bal=Math.max(Number(newP.price)-tradeVal,0);
+    let tradeNo="",sku="",tradeProductId="";
     try{
+      tradeNo=await reserveDocumentNumber("trade","TRD");
+      if(!existing)sku=await reserveSku(category);
       await runTransaction(db,async tx=>{
         const snap=await tx.get(newRef);if(!snap.exists()||Number(snap.data().stock)<1)throw new Error("Stok item baru tiada");
         tx.update(newRef,{stock:Number(snap.data().stock)-1,updatedAt:serverTimestamp()});
-        tx.set(inRef,{name:$("tradeItem").value.trim(),sku:$("tradeSku").value.trim().toUpperCase(),category:"Console",condition:$("tradeCondition").value,status:"Available",
-          cost:tradeVal,price:Number($("tradeSellPrice").value),stock:1,lowStock:1,serial:$("tradeSerial").value.trim(),createdAt:serverTimestamp(),createdBy:state.user.uid});
-        tx.set(trRef,{customer:$("tradeCustomer").value.trim(),phone:$("tradePhone").value.trim(),tradeItem:$("tradeItem").value.trim(),tradeValue:tradeVal,newProductId:newP.id,newProductName:newP.name,newProductPrice:Number(newP.price),
-          balance:bal,paymentMethod:$("tradePayment").value,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})
+        if(existing){
+          const ref=doc(db,"products",existing.id),existingSnap=await tx.get(ref);if(!existingSnap.exists())throw new Error("Produk trade-in sedia ada tidak ditemui");
+          sku=existingSnap.data().sku;tradeProductId=existing.id;
+          tx.update(ref,{stock:Number(existingSnap.data().stock||0)+1,cost:tradeVal,price:Number($("tradeSellPrice").value),updatedAt:serverTimestamp()});
+        }else{
+          const inRef=doc(collection(db,"products"));tradeProductId=inRef.id;
+          tx.set(inRef,{name,sku,category,condition,status:"Available",cost:tradeVal,price:Number($("tradeSellPrice").value),stock:1,lowStock:1,serial,createdAt:serverTimestamp(),createdBy:state.user.uid});
+        }
+        tx.set(trRef,{tradeNo,customer:$("tradeCustomer").value.trim(),phone:$("tradePhone").value.trim(),tradeItem:name,tradeItemSku:sku,tradeProductId,tradeSerial:serial,tradeValue:tradeVal,newProductId:newP.id,newProductName:newP.name,newProductPrice:Number(newP.price),balance:bal,paymentMethod:$("tradePayment").value,inventoryAction:existing?"merged":"created",staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
       });
-      const tradeNo="TRD-"+Date.now().toString().slice(-6);
-      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer:$("tradeCustomer").value.trim(),phone:$("tradePhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name:newP.name,detail:"New item / item purchased",qty:1,unitPrice:Number(newP.price),total:Number(newP.price)},{name:$("tradeItem").value.trim(),detail:`Trade-in value · ${$("tradeCondition").value}`,qty:1,unitPrice:-tradeVal,total:-tradeVal}],totals:[{label:"New Item Price",value:Number(newP.price)},{label:"Trade-In Value",value:-tradeVal},{label:"Balance Paid",value:bal,grand:true}],payment:$("tradePayment").value,note:"Nilai trade-in telah dipersetujui selepas pemeriksaan keadaan barang."});
-      e.target.reset();toast("Trade-in completed")
+      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer:$("tradeCustomer").value.trim(),phone:$("tradePhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name:newP.name,detail:"New item / item purchased",qty:1,unitPrice:Number(newP.price),total:Number(newP.price)},{name,detail:`Trade-in value · ${condition} · SKU ${sku}`,qty:1,unitPrice:-tradeVal,total:-tradeVal}],totals:[{label:"New Item Price",value:Number(newP.price)},{label:"Trade-In Value",value:-tradeVal},{label:"Balance Paid",value:bal,grand:true}],payment:$("tradePayment").value,note:existing?"Trade-in item ditambah kepada stok produk sedia ada.":"Trade-in item didaftarkan dengan SKU automatik."});
+      e.target.reset();$("tradeSku").value="Auto-generated upon save";toast(`${tradeNo} completed · ${existing?"stock updated":"new SKU "+sku}`)
     }catch(err){toast("Trade-in gagal: "+err.message)}
   };
 
@@ -897,31 +951,62 @@
   $("addProductBtn").onclick=()=>openProduct();
   $("cancelProduct").onclick=()=>closeModal("productModal");
   $("productModal").onclick=e=>{if(e.target===$("productModal"))closeModal("productModal")};
+  function skuPreview(){return `${skuPrefix($("productCategory").value)}-AUTO`;}
+  function lockSku(value=""){$("productSku").readOnly=true;$("productSku").classList.add("auto-field");$("productSku").value=value||skuPreview();$("unlockSkuBtn").textContent="Unlock";}
   function openProduct(p=null){
     state.editingProduct=p?.id||null;$("productModalTitle").textContent=p?"Edit Product":"Add Product";
-    $("productName").value=p?.name||"";$("productSku").value=p?.sku||"";$("productCategory").value=p?.category||"Console";$("productCondition").value=p?.condition||"Used Good";
+    $("productName").value=p?.name||"";$("productCategory").value=p?.category||"Console";$("productCondition").value=p?.condition||"Used Good";
     $("productStatus").value=p?.status||"Available";$("productCost").value=p?.cost??"";$("productPrice").value=p?.price??"";$("productStock").value=p?.stock??1;
-    $("productSerial").value=p?.serial||"";$("productLowStock").value=p?.lowStock??1;$("productNotes").value=p?.notes||"";$("productModal").classList.remove("hidden")
+    $("productSerial").value=p?.serial||"";$("productLowStock").value=p?.lowStock??1;$("productNotes").value=p?.notes||"";lockSku(p?.sku||"");$("productModal").classList.remove("hidden")
   }
+  $("productCategory").onchange=()=>{if(!state.editingProduct&&$("productSku").readOnly)lockSku()};
+  $("unlockSkuBtn").onclick=()=>{
+    if(!isOwner())return toast("Owner sahaja boleh override SKU.");
+    const unlock=$("productSku").readOnly;$("productSku").readOnly=!unlock;$("productSku").classList.toggle("auto-field",!unlock);$("unlockSkuBtn").textContent=unlock?"Lock":"Unlock";
+    if(unlock&&$("productSku").value.endsWith("-AUTO"))$("productSku").value="";
+    if(unlock)$("productSku").focus();
+  };
   function closeModal(id){$(id).classList.add("hidden")}
   window.editProduct=id=>openProduct(state.products.find(p=>p.id===id));
   window.deleteProduct=async id=>{if(!confirm("Delete product?"))return;try{await deleteDoc(doc(db,"products",id));toast("Product deleted")}catch(e){toast(e.message)}};
   $("productForm").onsubmit=async e=>{
-    e.preventDefault();const data={name:$("productName").value.trim(),sku:$("productSku").value.trim().toUpperCase(),category:$("productCategory").value,condition:$("productCondition").value,status:$("productStatus").value,
-      cost:Number($("productCost").value),price:Number($("productPrice").value),stock:Number($("productStock").value),serial:$("productSerial").value.trim(),lowStock:Number($("productLowStock").value||1),notes:$("productNotes").value.trim(),updatedAt:serverTimestamp()};
-    try{state.editingProduct?await updateDoc(doc(db,"products",state.editingProduct),data):await addDoc(collection(db,"products"),{...data,createdAt:serverTimestamp(),createdBy:state.user.uid});closeModal("productModal");e.target.reset();toast("Product saved")}
-    catch(err){toast("Save gagal: "+err.message)}
+    e.preventDefault();
+    const name=$("productName").value.trim(),category=$("productCategory").value,condition=$("productCondition").value,serial=$("productSerial").value.trim(),stock=Number($("productStock").value);
+    const duplicate=duplicateSerial(serial,state.editingProduct);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
+    const manualSku=!$("productSku").readOnly?$("productSku").value.trim().toUpperCase():"";
+    if(!$("productSku").readOnly&&!manualSku)return toast("Masukkan SKU atau lock semula untuk auto-generate.");
+    const merge=!state.editingProduct?mergeCandidate({name,category,condition,serial}):null;let finalSku="";
+    try{
+      if(!state.editingProduct&&!merge&&!manualSku)finalSku=await reserveSku(category);
+      await runTransaction(db,async tx=>{
+        if(state.editingProduct){
+          const ref=doc(db,"products",state.editingProduct),snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk tidak ditemui");
+          finalSku=manualSku||snap.data().sku;
+          tx.update(ref,{name,sku:finalSku,category,condition,status:$("productStatus").value,cost:Number($("productCost").value),price:Number($("productPrice").value),stock,serial,lowStock:Number($("productLowStock").value||1),notes:$("productNotes").value.trim(),updatedAt:serverTimestamp(),updatedBy:state.user.uid});
+        }else if(merge){
+          const ref=doc(db,"products",merge.id),snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk sedia ada tidak ditemui");
+          finalSku=snap.data().sku;
+          tx.update(ref,{stock:Number(snap.data().stock||0)+stock,cost:Number($("productCost").value),price:Number($("productPrice").value),status:$("productStatus").value,lowStock:Number($("productLowStock").value||1),notes:$("productNotes").value.trim(),updatedAt:serverTimestamp(),updatedBy:state.user.uid});
+        }else{
+          finalSku=manualSku||finalSku;
+          const ref=doc(collection(db,"products"));
+          tx.set(ref,{name,sku:finalSku,category,condition,status:$("productStatus").value,cost:Number($("productCost").value),price:Number($("productPrice").value),stock,serial,lowStock:Number($("productLowStock").value||1),notes:$("productNotes").value.trim(),createdAt:serverTimestamp(),createdBy:state.user.uid,updatedAt:serverTimestamp()});
+        }
+      });
+      closeModal("productModal");e.target.reset();toast(state.editingProduct?`Product updated · ${finalSku}`:merge?`Stock merged · ${finalSku}`:`Product created · ${finalSku}`);state.editingProduct=null
+    }catch(err){toast("Save gagal: "+err.message)}
   };
 
   $("newRepairBtn").onclick=()=>$("repairModal").classList.remove("hidden");$("cancelRepair").onclick=()=>closeModal("repairModal");
   $("repairForm").onsubmit=async e=>{
     e.preventDefault();
-    const ticketNo="RPR-"+Date.now().toString().slice(-6),customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),status=$("repairStatus").value;
+    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),status=$("repairStatus").value;let ticketNo="";
     try{
-      await addDoc(collection(db,"repairs"),{ticketNo,customer,phone,device,serial,issue,estimate,status,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
+      const repairRef=doc(collection(db,"repairs"));ticketNo=await reserveDocumentNumber("repair","RPR");
+      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status,staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})});
       closeModal("repairModal");
       showTransactionDocument({title:"REPAIR QUOTATION / INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,qty:1,amount:estimate,total:estimate}],totals:[{label:"Estimated Repair Cost",value:estimate,grand:true}],payment:"Payment upon confirmation/completion",note:"Quotation ini adalah anggaran awal. Kos akhir mungkin berubah selepas diagnosis dan persetujuan customer diperlukan sebelum kerja tambahan."});
-      e.target.reset();toast("Repair ticket created")
+      e.target.reset();toast("Repair ticket created · "+ticketNo)
     }catch(err){toast(err.message)}
   };
   function renderRepairs(){
@@ -987,7 +1072,7 @@
     }
   }
   async function fullBackup(format){
-    const stamp=safeDate(),payload={meta:{application:"Meney POS Enterprise",version:"2.5",exportedAt:new Date().toISOString(),firebaseProject:"meney-daily-mission"},collections:{}};
+    const stamp=safeDate(),payload={meta:{application:"Meney POS Enterprise",version:"2.6",exportedAt:new Date().toISOString(),firebaseProject:"meney-daily-mission"},collections:{}};
     Object.keys(exportCollections).forEach(k=>payload.collections[k]=jsonReady(state[k]||[]));
     if(format==="json")return downloadBlob(JSON.stringify(payload,null,2),`Meney_POS_Full_Backup_${stamp}.json`,"application/json");
     if(format==="xlsx"){
@@ -1004,7 +1089,7 @@
   $("exportCollectionBtn").onclick=async()=>{try{await exportOne($("exportCollection").value,$("exportFormat").value);toast("Export siap")}catch(e){toast(e.message)}};
   $("fullBackupBtn").onclick=async()=>{if(!isOwner())return toast("Owner sahaja boleh export full backup.");try{$("fullBackupBtn").disabled=true;$("fullBackupBtn").textContent="Preparing backup...";await fullBackup($("backupFormat").value);toast("Full backup siap")}catch(e){toast(e.message)}finally{$("fullBackupBtn").disabled=false;$("fullBackupBtn").textContent="⬇ Export Full Backup"}};
 
-  $("openShiftBtn").onclick=async()=>{if(currentShift())return toast("Masih ada shift yang terbuka.");try{await addDoc(collection(db,"shifts"),{status:"open",openingCash:Number($("shiftOpening").value||0),staffId:state.user.uid,staffName:state.profile.name||state.user.email,openedAt:serverTimestamp(),createdAt:serverTimestamp()});$("shiftActual").value="";$("shiftVarianceNote").value="";toast("Shift opened")}catch(e){toast(e.message)}};
+  $("openShiftBtn").onclick=async()=>{if(currentShift())return toast("Masih ada shift yang terbuka.");try{let shiftNo=await reserveDocumentNumber("shift","SHF");const ref=doc(collection(db,"shifts"));await runTransaction(db,async tx=>{tx.set(ref,{shiftNo,status:"open",openingCash:Number($("shiftOpening").value||0),staffId:state.user.uid,staffName:state.profile.name||state.user.email,openedAt:serverTimestamp(),createdAt:serverTimestamp()})});$("shiftActual").value="";$("shiftVarianceNote").value="";toast("Shift opened · "+shiftNo)}catch(e){toast(e.message)}};
   $("shiftActual").oninput=renderShiftVariance;
   $("closeShiftBtn").onclick=async()=>{
     const s=currentShift();if(!s)return toast("Tiada shift terbuka.");
@@ -1015,7 +1100,7 @@
     if(!confirm(message))return;
     try{await updateDoc(doc(db,"shifts",s.id),{status:"closed",expectedCash:Number(expected.toFixed(2)),actualCash:Number(actual.toFixed(2)),cashVariance:variance,varianceStatus:status,varianceNote:note,closedAt:serverTimestamp(),closedBy:state.user.uid});$("shiftActual").value="";$("shiftVarianceNote").value="";toast(status==="balanced"?"Shift closed · Cash balanced":`Shift closed · ${status} ${money(Math.abs(variance))}`)}catch(e){toast(e.message)}
   };
-  $("saveCashMove").onclick=async()=>{const s=currentShift();if(!s)return toast("Open shift dahulu.");try{await addDoc(collection(db,"cashMoves"),{shiftId:s.id,type:$("cashMoveType").value,amount:Number($("cashMoveAmount").value||0),note:$("cashMoveNote").value.trim(),createdAt:serverTimestamp(),staffName:state.profile.name||state.user.email});toast("Cash movement saved")}catch(e){toast(e.message)}};
+  $("saveCashMove").onclick=async()=>{const s=currentShift();if(!s)return toast("Open shift dahulu.");const amount=Number($("cashMoveAmount").value||0);if(amount<=0)return toast("Masukkan amount yang sah.");try{let cashMoveNo=await reserveDocumentNumber("cashMove","CSH");const ref=doc(collection(db,"cashMoves"));await runTransaction(db,async tx=>{tx.set(ref,{cashMoveNo,shiftId:s.id,shiftNo:s.shiftNo||null,type:$("cashMoveType").value,amount,note:$("cashMoveNote").value.trim(),createdAt:serverTimestamp(),staffId:state.user.uid,staffName:state.profile.name||state.user.email})});$("cashMoveAmount").value="";$("cashMoveNote").value="";toast("Cash movement saved · "+cashMoveNo)}catch(e){toast(e.message)}};
   function currentShift(){return state.shifts.find(s=>s.status==="open")}
   function saleCashAmount(sale){
     if(Array.isArray(sale.payments))return sale.payments.filter(p=>p.method==="Cash").reduce((sum,p)=>sum+Number(p.amount||0),0);
