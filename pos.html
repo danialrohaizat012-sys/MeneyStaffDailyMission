@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise v3.0.1 PWA</title>
+  <title>Meney POS Enterprise v3.1 PWA</title>
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -657,6 +657,7 @@
           <div class="field"><label>Estimate (RM)</label><input id="repairEstimate" type="number" min="0" step=".01"></div>
           <div class="field"><label>Status</label><select id="repairStatus"><option>Received</option><option>Diagnosing</option><option>Waiting Parts</option><option>Ready</option><option>Completed</option></select></div>
         </div>
+        <div class="field"><label>Repair Warranty <span class="muted">(optional)</span></label><input id="repairWarranty" placeholder="Blank / No Warranty / e.g. 30 days"></div>
         <div class="modal-actions"><button type="button" id="cancelRepair" class="btn btn-light">Cancel</button><button class="btn btn-green">Save Repair</button></div>
       </form>
     </div>
@@ -753,7 +754,7 @@
   function showTransactionDocument(data){
     state.lastDocument=data;
     $("documentModalTitle").textContent=data.title;
-    const rows=(data.items||[]).map((i,k)=>`<tr><td>${k+1}</td><td><strong>${esc(i.name)}</strong>${i.detail?`<br><span class="muted">${esc(i.detail)}</span>`:""}</td><td>${i.qty||1}</td><td>${money(i.unitPrice??i.amount)}</td><td><strong>${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}</strong></td></tr>`).join("");
+    const rows=(data.items||[]).map((i,k)=>`<tr><td>${k+1}</td><td><strong>${esc(i.name)}</strong>${i.detail?`<br><span class="muted">${esc(i.detail)}</span>`:""}${i.warranty?`<br><span><strong>Warranty:</strong> ${esc(i.warranty)}</span>`:""}</td><td>${i.qty||1}</td><td>${money(i.unitPrice??i.amount)}</td><td><strong>${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}</strong></td></tr>`).join("");
     const totals=(data.totals||[]).map(t=>`<div class="document-total ${t.grand?"grand":""}"><span>${esc(t.label)}</span><strong>${money(t.value)}</strong></div>`).join("");
     $("documentPreview").innerHTML=`
       <div class="document-head"><div class="document-brand"><h2>MENEY GAMING</h2><p>Sell · Buy · Trade-In · Repair</p></div><div class="document-meta"><strong>${esc(data.number)}</strong>${esc(data.date||docDate())}<br>${esc(data.staff||"")}</div></div>
@@ -766,7 +767,7 @@
   function documentText(d){
     const lines=[`*MENEY GAMING*`,`${d.title}`,`No: ${d.number}`,`Tarikh: ${d.date||docDate()}`,`Customer: ${d.customer||"Walk-in"}`];
     if(d.phone)lines.push(`Telefon: ${d.phone}`);
-    lines.push("",...(d.items||[]).map((i,k)=>`${k+1}. ${i.name}${i.detail?` (${i.detail})`:""} x${i.qty||1} — ${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}`),"");
+    lines.push("",...(d.items||[]).map((i,k)=>`${k+1}. ${i.name}${i.detail?` (${i.detail})`:""} x${i.qty||1} — ${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}${i.warranty?`\n   Warranty: ${i.warranty}`:""}`),"");
     (d.totals||[]).forEach(t=>lines.push(`${t.label}: ${money(t.value)}`));
     if(d.payment)lines.push(`Bayaran: ${d.payment}`);
     lines.push("",d.note||"Terima kasih kerana berurusan dengan Meney Gaming.");
@@ -839,11 +840,12 @@
 
   window.addCart=id=>{
     const p=state.products.find(x=>x.id===id);if(!p)return;const item=state.cart.find(x=>x.productId===id);
-    if(item){if(item.qty>=Number(p.stock))return toast("Stok tak cukup.");item.qty++}else state.cart.push({productId:id,name:p.name,sku:p.sku,price:Number(p.price),cost:Number(p.cost||0),qty:1,stock:Number(p.stock)});
+    if(item){if(item.qty>=Number(p.stock))return toast("Stok tak cukup.");item.qty++}else state.cart.push({productId:id,name:p.name,sku:p.sku,price:Number(p.price),cost:Number(p.cost||0),qty:1,stock:Number(p.stock),warranty:""});
     renderCart()
   };
   window.cartQty=(id,d)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;const n=i.qty+d;if(n<1)state.cart=state.cart.filter(x=>x.productId!==id);else if(n<=i.stock)i.qty=n;renderCart()};
   window.removeCart=id=>{state.cart=state.cart.filter(x=>x.productId!==id);renderCart()};
+  window.cartWarranty=(id,value)=>{const i=state.cart.find(x=>x.productId===id);if(i)i.warranty=String(value||"").trimStart()};
   $("clearCart").onclick=()=>{state.cart=[];renderCart()};
   $("saleDiscount").oninput=()=>{renderCart();renderSplitPaymentSummary()};
 
@@ -883,7 +885,7 @@
   function totals(){const sub=state.cart.reduce((s,i)=>s+i.price*i.qty,0),disc=Math.min(Math.max(Number($("saleDiscount").value||0),0),sub);return{sub,disc,total:sub-disc}}
   function renderCart(){
     $("cartCount").textContent=state.cart.reduce((s,i)=>s+i.qty,0)+" item";
-    $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div></div>`).join(""):'<div class="muted" style="padding:28px;text-align:center">Cart kosong.</div>';
+    $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div><div class="field" style="margin-top:10px"><label>Warranty <span class="muted">(optional)</span></label><input value="${esc(i.warranty||"")}" oninput="window.cartWarranty('${i.productId}',this.value)" placeholder="Blank / No Warranty / e.g. 30 days"></div></div>`).join(""):'<div class="muted" style="padding:28px;text-align:center">Cart kosong.</div>';
     const t=totals();$("saleSubtotal").textContent=money(t.sub);$("saleDiscountText").textContent=money(t.disc);$("saleTotal").textContent=money(t.total);renderSplitPaymentSummary()
   }
 
@@ -910,13 +912,13 @@
         receipt=await nextDocumentNumber(tx,"invoice","INV");
 
         refs.forEach((r,k)=>{const newStock=Number(snaps[k].data().stock)-state.cart[k].qty;tx.update(r,{stock:newStock,status:newStock>0?"Available":"No Stock",updatedAt:serverTimestamp()})});
-        tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
+        tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,warranty:String(i.warranty||"").trim(),lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
           paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:nowDate(),shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})
       });
       const completedItems=state.cart.map(i=>({name:i.name,detail:i.sku,qty:i.qty,unitPrice:i.price,total:i.price*i.qty}));
       const customer=$("saleCustomer").value.trim(),phone=$("salePhone").value.trim(),payment=payments.map(p=>`${p.method}: ${money(p.amount)}`).join(" · ");
       state.cart=[];$("saleDiscount").value=0;$("saleCustomer").value="";$("salePhone").value="";$("salePayment").value="Cash";$("splitPaymentBox").classList.add("hidden");resetSplitPayments();renderCart();toast("Payment successful · "+receipt);
-      showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:"Warranty tertakluk kepada terma pada item dan keadaan barang."})
+      showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:"Terima kasih kerana berurusan dengan Meney Gaming."})
     }catch(err){toast("Sale gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Payment"}
   };
 
@@ -1182,12 +1184,12 @@
   $("newRepairBtn").onclick=()=>$("repairModal").classList.remove("hidden");$("cancelRepair").onclick=()=>closeModal("repairModal");
   $("repairForm").onsubmit=async e=>{
     e.preventDefault();
-    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),status=$("repairStatus").value;let ticketNo="";
+    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),status=$("repairStatus").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
     try{
       const repairRef=doc(collection(db,"repairs"));ticketNo=await reserveDocumentNumber("repair","RPR");
-      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status,staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})});
+      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status,warranty,staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})});
       closeModal("repairModal");
-      showTransactionDocument({title:"REPAIR QUOTATION / INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,qty:1,amount:estimate,total:estimate}],totals:[{label:"Estimated Repair Cost",value:estimate,grand:true}],payment:"Payment upon confirmation/completion",note:"Quotation ini adalah anggaran awal. Kos akhir mungkin berubah selepas diagnosis dan persetujuan customer diperlukan sebelum kerja tambahan."});
+      showTransactionDocument({title:"REPAIR QUOTATION / INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals:[{label:"Estimated Repair Cost",value:estimate,grand:true}],payment:"Payment upon confirmation/completion",note:"Quotation ini adalah anggaran awal. Kos akhir mungkin berubah selepas diagnosis dan persetujuan customer diperlukan sebelum kerja tambahan."});
       e.target.reset();toast("Repair ticket created · "+ticketNo)
     }catch(err){toast(err.message)}
   };
@@ -1206,14 +1208,14 @@
   }
   function transactionDocument(t){
     const x=t.data,staff=x.staffName||"",cancelNote=x.status==="cancelled"||x.transactionStatus==="cancelled"?`CANCELLED: ${x.cancelReason||"No reason recorded"}`:"";
-    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote||"Warranty tertakluk kepada terma pada item dan keadaan barang."};
+    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warranty||"",qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote||"Terima kasih kerana berurusan dengan Meney Gaming."};
     if(t.kind==="buy")return {title:"PURCHASE RECEIPT",number:x.buyNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.item,detail:`${x.itemType||"Used"} · SKU ${x.sku||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,amount:x.offer,total:x.offer}],totals:[{label:"Amount Paid to Customer",value:x.offer,grand:true}],payment:x.paymentMethod,note:cancelNote||"Barang diterima masuk ke inventory Meney."};
     if(t.kind==="trade"){
       const outs=x.stockOutItems||[{name:x.newProductName,sku:"",qty:1,price:Number(x.newProductPrice||0)}],ins=x.stockInItems||[{name:x.tradeItem,sku:x.tradeItemSku||"",itemType:x.itemType||"Used",qty:1,tradeValue:Number(x.tradeValue||0)}];
       const net=Number(x.netBalance ?? (Number(x.newProductPrice||0)-Number(x.tradeValue||0))),outTotal=Number(x.totalStockOut ?? (x.newProductPrice||0)),inTotal=Number(x.totalTradeValue ?? (x.tradeValue||0));
       return {title:"TRADE-IN RECEIPT",number:x.tradeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[...outs.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:Number(i.price||0),total:Number(i.price||0)*Number(i.qty||1)})),...ins.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:-(Number(i.tradeValue||0)/Number(i.qty||1)),total:-Number(i.tradeValue||0)}))],totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:net>=0?"Amount Paid by Customer":"Amount Paid by Meney",value:Math.abs(net),grand:true}],payment:x.paymentMethod,note:cancelNote||"Trade-in stock in/out transaction."};
     }
-    return {title:"REPAIR QUOTATION / INTAKE RECEIPT",number:x.ticketNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Issue: ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,amount:x.estimate,total:x.estimate}],totals:[{label:"Estimated Repair Cost",value:x.estimate,grand:true}],payment:x.paymentMethod||"Payment upon confirmation/completion",note:cancelNote||`Repair status: ${x.status||"Received"}`};
+    return {title:"REPAIR QUOTATION / INTAKE RECEIPT",number:x.ticketNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Issue: ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,warranty:x.warranty||"",qty:1,amount:x.estimate,total:x.estimate}],totals:[{label:"Estimated Repair Cost",value:x.estimate,grand:true}],payment:x.paymentMethod||"Payment upon confirmation/completion",note:cancelNote||`Repair status: ${x.status||"Received"}`};
   }
   window.openReceipt=(kind,id)=>{const t=allTransactions().find(x=>x.kind===kind&&x.data.id===id);if(t)showTransactionDocument(transactionDocument(t))};
   function renderReceipts(){
