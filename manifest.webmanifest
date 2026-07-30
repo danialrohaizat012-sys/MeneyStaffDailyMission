@@ -1,0 +1,19 @@
+{
+  "name": "MENEY Daily Mission",
+  "short_name": "Meney Mission",
+  "description": "Sistem tugasan harian dan pemantauan staff Meney secara masa nyata.",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#070807",
+  "theme_color": "#071007",
+  "orientation": "portrait-primary",
+  "lang": "ms-MY",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
