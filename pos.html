@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise v3.1 PWA</title>
+  <title>Meney POS Enterprise v3.1.1 PWA</title>
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -564,7 +564,7 @@
           <div class="grid overview-grid">
             <div class="card section">
               <div class="section-head"><div><h3>System Settings</h3><p>Firebase project yang sama dengan Meney Daily Mission.</p></div></div>
-              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v2.9.1 New / Used Inventory PWA</strong></div>
+              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v3.1.1 Item Warranty PWA</strong></div>
               <div class="summary-mini"><span>Database</span><strong>Cloud Firestore</strong></div>
               <div class="summary-mini"><span>Data ownership</span><strong>Export anytime</strong></div>
             </div>
@@ -885,7 +885,11 @@
   function totals(){const sub=state.cart.reduce((s,i)=>s+i.price*i.qty,0),disc=Math.min(Math.max(Number($("saleDiscount").value||0),0),sub);return{sub,disc,total:sub-disc}}
   function renderCart(){
     $("cartCount").textContent=state.cart.reduce((s,i)=>s+i.qty,0)+" item";
-    $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div><div class="field" style="margin-top:10px"><label>Warranty <span class="muted">(optional)</span></label><input value="${esc(i.warranty||"")}" oninput="window.cartWarranty('${i.productId}',this.value)" placeholder="Blank / No Warranty / e.g. 30 days"></div></div>`).join(""):'<div class="muted" style="padding:28px;text-align:center">Cart kosong.</div>';
+    $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div><div class="field" style="margin-top:10px">
+  <label>Warranty for this item <span class="muted">(optional)</span></label>
+  <input value="${esc(i.warranty||"")}" oninput="window.cartWarranty('${i.productId}',this.value)" placeholder="Leave blank / No Warranty / e.g. 30 Days Shop Warranty">
+  <span class="field-help">Warranty ini khusus untuk item ini dan akan tertera pada receipt.</span>
+</div></div>`).join(""):'<div class="muted" style="padding:28px;text-align:center">Cart kosong.</div>';
     const t=totals();$("saleSubtotal").textContent=money(t.sub);$("saleDiscountText").textContent=money(t.disc);$("saleTotal").textContent=money(t.total);renderSplitPaymentSummary()
   }
 
@@ -915,7 +919,14 @@
         tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,warranty:String(i.warranty||"").trim(),lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
           paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:nowDate(),shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})
       });
-      const completedItems=state.cart.map(i=>({name:i.name,detail:i.sku,qty:i.qty,unitPrice:i.price,total:i.price*i.qty}));
+      const completedItems=state.cart.map(i=>({
+        name:i.name,
+        detail:i.sku,
+        warranty:String(i.warranty||"").trim(),
+        qty:i.qty,
+        unitPrice:i.price,
+        total:i.price*i.qty
+      }));
       const customer=$("saleCustomer").value.trim(),phone=$("salePhone").value.trim(),payment=payments.map(p=>`${p.method}: ${money(p.amount)}`).join(" · ");
       state.cart=[];$("saleDiscount").value=0;$("saleCustomer").value="";$("salePhone").value="";$("salePayment").value="Cash";$("splitPaymentBox").classList.add("hidden");resetSplitPayments();renderCart();toast("Payment successful · "+receipt);
       showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:"Terima kasih kerana berurusan dengan Meney Gaming."})
