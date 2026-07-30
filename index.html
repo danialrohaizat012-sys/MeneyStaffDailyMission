@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ms">
-<head>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="theme-color" content="#080a08"><head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#071007">
@@ -75,7 +77,13 @@
     }
   </style>
 </head>
-<body>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js");
+    });
+  }
+</script><body>
   <main class="shell">
     <section id="loginView" class="login-wrap">
       <div class="login-card">
