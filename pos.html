@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -265,63 +266,86 @@
     .document-note{background:#f8faf9;border:1px dashed #bdc9c1;border-radius:10px;padding:12px;margin-top:20px;color:#475467}
     @media(max-width:590px){.page-wrap{padding:14px}.product-toolbar{grid-template-columns:1fr}.product-row{min-height:82px}.document-sheet{padding:18px}}
 
-    /* ===== Meney POS Splash Animation ===== */
+    /* ===== Meney POS · Graphite Boot Experience ===== */
     .pos-splash{
-      position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;
+      position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;overflow:hidden;
+      background:#0e1116;color:#fff;opacity:1;visibility:visible;
+      transition:opacity .22s ease,visibility .22s ease;
+      isolation:isolate;
+    }
+    .pos-splash::before{
+      content:"";position:absolute;inset:0;z-index:-2;
       background:
-        radial-gradient(circle at 50% 38%,rgba(163,255,18,.12),transparent 24%),
-        linear-gradient(145deg,#0b111c,#111827 58%,#07120b);
-      opacity:1;visibility:visible;transition:opacity .55s ease,visibility .55s ease;
+        radial-gradient(circle at 50% 42%,rgba(168,255,53,.07),transparent 27%),
+        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+      background-size:auto,48px 48px,48px 48px;
+      mask-image:linear-gradient(to bottom,transparent,black 22%,black 78%,transparent);
+    }
+    .pos-splash::after{
+      content:"";position:absolute;width:440px;height:440px;border-radius:50%;z-index:-1;
+      background:rgba(168,255,53,.035);filter:blur(90px);opacity:.8;
     }
     .pos-splash.hide{opacity:0;visibility:hidden;pointer-events:none}
-    .pos-splash-inner{text-align:center;color:#fff;padding:24px}
-    .pos-splash-logo{
-      width:92px;height:92px;margin:0 auto 22px;border-radius:29px;display:grid;place-items:center;
-      background:linear-gradient(145deg,#202a37,#080d15);color:#a3ff12;font-size:42px;font-weight:1000;
-      box-shadow:0 24px 70px rgba(0,0,0,.38),0 0 0 1px rgba(163,255,18,.18),inset 0 1px 0 rgba(255,255,255,.08);
-      animation:splashLogoIn .75s cubic-bezier(.2,.8,.2,1) both,splashFloat 2.2s ease-in-out .75s infinite;
+    .pos-splash-inner{width:min(420px,calc(100vw - 48px));text-align:center;padding:28px}
+    .pos-mark{
+      width:76px;height:76px;margin:0 auto 25px;display:grid;place-items:center;border-radius:22px;
+      background:linear-gradient(145deg,#171c23,#0b0e12);border:1px solid rgba(255,255,255,.085);
+      box-shadow:0 28px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.06);
+      color:#a8ff35;font-size:34px;font-weight:950;letter-spacing:-.055em;
+      animation:meneyMarkIn .72s cubic-bezier(.22,.8,.22,1) both;
     }
-    .pos-splash-title{font-size:24px;font-weight:950;letter-spacing:.16em;margin:0;animation:splashTextIn .65s ease .18s both}
-    .pos-splash-sub{margin:8px 0 0;color:#a3ff12;font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;animation:splashTextIn .65s ease .3s both}
-    .pos-splash-loader{width:150px;height:3px;margin:25px auto 0;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
-    .pos-splash-loader:after{content:"";display:block;width:45%;height:100%;border-radius:inherit;background:#a3ff12;animation:splashLoad 1.15s ease-in-out infinite}
-    @keyframes splashLogoIn{from{opacity:0;transform:translateY(18px) scale(.82) rotate(-8deg)}to{opacity:1;transform:translateY(0) scale(1) rotate(-2deg)}}
-    @keyframes splashTextIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-    @keyframes splashFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(1deg)}}
-    @keyframes splashLoad{0%{transform:translateX(-120%)}100%{transform:translateX(340%)}}
-    @media (prefers-reduced-motion:reduce){.pos-splash-logo,.pos-splash-title,.pos-splash-sub,.pos-splash-loader:after{animation:none}}
+    .pos-splash-title{margin:0;font-size:22px;line-height:1.1;font-weight:850;letter-spacing:.19em;text-indent:.19em;animation:meneyTextIn .62s ease .18s both}
+    .pos-splash-sub{margin:10px 0 0;color:#8b949e;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;animation:meneyTextIn .62s ease .29s both}
+    .pos-splash-status{margin:34px 0 11px;color:#c4c9d0;font-size:11px;font-weight:600;letter-spacing:.035em;animation:meneyTextIn .55s ease .4s both}
+    .pos-splash-loader{position:relative;width:100%;height:2px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden;animation:meneyTextIn .5s ease .48s both}
+    .pos-splash-loader::after{content:"";position:absolute;inset:0;transform-origin:left center;background:linear-gradient(90deg,#86e82a,#b7ff5a);box-shadow:0 0 16px rgba(168,255,53,.32);animation:meneyProgress 3s cubic-bezier(.2,.7,.2,1) forwards}
+    .pos-splash-footer{position:absolute;left:0;right:0;bottom:24px;text-align:center;color:#535b66;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;animation:meneyTextIn .6s ease .6s both}
+    @keyframes meneyMarkIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+    @keyframes meneyTextIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+    @keyframes meneyProgress{0%{transform:scaleX(0)}18%{transform:scaleX(.12)}58%{transform:scaleX(.66)}86%{transform:scaleX(.88)}100%{transform:scaleX(1)}}
+    .meney-enter{animation:meneyWorkspaceIn .38s cubic-bezier(.22,.8,.22,1) both}
+    @keyframes meneyWorkspaceIn{from{opacity:.15;transform:translateX(24px)}to{opacity:1;transform:none}}
+    @media(max-width:520px){.pos-splash-inner{width:calc(100vw - 40px);padding:20px}.pos-mark{width:70px;height:70px;border-radius:20px}.pos-splash-title{font-size:20px}.pos-splash-footer{bottom:18px}}
+    @media(prefers-reduced-motion:reduce){.pos-mark,.pos-splash-title,.pos-splash-sub,.pos-splash-status,.pos-splash-loader,.pos-splash-loader::after,.pos-splash-footer,.meney-enter{animation:none}}
 
 </style>
 </head>
 <body>
-  <div id="posSplash" class="pos-splash" data-build="POS-SPLASH-FIX-2" role="status" aria-label="Meney POS sedang dimuatkan" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:linear-gradient(145deg,#0b111c,#111827 58%,#07120b);opacity:1;visibility:visible;">
+  <div id="posSplash" class="pos-splash" role="status" aria-label="Meney POS sedang menyediakan ruang kerja">
     <div class="pos-splash-inner">
-      <div class="pos-splash-logo">M</div>
+      <div class="pos-mark" aria-hidden="true">M</div>
       <h1 class="pos-splash-title">MENEY POS</h1>
-      <p class="pos-splash-sub">Enterprise System</p>
+      <p class="pos-splash-sub">Enterprise Management System</p>
+      <p class="pos-splash-status">Preparing Your Workspace</p>
       <div class="pos-splash-loader" aria-hidden="true"></div>
-      <small style="display:block;margin-top:18px;color:#667085;font-size:9px;letter-spacing:.08em">BUILD SPLASH FIX 2</small>
     </div>
+    <div class="pos-splash-footer">Meney Empire · Pasir Tumboh</div>
   </div>
   <script>
-    // Standalone splash controller: works even if Firebase/module scripts fail.
     (function(){
       var started=Date.now();
+      var minimumDisplayTime=3000;
       window.__hideMeneySplash=function(){
-        var el=document.getElementById('posSplash');
-        if(!el||el.dataset.hiding==='1') return;
-        el.dataset.hiding='1';
-        var wait=Math.max(0,2200-(Date.now()-started));
+        var splash=document.getElementById('posSplash');
+        if(!splash||splash.dataset.hiding==='1') return;
+        splash.dataset.hiding='1';
+        var wait=Math.max(0,minimumDisplayTime-(Date.now()-started));
         setTimeout(function(){
-          el.style.transition='opacity .55s ease, visibility .55s ease';
-          el.style.opacity='0';
-          el.style.visibility='hidden';
-          el.style.pointerEvents='none';
-          setTimeout(function(){ if(el&&el.parentNode) el.parentNode.removeChild(el); },650);
+          var target=!document.getElementById('app').classList.contains('hidden')
+            ? document.getElementById('app')
+            : document.getElementById('loginPage');
+          if(target){
+            target.classList.remove('meney-enter');
+            void target.offsetWidth;
+            target.classList.add('meney-enter');
+          }
+          splash.classList.add('hide');
+          setTimeout(function(){if(splash&&splash.parentNode)splash.parentNode.removeChild(splash)},260);
         },wait);
       };
-      window.addEventListener('load',function(){ setTimeout(window.__hideMeneySplash,250); });
-      setTimeout(window.__hideMeneySplash,6500);
+      window.addEventListener('load',function(){window.__hideMeneySplash()});
+      setTimeout(window.__hideMeneySplash,7000);
     })();
   </script>
 
