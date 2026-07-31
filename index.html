@@ -338,7 +338,7 @@
       <label for="proofFile">Screenshot / gambar bukti</label>
       <input id="proofFile" type="file" accept="image/*" capture="environment">
       <div id="proofPreview" class="proof-preview hidden"><img id="proofPreviewImage" alt="Preview bukti"></div>
-      <button id="submitProofBtn" class="btn primary" style="width:100%;margin-top:16px">Upload Bukti & Complete</button>
+      <button id="submitProofBtn" class="btn primary" style="width:100%;margin-top:16px">Simpan Bukti & Complete</button>
     </div>
   </div>
 
@@ -353,9 +353,6 @@
       getFirestore, doc, getDoc, collection, addDoc, onSnapshot,
       query, where, updateDoc, deleteDoc, serverTimestamp, Timestamp, getDocs
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-    import {
-      getStorage, ref as storageRef, uploadBytes, getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",
@@ -370,7 +367,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     const $ = id => document.getElementById(id);
     const state = { user:null, profile:null, missions:[], users:[], filter:"active", unsubscribe:null, editingMissionId:null, proofMissionId:null, proofFile:null };
@@ -564,6 +560,24 @@
       }
     });
 
+    async function compressProofImage(file){
+      if(!file || !file.type.startsWith("image/")) throw new Error("Fail bukti mesti gambar.");
+      const bitmap=await createImageBitmap(file);
+      const maxSide=1280;
+      const scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+      const canvas=document.createElement("canvas");
+      canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+      canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+      const ctx=canvas.getContext("2d",{alpha:false});
+      ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+      bitmap.close?.();
+      let quality=.82,dataUrl=canvas.toDataURL("image/jpeg",quality);
+      while(dataUrl.length>480000 && quality>.42){quality-=.08;dataUrl=canvas.toDataURL("image/jpeg",quality)}
+      if(dataUrl.length>650000) throw new Error("Gambar masih terlalu besar. Sila pilih screenshot yang lebih kecil.");
+      return {dataUrl,width:canvas.width,height:canvas.height,bytes:Math.round(dataUrl.length*0.75)};
+    }
+
     async function changeStatus(id,status){
       const mission=state.missions.find(m=>m.id===id);
       if(!mission){pop("Mission tidak dijumpai");return}
@@ -602,33 +616,32 @@
       const file=e.target.files?.[0];state.proofFile=file||null;
       if(!file){$("proofPreview").classList.add("hidden");return}
       if(!file.type.startsWith("image/")){pop("Fail bukti mesti gambar");e.target.value="";state.proofFile=null;return}
-      if(file.size>8*1024*1024){pop("Saiz gambar maksimum 8MB");e.target.value="";state.proofFile=null;return}
+      if(file.size>12*1024*1024){pop("Saiz gambar asal maksimum 12MB");e.target.value="";state.proofFile=null;return}
       $("proofPreviewImage").src=URL.createObjectURL(file);
       $("proofPreview").classList.remove("hidden");
     };
     $("submitProofBtn").onclick=async()=>{
       const id=state.proofMissionId,file=state.proofFile;
       if(!id||!file){pop("Pilih gambar bukti dahulu");return}
-      const btn=$("submitProofBtn");btn.disabled=true;btn.textContent="Uploading...";
+      const btn=$("submitProofBtn");btn.disabled=true;btn.textContent="Compressing...";
       try{
-        const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-        const path=`mission-proofs/${id}/${Date.now()}-${safe}`;
-        const ref=storageRef(storage,path);
-        await uploadBytes(ref,file,{contentType:file.type});
-        const proofUrl=await getDownloadURL(ref);
+        const proof=await compressProofImage(file);
+        btn.textContent="Saving...";
         await updateDoc(doc(db,"missions",id),{
           status:"completed",completedAt:serverTimestamp(),updatedAt:serverTimestamp(),
-          proofUrl,proofPath:path,proofFileName:file.name,proofSubmittedAt:serverTimestamp(),
-          proofSubmittedBy:state.user.uid,proofSubmittedByName:state.profile.name||state.user.email
+          proofDataUrl:proof.dataUrl,proofFileName:file.name,proofContentType:"image/jpeg",
+          proofSize:proof.bytes,proofWidth:proof.width,proofHeight:proof.height,
+          proofSubmittedAt:serverTimestamp(),proofSubmittedBy:state.user.uid,
+          proofSubmittedByName:state.profile.name||state.user.email
         });
         closeProofModal();pop("Bukti dihantar dan mission disiapkan");
       }catch(error){alert(humanError(error))}
-      finally{btn.disabled=false;btn.textContent="Upload Bukti & Complete"}
+      finally{btn.disabled=false;btn.textContent="Simpan Bukti & Complete"}
     };
 
     async function reopenMission(id){
       try{
-        await updateDoc(doc(db,"missions",id),{status:"pending",completedAt:null,proofUrl:null,proofPath:null,proofFileName:null,proofSubmittedAt:null,proofSubmittedBy:null,proofSubmittedByName:null,updatedAt:serverTimestamp()});
+        await updateDoc(doc(db,"missions",id),{status:"pending",completedAt:null,proofDataUrl:null,proofFileName:null,proofContentType:null,proofSize:null,proofWidth:null,proofHeight:null,proofSubmittedAt:null,proofSubmittedBy:null,proofSubmittedByName:null,updatedAt:serverTimestamp()});
         pop("Mission dibuka semula");
       }catch(error){alert(humanError(error))}
     }
@@ -716,7 +729,8 @@
           const reopenButton=status==="completed"?`<button class="btn secondary small" onclick="reopenMission('${m.id}')">Buka Semula</button>`:"";
           actions=`<button class="btn secondary small" onclick="editMission('${m.id}')">✏️ Edit</button>${reopenButton}<button class="btn danger small" onclick="deleteMission('${m.id}')">🗑 Delete</button>`;
         }
-        const proofBlock=m.proofUrl?`<div class="proof-preview"><a href="${escapeHtml(m.proofUrl)}" target="_blank" rel="noopener"><img src="${escapeHtml(m.proofUrl)}" alt="Bukti mission"></a><p class="proof-note">Bukti dihantar oleh ${escapeHtml(m.proofSubmittedByName||m.assignedToName||"Staff")}</p></div>`:"";
+        const proofImage=m.proofDataUrl||m.proofUrl||"";
+        const proofBlock=proofImage?`<div class="proof-preview"><a href="${escapeHtml(proofImage)}" target="_blank" rel="noopener"><img src="${escapeHtml(proofImage)}" alt="Bukti mission"></a><p class="proof-note">Bukti dihantar oleh ${escapeHtml(m.proofSubmittedByName||m.assignedToName||"Staff")}</p></div>`:"";
         return `<article class="mission">
           <div class="mission-top"><div><h4>${escapeHtml(m.title||"Tanpa tajuk")}</h4><p class="desc">${escapeHtml(m.description||"Tiada penerangan.")}</p></div><span class="badge ${escapeHtml(status)}">${formatStatus(status)}</span></div>
           <div class="badges">
