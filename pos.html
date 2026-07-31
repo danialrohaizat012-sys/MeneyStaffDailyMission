@@ -10,7 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise v3.2 Premium UI</title>
+  <title>Meney POS Enterprise v3.2 Premium UI · Splash Fix 2</title>
+  <meta name="meney-build" content="POS-SPLASH-FIX-2" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -264,9 +265,66 @@
     .document-note{background:#f8faf9;border:1px dashed #bdc9c1;border-radius:10px;padding:12px;margin-top:20px;color:#475467}
     @media(max-width:590px){.page-wrap{padding:14px}.product-toolbar{grid-template-columns:1fr}.product-row{min-height:82px}.document-sheet{padding:18px}}
 
+    /* ===== Meney POS Splash Animation ===== */
+    .pos-splash{
+      position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;
+      background:
+        radial-gradient(circle at 50% 38%,rgba(163,255,18,.12),transparent 24%),
+        linear-gradient(145deg,#0b111c,#111827 58%,#07120b);
+      opacity:1;visibility:visible;transition:opacity .55s ease,visibility .55s ease;
+    }
+    .pos-splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+    .pos-splash-inner{text-align:center;color:#fff;padding:24px}
+    .pos-splash-logo{
+      width:92px;height:92px;margin:0 auto 22px;border-radius:29px;display:grid;place-items:center;
+      background:linear-gradient(145deg,#202a37,#080d15);color:#a3ff12;font-size:42px;font-weight:1000;
+      box-shadow:0 24px 70px rgba(0,0,0,.38),0 0 0 1px rgba(163,255,18,.18),inset 0 1px 0 rgba(255,255,255,.08);
+      animation:splashLogoIn .75s cubic-bezier(.2,.8,.2,1) both,splashFloat 2.2s ease-in-out .75s infinite;
+    }
+    .pos-splash-title{font-size:24px;font-weight:950;letter-spacing:.16em;margin:0;animation:splashTextIn .65s ease .18s both}
+    .pos-splash-sub{margin:8px 0 0;color:#a3ff12;font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;animation:splashTextIn .65s ease .3s both}
+    .pos-splash-loader{width:150px;height:3px;margin:25px auto 0;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+    .pos-splash-loader:after{content:"";display:block;width:45%;height:100%;border-radius:inherit;background:#a3ff12;animation:splashLoad 1.15s ease-in-out infinite}
+    @keyframes splashLogoIn{from{opacity:0;transform:translateY(18px) scale(.82) rotate(-8deg)}to{opacity:1;transform:translateY(0) scale(1) rotate(-2deg)}}
+    @keyframes splashTextIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes splashFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(1deg)}}
+    @keyframes splashLoad{0%{transform:translateX(-120%)}100%{transform:translateX(340%)}}
+    @media (prefers-reduced-motion:reduce){.pos-splash-logo,.pos-splash-title,.pos-splash-sub,.pos-splash-loader:after{animation:none}}
+
 </style>
 </head>
 <body>
+  <div id="posSplash" class="pos-splash" data-build="POS-SPLASH-FIX-2" role="status" aria-label="Meney POS sedang dimuatkan" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:linear-gradient(145deg,#0b111c,#111827 58%,#07120b);opacity:1;visibility:visible;">
+    <div class="pos-splash-inner">
+      <div class="pos-splash-logo">M</div>
+      <h1 class="pos-splash-title">MENEY POS</h1>
+      <p class="pos-splash-sub">Enterprise System</p>
+      <div class="pos-splash-loader" aria-hidden="true"></div>
+      <small style="display:block;margin-top:18px;color:#667085;font-size:9px;letter-spacing:.08em">BUILD SPLASH FIX 2</small>
+    </div>
+  </div>
+  <script>
+    // Standalone splash controller: works even if Firebase/module scripts fail.
+    (function(){
+      var started=Date.now();
+      window.__hideMeneySplash=function(){
+        var el=document.getElementById('posSplash');
+        if(!el||el.dataset.hiding==='1') return;
+        el.dataset.hiding='1';
+        var wait=Math.max(0,2200-(Date.now()-started));
+        setTimeout(function(){
+          el.style.transition='opacity .55s ease, visibility .55s ease';
+          el.style.opacity='0';
+          el.style.visibility='hidden';
+          el.style.pointerEvents='none';
+          setTimeout(function(){ if(el&&el.parentNode) el.parentNode.removeChild(el); },650);
+        },wait);
+      };
+      window.addEventListener('load',function(){ setTimeout(window.__hideMeneySplash,250); });
+      setTimeout(window.__hideMeneySplash,6500);
+    })();
+  </script>
+
   <section id="loginPage" class="login-page">
     <div class="card login-card">
       <div class="brand" style="padding:0 0 22px">
@@ -807,6 +865,9 @@
 
   const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
   const $=id=>document.getElementById(id);
+  function hidePosSplash(){
+    if(typeof window.__hideMeneySplash==="function")window.__hideMeneySplash();
+  }
   const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],cart:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,unsubs:[]};
   const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
   const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
@@ -939,10 +1000,28 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
   onAuthStateChanged(auth,async user=>{
     state.unsubs.forEach(u=>u());state.unsubs=[];
-    if(!user){$("loginPage").classList.remove("hidden");$("app").classList.add("hidden");return}
-    state.user=user;const p=await getDoc(doc(db,"users",user.uid));state.profile=p.exists()?p.data():{name:user.email,role:"staff"};
-    $("userName").textContent=state.profile.name||user.email;$("userRole").textContent=state.profile.role||"staff";$("shiftStaff").textContent=state.profile.name||user.email;
-    $("loginPage").classList.add("hidden");$("app").classList.remove("hidden");subscribeAll()
+    try{
+      if(!user){
+        state.user=null;state.profile=null;
+        $("loginPage").classList.remove("hidden");$("app").classList.add("hidden");
+        return;
+      }
+      state.user=user;
+      const p=await getDoc(doc(db,"users",user.uid));
+      state.profile=p.exists()?p.data():{name:user.email,role:"staff"};
+      $("userName").textContent=state.profile.name||user.email;
+      $("userRole").textContent=state.profile.role||"staff";
+      $("shiftStaff").textContent=state.profile.name||user.email;
+      $("loginPage").classList.add("hidden");$("app").classList.remove("hidden");
+      subscribeAll();
+    }catch(err){
+      console.error("Auth initialization failed:",err);
+      $("loginPage").classList.remove("hidden");$("app").classList.add("hidden");
+      $("loginError").textContent="Sistem gagal dimuatkan: "+(err.message||"Unknown error");
+      $("loginError").classList.remove("hidden");
+    }finally{
+      hidePosSplash();
+    }
   });
 
   function sub(name,sort="createdAt"){
