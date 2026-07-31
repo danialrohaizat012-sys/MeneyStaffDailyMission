@@ -1,8 +1,9 @@
 {
+  "id": "./owner.html?app=meney-empire-v2",
   "name": "Meney Empire Command Centre",
   "short_name": "Meney Empire",
   "description": "Command Centre untuk memantau operasi, POS dan Daily Mission Meney.",
-  "start_url": "./owner.html",
+  "start_url": "./owner.html?app=meney-empire-v2",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -10,17 +11,7 @@
   "theme_color": "#07110c",
   "lang": "ms-MY",
   "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    {"src":"./empire-icon-192.png?v=2","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"./empire-icon-512.png?v=2","sizes":"512x512","type":"image/png","purpose":"any maskable"}
   ]
 }

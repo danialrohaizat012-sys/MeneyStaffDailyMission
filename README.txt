@@ -1,0 +1,1 @@
+Upload all files in this folder to repository root. Overwrite owner.html and manifest-owner.json. Do not upload/register sw-owner.js for Owner app because POS already uses the root service-worker scope.
