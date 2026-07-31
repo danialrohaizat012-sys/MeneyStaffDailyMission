@@ -9,9 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
-  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-180.png" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <title>Meney POS Enterprise v3.2 Premium UI</title>
   <style>
     :root{
@@ -267,104 +265,20 @@
     @media(max-width:590px){.page-wrap{padding:14px}.product-toolbar{grid-template-columns:1fr}.product-row{min-height:82px}.document-sheet{padding:18px}}
 
 
-    /* Meney PWA polish: splash, welcome screen and app loader */
-    body.splash-active{overflow:hidden}
-    #meneySplash{
-      position:fixed;inset:0;z-index:99999;display:grid;place-items:center;
-      background:linear-gradient(160deg,#07110b 0%,#0b1c11 55%,#07110b 100%);
-      color:#fff;transition:opacity .5s ease,visibility .5s ease
-    }
-    #meneySplash.hide{opacity:0;visibility:hidden;pointer-events:none}
-    .splash-inner{text-align:center;padding:28px;animation:splashRise .7s ease both}
-    .splash-logo{
-      width:112px;height:112px;border-radius:28px;object-fit:cover;
-      box-shadow:0 24px 60px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.08)
-    }
-    .splash-title{margin:22px 0 5px;font-size:25px;font-weight:950;letter-spacing:.08em}
-    .splash-sub{font-size:12px;color:#b7c5bc;letter-spacing:.08em}
-    .splash-line{
-      width:150px;height:4px;border-radius:999px;background:rgba(255,255,255,.12);
-      overflow:hidden;margin:24px auto 0
-    }
-    .splash-line:after{
-      content:"";display:block;width:45%;height:100%;border-radius:inherit;background:#22c55e;
-      animation:splashLoad 1.2s ease-in-out infinite
-    }
-    @keyframes splashRise{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
-    @keyframes splashLoad{0%{transform:translateX(-115%)}100%{transform:translateX(330%)}}
-
-    #appLoader{
-      position:fixed;inset:0;z-index:99990;display:grid;place-items:center;
-      background:rgba(246,247,249,.78);backdrop-filter:blur(7px);
-      transition:opacity .2s ease,visibility .2s ease
-    }
-    #appLoader.hidden-loader{opacity:0;visibility:hidden;pointer-events:none}
-    .loader-card{
-      min-width:180px;padding:24px;border-radius:22px;background:#fff;border:1px solid var(--line);
-      box-shadow:0 24px 70px rgba(17,24,39,.16);text-align:center
-    }
-    .loader-ring{
-      width:48px;height:48px;border:4px solid #dcfce7;border-top-color:var(--green);
-      border-radius:50%;margin:0 auto 13px;animation:meneySpin .75s linear infinite
-    }
-    .loader-card strong{display:block;font-size:13px}.loader-card span{font-size:11px;color:var(--muted)}
-    @keyframes meneySpin{to{transform:rotate(360deg)}}
-
-    #welcomeModal{
-      position:fixed;inset:0;z-index:99980;display:grid;place-items:center;padding:20px;
-      background:rgba(5,12,8,.72);backdrop-filter:blur(9px);
-      transition:opacity .25s ease,visibility .25s ease
-    }
-    #welcomeModal.hidden-welcome{opacity:0;visibility:hidden;pointer-events:none}
-    .welcome-card{
-      width:min(430px,100%);background:#fff;border-radius:28px;padding:30px;
-      box-shadow:0 34px 90px rgba(0,0,0,.32);text-align:center;
-      animation:welcomePop .45s cubic-bezier(.2,.8,.2,1) both
-    }
-    .welcome-icon{width:84px;height:84px;border-radius:22px;object-fit:cover;box-shadow:var(--shadow)}
-    .welcome-check{
-      width:34px;height:34px;border-radius:50%;display:grid;place-items:center;margin:-18px auto 10px;
-      position:relative;background:#16a34a;color:#fff;border:4px solid #fff;font-weight:950
-    }
-    .welcome-card h2{margin:8px 0 6px;font-size:24px}.welcome-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
-    .welcome-meta{
-      margin:20px 0;padding:13px;border-radius:14px;background:#f0fdf4;color:#166534;
-      font-size:12px;font-weight:850
-    }
-    @keyframes welcomePop{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:none}}
-
+    .repair-finance-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 16px}
+    .repair-finance-card{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--soft)}
+    .repair-finance-card span{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    .repair-finance-card strong{font-size:18px}
+    .repair-cost-box{margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--soft)}
+    .repair-cost-box .cost-title{font-weight:800;margin-bottom:10px}
+    .repair-cost-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+    .repair-cost-summary div{padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+    .repair-cost-summary span{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+    .repair-cost-summary strong{font-size:15px}
+    @media(max-width:760px){.repair-finance-panel{grid-template-columns:repeat(2,minmax(0,1fr))}.repair-cost-summary{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-  <div id="meneySplash" aria-label="Meney POS sedang dibuka">
-    <div class="splash-inner">
-      <img class="splash-logo" src="./icons/icon-192.png" alt="Meney POS">
-      <div class="splash-title">MENEY POS</div>
-      <div class="splash-sub">ENTERPRISE · READY FOR BUSINESS</div>
-      <div class="splash-line"></div>
-    </div>
-  </div>
-
-  <div id="appLoader" class="hidden-loader" aria-live="polite" aria-busy="true">
-    <div class="loader-card">
-      <div class="loader-ring"></div>
-      <strong id="loaderTitle">Memproses...</strong>
-      <span id="loaderText">Sila tunggu sebentar</span>
-    </div>
-  </div>
-
-  <div id="welcomeModal" class="hidden-welcome">
-    <div class="welcome-card">
-      <img class="welcome-icon" src="./icons/icon-192.png" alt="Meney POS">
-      <div class="welcome-check">✓</div>
-      <h2>Meney POS Ready!</h2>
-      <p>Aplikasi berjaya dipasang dan sedia digunakan untuk operasi Meney Gaming.</p>
-      <div class="welcome-meta">Meney POS Enterprise · Version 1.0.0</div>
-      <button id="welcomeStartBtn" class="btn btn-green btn-block">Mula Gunakan POS</button>
-    </div>
-  </div>
-
   <section id="loginPage" class="login-page">
     <div class="card login-card">
       <div class="brand" style="padding:0 0 22px">
@@ -641,8 +555,14 @@
               <div><h3>Repair Management</h3><p>Terima repair, jejak status dan rekod bayaran.</p></div>
               <button id="newRepairBtn" class="btn btn-green">🛠 New Repair</button>
             </div>
+            <div id="repairFinancePanel" class="repair-finance-panel hidden">
+              <div class="repair-finance-card"><span>Repair Revenue</span><strong id="repairRevenue">RM0.00</strong></div>
+              <div class="repair-finance-card"><span>Internal Cost</span><strong id="repairTotalCost">RM0.00</strong></div>
+              <div class="repair-finance-card"><span>Net Repair Profit</span><strong id="repairNetProfit">RM0.00</strong></div>
+              <div class="repair-finance-card"><span>Average Margin</span><strong id="repairMargin">0%</strong></div>
+            </div>
             <div class="table-wrap">
-              <table><thead><tr><th>Ticket</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Estimate</th><th>Action</th></tr></thead><tbody id="repairBody"></tbody></table>
+              <table><thead><tr><th>Ticket</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Customer Price</th><th class="repair-finance-col hidden">Internal Cost</th><th class="repair-finance-col hidden">Net Profit</th><th>Action</th></tr></thead><tbody id="repairBody"></tbody></table>
             </div>
           </div>
         </section>
@@ -823,8 +743,22 @@
         </div>
         <div class="field"><label>Issue</label><textarea id="repairIssue" required></textarea></div>
         <div class="two">
-          <div class="field"><label>Estimate (RM)</label><input id="repairEstimate" type="number" min="0" step=".01"></div>
+          <div class="field"><label>Customer Price / Estimate (RM)</label><input id="repairEstimate" type="number" min="0" step=".01"></div>
           <div class="field"><label>Status</label><select id="repairStatus"><option>Received</option><option>Diagnosing</option><option>Waiting Parts</option><option>Ready</option><option>Completed</option></select></div>
+        </div>
+        <div class="repair-cost-box">
+          <div class="cost-title">Internal Repair Cost <span class="muted">— tidak dicetak pada resit customer</span></div>
+          <div class="field"><label>Repair Method</label><select id="repairMethod"><option value="internal">Internal Repair</option><option value="outsource">Outsource Technician</option><option value="hybrid">Internal + Outsource</option></select></div>
+          <div class="two">
+            <div class="field" id="sparePartCostField"><label>Spare Part Cost (RM)</label><input id="repairSparePartCost" type="number" min="0" step=".01" value="0"></div>
+            <div class="field hidden" id="outsourceCostField"><label>Outsource / Technician Cost (RM)</label><input id="repairOutsourceCost" type="number" min="0" step=".01" value="0"></div>
+          </div>
+          <div class="field"><label>Additional Internal Cost (RM) <span class="muted">(optional)</span></label><input id="repairAdditionalCost" type="number" min="0" step=".01" value="0"></div>
+          <div class="repair-cost-summary">
+            <div><span>Total Internal Cost</span><strong id="repairCostPreview">RM0.00</strong></div>
+            <div><span>Estimated Net Profit</span><strong id="repairProfitPreview">RM0.00</strong></div>
+            <div><span>Profit Margin</span><strong id="repairMarginPreview">0%</strong></div>
+          </div>
         </div>
         <div class="field"><label>Repair Warranty <span class="muted">(optional)</span></label><input id="repairWarranty" placeholder="Blank / No Warranty / e.g. 30 days"></div>
         <div class="modal-actions"><button type="button" id="cancelRepair" class="btn btn-light">Cancel</button><button class="btn btn-green">Save Repair</button></div>
@@ -848,46 +782,6 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script type="module">
-
-  // Premium startup experience
-  const splashEl=document.getElementById("meneySplash");
-  document.body.classList.add("splash-active");
-  window.addEventListener("load",()=>{
-    setTimeout(()=>{
-      splashEl?.classList.add("hide");
-      document.body.classList.remove("splash-active");
-      setTimeout(()=>splashEl?.remove(),550);
-    },1100);
-  });
-
-  let loaderTimer=null;
-  function showLoader(title="Memproses...",text="Sila tunggu sebentar"){
-    const el=document.getElementById("appLoader");
-    document.getElementById("loaderTitle").textContent=title;
-    document.getElementById("loaderText").textContent=text;
-    clearTimeout(loaderTimer);
-    el?.classList.remove("hidden-loader");
-  }
-  function hideLoader(delay=0){
-    clearTimeout(loaderTimer);
-    loaderTimer=setTimeout(()=>document.getElementById("appLoader")?.classList.add("hidden-loader"),delay);
-  }
-  window.showMeneyLoader=showLoader;
-  window.hideMeneyLoader=hideLoader;
-
-  const welcomeModal=document.getElementById("welcomeModal");
-  function showInstallWelcome(){
-    welcomeModal?.classList.remove("hidden-welcome");
-  }
-  document.getElementById("welcomeStartBtn")?.addEventListener("click",()=>{
-    welcomeModal?.classList.add("hidden-welcome");
-    localStorage.setItem("meneyPosWelcomeSeen","1");
-  });
-  if(localStorage.getItem("meneyPosJustInstalled")==="1"){
-    localStorage.removeItem("meneyPosJustInstalled");
-    setTimeout(showInstallWelcome,1500);
-  }
-
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
   import {
@@ -953,6 +847,7 @@
   const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
   const toast=m=>{$("toast").textContent=m;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2600)}
   const isOwner=()=>state.profile?.role==="owner";
+  const canViewRepairFinance=()=>["owner","admin"].includes(String(state.profile?.role||"").toLowerCase());
   const cleanPhone=phone=>{
     let n=String(phone||"").replace(/\D/g,"");
     if(n.startsWith("0"))n="60"+n.slice(1);
@@ -1017,10 +912,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
   $("loginForm").addEventListener("submit",async e=>{
     e.preventDefault();$("loginError").classList.add("hidden");
-    showLoader("Log masuk...","Menghubungkan akaun Meney");
     try{await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}
     catch(err){$("loginError").textContent="Login gagal: "+(err.code?.includes("invalid-credential")?"Email atau password salah.":err.message);$("loginError").classList.remove("hidden")}
-    finally{hideLoader(250)}
   });
   $("logoutBtn").onclick=()=>signOut(auth);
   $("mobileMenu").onclick=()=>$("sidebar").classList.toggle("open");
@@ -1050,13 +943,9 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>showPage(b.dataset.go));
   function showPage(n){
-    showLoader("Membuka "+pages[n][0],"Menyiapkan paparan");
-    setTimeout(()=>{
-      document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+n).classList.remove("hidden");
-      document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===n));
-      $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open");
-      hideLoader(80);
-    },220)
+    document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+n).classList.remove("hidden");
+    document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===n));
+    $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
   }
 
   function refresh(){populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts()}
@@ -1431,20 +1320,59 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     }catch(err){toast("Save gagal: "+err.message)}
   };
 
-  $("newRepairBtn").onclick=()=>$("repairModal").classList.remove("hidden");$("cancelRepair").onclick=()=>closeModal("repairModal");
+  function updateRepairCostFields(){
+    const method=$("repairMethod").value;
+    $("sparePartCostField").classList.toggle("hidden",method==="outsource");
+    $("outsourceCostField").classList.toggle("hidden",method==="internal");
+    if(method==="outsource")$("repairSparePartCost").value=0;
+    if(method==="internal")$("repairOutsourceCost").value=0;
+    updateRepairProfitPreview();
+  }
+  function updateRepairProfitPreview(){
+    const price=Number($("repairEstimate").value||0);
+    const spare=Number($("repairSparePartCost").value||0);
+    const outsource=Number($("repairOutsourceCost").value||0);
+    const additional=Number($("repairAdditionalCost").value||0);
+    const totalCost=spare+outsource+additional;
+    const profit=price-totalCost;
+    const margin=price>0?(profit/price)*100:0;
+    $("repairCostPreview").textContent=money(totalCost);
+    $("repairProfitPreview").textContent=money(profit);
+    $("repairMarginPreview").textContent=`${margin.toFixed(1)}%`;
+  }
+  $("repairMethod").onchange=updateRepairCostFields;
+  ["repairEstimate","repairSparePartCost","repairOutsourceCost","repairAdditionalCost"].forEach(id=>$(id).oninput=updateRepairProfitPreview);
+  $("newRepairBtn").onclick=()=>{updateRepairCostFields();$("repairModal").classList.remove("hidden")};$("cancelRepair").onclick=()=>closeModal("repairModal");
   $("repairForm").onsubmit=async e=>{
     e.preventDefault();
-    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),status=$("repairStatus").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
+    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),status=$("repairStatus").value,warranty=$("repairWarranty").value.trim();
+    const repairMethod=$("repairMethod").value,sparePartCost=Number($("repairSparePartCost").value||0),outsourceCost=Number($("repairOutsourceCost").value||0),additionalCost=Number($("repairAdditionalCost").value||0);
+    const totalInternalCost=Number((sparePartCost+outsourceCost+additionalCost).toFixed(2));
+    const netProfit=Number((estimate-totalInternalCost).toFixed(2));
+    const profitMargin=estimate>0?Number(((netProfit/estimate)*100).toFixed(2)):0;
+    let ticketNo="";
     try{
       const repairRef=doc(collection(db,"repairs"));ticketNo=await reserveDocumentNumber("repair","RPR");
-      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status,warranty,staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})});
+      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status,warranty,repairMethod,sparePartCost,outsourceCost,additionalCost,totalInternalCost,netProfit,profitMargin,financeVisibility:"admin_owner_only",staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})});
       closeModal("repairModal");
       showTransactionDocument({title:"REPAIR QUOTATION / INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals:[{label:"Estimated Repair Cost",value:estimate,grand:true}],payment:"Payment upon confirmation/completion",note:"Quotation ini adalah anggaran awal. Kos akhir mungkin berubah selepas diagnosis dan persetujuan customer diperlukan sebelum kerja tambahan."});
-      e.target.reset();toast("Repair ticket created · "+ticketNo)
+      e.target.reset();$("repairSparePartCost").value=0;$("repairOutsourceCost").value=0;$("repairAdditionalCost").value=0;updateRepairCostFields();toast("Repair ticket created · "+ticketNo)
     }catch(err){toast(err.message)}
   };
   function renderRepairs(){
-    $("repairBody").innerHTML=state.repairs.length?state.repairs.map(r=>`<tr><td><strong>${esc(r.ticketNo)}</strong></td><td>${esc(r.customer)}<br><span class="muted">${esc(r.phone||"")}</span></td><td>${esc(r.device)}</td><td>${esc(r.issue)}</td><td><span class="badge ${r.status==="Completed"?"green":r.status==="Ready"?"blue":"orange"}">${esc(r.status)}</span></td><td>${money(r.estimate)}</td><td><select onchange="window.repairStatus('${r.id}',this.value)"><option ${r.status==="Received"?"selected":""}>Received</option><option ${r.status==="Diagnosing"?"selected":""}>Diagnosing</option><option ${r.status==="Waiting Parts"?"selected":""}>Waiting Parts</option><option ${r.status==="Ready"?"selected":""}>Ready</option><option ${r.status==="Completed"?"selected":""}>Completed</option></select></td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Belum ada repair.</td></tr>'
+    const privileged=canViewRepairFinance();
+    $("repairFinancePanel").classList.toggle("hidden",!privileged);
+    document.querySelectorAll(".repair-finance-col").forEach(el=>el.classList.toggle("hidden",!privileged));
+    const activeRepairs=state.repairs.filter(r=>r.transactionStatus!=="cancelled");
+    const revenue=activeRepairs.reduce((sum,r)=>sum+Number(r.estimate||0),0);
+    const totalCost=activeRepairs.reduce((sum,r)=>sum+Number(r.totalInternalCost??(Number(r.sparePartCost||0)+Number(r.outsourceCost||0)+Number(r.additionalCost||0))),0);
+    const netProfit=revenue-totalCost;
+    if(privileged){$("repairRevenue").textContent=money(revenue);$("repairTotalCost").textContent=money(totalCost);$("repairNetProfit").textContent=money(netProfit);$("repairMargin").textContent=revenue>0?`${((netProfit/revenue)*100).toFixed(1)}%`:"0%"}
+    $("repairBody").innerHTML=state.repairs.length?state.repairs.map(r=>{
+      const cost=Number(r.totalInternalCost??(Number(r.sparePartCost||0)+Number(r.outsourceCost||0)+Number(r.additionalCost||0)));
+      const profit=Number(r.netProfit??(Number(r.estimate||0)-cost));
+      return `<tr><td><strong>${esc(r.ticketNo)}</strong></td><td>${esc(r.customer)}<br><span class="muted">${esc(r.phone||"")}</span></td><td>${esc(r.device)}</td><td>${esc(r.issue)}</td><td><span class="badge ${r.status==="Completed"?"green":r.status==="Ready"?"blue":"orange"}">${esc(r.status)}</span></td><td>${money(r.estimate)}</td>${privileged?`<td><strong>${money(cost)}</strong><br><span class="muted">${esc(r.repairMethod||"not set")}</span></td><td><strong>${money(profit)}</strong><br><span class="muted">${Number(r.estimate||0)>0?((profit/Number(r.estimate||0))*100).toFixed(1):"0"}%</span></td>`:""}<td><select onchange="window.repairStatus('${r.id}',this.value)"><option ${r.status==="Received"?"selected":""}>Received</option><option ${r.status==="Diagnosing"?"selected":""}>Diagnosing</option><option ${r.status==="Waiting Parts"?"selected":""}>Waiting Parts</option><option ${r.status==="Ready"?"selected":""}>Ready</option><option ${r.status==="Completed"?"selected":""}>Completed</option></select></td></tr>`
+    }).join(""):`<tr><td colspan="${privileged?9:7}" class="muted" style="text-align:center;padding:30px">Belum ada repair.</td></tr>`
   }
   window.repairStatus=async(id,status)=>{try{await updateDoc(doc(db,"repairs",id),{status,updatedAt:serverTimestamp()});toast("Repair updated")}catch(e){toast(e.message)}};
 
@@ -1630,13 +1558,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   window.addEventListener("online",updateConnection);window.addEventListener("offline",updateConnection);
   window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;if(installBtn){installBtn.disabled=false;installBtn.textContent="Install Meney POS"}});
-  window.addEventListener("appinstalled",()=>{
-    deferredInstallPrompt=null;
-    localStorage.setItem("meneyPosJustInstalled","1");
-    updateAppMode();
-    toast("Meney POS berjaya dipasang");
-    setTimeout(showInstallWelcome,500);
-  });
+  window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;updateAppMode();toast("Meney POS berjaya dipasang")});
   if(installBtn)installBtn.onclick=async()=>{
     if(isStandalone())return;
     if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;updateAppMode();return}
