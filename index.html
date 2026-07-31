@@ -60,6 +60,8 @@
     .badge.pending{color:var(--warning);border-color:#ffc85755;background:#ffc85712}
     .badge.in_progress{color:var(--info);border-color:#71b7ff55;background:#71b7ff12}
     .badge.completed{color:var(--green);border-color:#7dff4655;background:#7dff4612}
+    .badge.overdue{color:#ff9696;border-color:#ff767655;background:#ff767612}.badge.proof{color:#caa8ff;border-color:#a970ff55;background:#a970ff12}
+    .proof-preview{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#090b09}.proof-preview img{width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:#000}.proof-note{font-size:11px;color:var(--muted);line-height:1.45;margin:8px 0 0}.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:13px;border:1px solid var(--line);border-radius:14px;background:#0b0d0b}.toggle-row input{width:20px;height:20px;accent-color:var(--green)}
     .badge.high{color:#ff9696;border-color:#ff767655}.badge.medium{color:#ffd37b;border-color:#ffc85755}.badge.low{color:#9ed6ff;border-color:#71b7ff55}
     .mission-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
     .empty{padding:38px 18px;text-align:center;border:1px dashed var(--line);border-radius:20px;color:var(--muted);font-size:13px}
@@ -280,7 +282,7 @@
       </div>
 
       <div class="filters">
-        <button class="filter active" data-filter="all">Semua</button>
+        <button class="filter active" data-filter="active">Aktif</button>
         <button class="filter" data-filter="pending">Pending</button>
         <button class="filter" data-filter="in_progress">In Progress</button>
         <button class="filter" data-filter="completed">Completed</button>
@@ -314,8 +316,29 @@
         </div>
         <label for="dueDate">Tarikh siap</label>
         <input id="dueDate" type="date" required>
+        <div class="toggle-row">
+          <div><strong style="font-size:13px">Bukti diperlukan</strong><div class="proof-note">Staff wajib muat naik gambar sebelum task boleh disiapkan.</div></div>
+          <input id="proofRequired" type="checkbox" aria-label="Bukti diperlukan">
+        </div>
+        <div id="proofInstructionWrap" class="hidden">
+          <label for="proofInstruction">Arahan bukti</label>
+          <input id="proofInstruction" maxlength="180" placeholder="Contoh: Upload screenshot summary Live TikTok">
+        </div>
         <button id="saveMissionBtn" class="btn primary" style="width:100%;margin-top:17px" type="submit">Simpan Mission</button>
       </form>
+    </div>
+  </div>
+
+
+  <div id="proofModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head"><h3>Submit Bukti Mission</h3><button id="closeProofModal" class="close">✕</button></div>
+      <p id="proofMissionTitle" style="font-weight:850;margin:16px 0 5px"></p>
+      <p id="proofMissionInstruction" class="proof-note"></p>
+      <label for="proofFile">Screenshot / gambar bukti</label>
+      <input id="proofFile" type="file" accept="image/*" capture="environment">
+      <div id="proofPreview" class="proof-preview hidden"><img id="proofPreviewImage" alt="Preview bukti"></div>
+      <button id="submitProofBtn" class="btn primary" style="width:100%;margin-top:16px">Upload Bukti & Complete</button>
     </div>
   </div>
 
@@ -330,6 +353,9 @@
       getFirestore, doc, getDoc, collection, addDoc, onSnapshot,
       query, where, updateDoc, deleteDoc, serverTimestamp, Timestamp, getDocs
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+    import {
+      getStorage, ref as storageRef, uploadBytes, getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",
@@ -344,9 +370,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     const $ = id => document.getElementById(id);
-    const state = { user:null, profile:null, missions:[], users:[], filter:"all", unsubscribe:null, editingMissionId:null };
+    const state = { user:null, profile:null, missions:[], users:[], filter:"active", unsubscribe:null, editingMissionId:null, proofMissionId:null, proofFile:null };
+    const isManagement = () => ["owner","admin","manager"].includes(String(state.profile?.role||"").toLowerCase());
 
     const todayISO = () => {
       const d = new Date();
@@ -392,6 +420,9 @@
       $("missionForm").reset();
       $("dueDate").value=todayISO();
       $("priority").value="medium";
+      $("proofRequired").checked=false;
+      $("proofInstruction").value="";
+      $("proofInstructionWrap").classList.add("hidden");
       $("missionModalTitle").textContent="Create Mission";
       $("saveMissionBtn").textContent="Simpan Mission";
     }
@@ -407,6 +438,7 @@
       $("missionTitle").focus();
     };
     $("closeModal").onclick=closeMissionModal;
+    $("proofRequired").onchange=()=>$("proofInstructionWrap").classList.toggle("hidden",!$("proofRequired").checked);
     $("missionModal").addEventListener("click",e=>{if(e.target===$("missionModal"))closeMissionModal()});
 
     document.querySelectorAll(".filter").forEach(btn=>{
@@ -449,16 +481,16 @@
       const salam=hour<12?"Selamat pagi":hour<18?"Selamat petang":"Selamat malam";
       $("greeting").textContent=`${salam}, ${name} 👋`;
       $("rolePill").textContent=state.profile.role||"user";
-      const owner=state.profile.role==="owner";
-      $("createBtn").classList.toggle("hidden",!owner);
-      $("listTitle").textContent=owner?"Semua Mission Staff":"Mission Saya";
-      $("heroMessage").textContent=owner
+      const management=isManagement();
+      $("createBtn").classList.toggle("hidden",!management);
+      $("listTitle").textContent=management?"Semua Mission Staff":"Mission Saya";
+      $("heroMessage").textContent=management
         ?"Cipta tugasan dan pantau kemajuan staff secara masa nyata."
         :"Siapkan tugasan mengikut keutamaan dan kemas kini status tanpa menunggu arahan.";
     }
 
     async function loadAssignableUsers(){
-      if(state.profile.role!=="owner") return;
+      if(!isManagement()) return;
       const snap=await getDocs(collection(db,"users"));
       state.users=snap.docs.map(d=>({uid:d.id,...d.data()})).filter(u=>u.active!==false && u.role!=="owner");
       $("assignedTo").innerHTML=state.users.length
@@ -468,7 +500,7 @@
 
     function listenToMissions(){
       const missionsRef=collection(db,"missions");
-      const q=state.profile.role==="owner"
+      const q=isManagement()
         ? missionsRef
         : query(missionsRef,where("assignedTo","==",state.user.uid));
       state.unsubscribe=onSnapshot(q,snap=>{
@@ -482,7 +514,7 @@
 
     $("missionForm").addEventListener("submit",async e=>{
       e.preventDefault();
-      if(state.profile.role!=="owner") return;
+      if(!isManagement()) return;
 
       const assignedUID=$("assignedTo").value;
       const assigned=state.users.find(u=>u.uid===assignedUID);
@@ -503,6 +535,8 @@
           assignedToName:assigned.name||assigned.email||"Staff",
           priority:$("priority").value,
           dueDate,
+          proofRequired:$("proofRequired").checked,
+          proofInstruction:$("proofRequired").checked ? $("proofInstruction").value.trim() : "",
           updatedAt:serverTimestamp()
         };
 
@@ -531,6 +565,12 @@
     });
 
     async function changeStatus(id,status){
+      const mission=state.missions.find(m=>m.id===id);
+      if(!mission){pop("Mission tidak dijumpai");return}
+      if(status==="completed" && mission.proofRequired){
+        openProofModal(id);
+        return;
+      }
       try{
         const patch={status,updatedAt:serverTimestamp()};
         if(status==="completed") patch.completedAt=serverTimestamp();
@@ -540,15 +580,61 @@
       }catch(error){alert(humanError(error))}
     }
 
+    function openProofModal(id){
+      const mission=state.missions.find(m=>m.id===id);
+      if(!mission) return;
+      state.proofMissionId=id;state.proofFile=null;
+      $("proofMissionTitle").textContent=mission.title||"Mission";
+      $("proofMissionInstruction").textContent=mission.proofInstruction||"Muat naik gambar bukti sebelum complete.";
+      $("proofFile").value="";
+      $("proofPreview").classList.add("hidden");
+      $("proofModal").classList.remove("hidden");
+    }
+    function closeProofModal(){
+      $("proofModal").classList.add("hidden");
+      state.proofMissionId=null;state.proofFile=null;
+      $("proofFile").value="";
+      $("proofPreview").classList.add("hidden");
+    }
+    $("closeProofModal").onclick=closeProofModal;
+    $("proofModal").addEventListener("click",e=>{if(e.target===$("proofModal"))closeProofModal()});
+    $("proofFile").onchange=e=>{
+      const file=e.target.files?.[0];state.proofFile=file||null;
+      if(!file){$("proofPreview").classList.add("hidden");return}
+      if(!file.type.startsWith("image/")){pop("Fail bukti mesti gambar");e.target.value="";state.proofFile=null;return}
+      if(file.size>8*1024*1024){pop("Saiz gambar maksimum 8MB");e.target.value="";state.proofFile=null;return}
+      $("proofPreviewImage").src=URL.createObjectURL(file);
+      $("proofPreview").classList.remove("hidden");
+    };
+    $("submitProofBtn").onclick=async()=>{
+      const id=state.proofMissionId,file=state.proofFile;
+      if(!id||!file){pop("Pilih gambar bukti dahulu");return}
+      const btn=$("submitProofBtn");btn.disabled=true;btn.textContent="Uploading...";
+      try{
+        const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+        const path=`mission-proofs/${id}/${Date.now()}-${safe}`;
+        const ref=storageRef(storage,path);
+        await uploadBytes(ref,file,{contentType:file.type});
+        const proofUrl=await getDownloadURL(ref);
+        await updateDoc(doc(db,"missions",id),{
+          status:"completed",completedAt:serverTimestamp(),updatedAt:serverTimestamp(),
+          proofUrl,proofPath:path,proofFileName:file.name,proofSubmittedAt:serverTimestamp(),
+          proofSubmittedBy:state.user.uid,proofSubmittedByName:state.profile.name||state.user.email
+        });
+        closeProofModal();pop("Bukti dihantar dan mission disiapkan");
+      }catch(error){alert(humanError(error))}
+      finally{btn.disabled=false;btn.textContent="Upload Bukti & Complete"}
+    };
+
     async function reopenMission(id){
       try{
-        await updateDoc(doc(db,"missions",id),{status:"pending",completedAt:null,updatedAt:serverTimestamp()});
+        await updateDoc(doc(db,"missions",id),{status:"pending",completedAt:null,proofUrl:null,proofPath:null,proofFileName:null,proofSubmittedAt:null,proofSubmittedBy:null,proofSubmittedByName:null,updatedAt:serverTimestamp()});
         pop("Mission dibuka semula");
       }catch(error){alert(humanError(error))}
     }
 
     function editMission(id){
-      if(state.profile.role!=="owner") return;
+      if(!isManagement()) return;
       const mission=state.missions.find(m=>m.id===id);
       if(!mission){pop("Mission tidak dijumpai");return}
 
@@ -559,6 +645,9 @@
       $("missionDescription").value=mission.description||"";
       $("assignedTo").value=mission.assignedTo||"";
       $("priority").value=mission.priority||"medium";
+      $("proofRequired").checked=Boolean(mission.proofRequired);
+      $("proofInstruction").value=mission.proofInstruction||"";
+      $("proofInstructionWrap").classList.toggle("hidden",!mission.proofRequired);
 
       const due=mission.dueDate?.toDate?mission.dueDate.toDate():null;
       if(due){
@@ -573,7 +662,7 @@
     }
 
     async function deleteMission(id){
-      if(state.profile.role!=="owner") return;
+      if(!isManagement()) return;
       const mission=state.missions.find(m=>m.id===id);
       if(!mission){pop("Mission tidak dijumpai");return}
 
@@ -594,12 +683,21 @@
     window.deleteMission=deleteMission;
 
     function renderMissions(){
-      const list=state.filter==="all"?state.missions:state.missions.filter(m=>m.status===state.filter);
-      const all=state.missions;
-      $("totalStat").textContent=all.length;
-      $("pendingStat").textContent=all.filter(m=>m.status==="pending").length;
-      $("progressStat").textContent=all.filter(m=>m.status==="in_progress").length;
-      $("completedStat").textContent=all.filter(m=>m.status==="completed").length;
+      const todayStart=new Date();todayStart.setHours(0,0,0,0);
+      const active=state.missions.filter(m=>(m.status||"pending")!=="completed");
+      const completed=state.missions.filter(m=>(m.status||"pending")==="completed");
+      let list=state.filter==="active"?active:state.filter==="completed"?completed:active.filter(m=>(m.status||"pending")===state.filter);
+      list.sort((a,b)=>{
+        const ad=a.dueDate?.toDate?a.dueDate.toDate():new Date(8640000000000000);
+        const bd=b.dueDate?.toDate?b.dueDate.toDate():new Date(8640000000000000);
+        const ao=(a.status!=="completed"&&ad<todayStart)?1:0,bo=(b.status!=="completed"&&bd<todayStart)?1:0;
+        if(ao!==bo)return bo-ao;
+        return ad-bd;
+      });
+      $("totalStat").textContent=active.length;
+      $("pendingStat").textContent=active.filter(m=>(m.status||"pending")==="pending").length;
+      $("progressStat").textContent=active.filter(m=>m.status==="in_progress").length;
+      $("completedStat").textContent=completed.length;
       if(!list.length){
         $("missionList").innerHTML=`<div class="empty">Tiada mission dalam kategori ini.</div>`;
         return;
@@ -608,34 +706,27 @@
         const status=m.status||"pending";
         const due=m.dueDate?.toDate?m.dueDate.toDate():null;
         const dueText=due?due.toLocaleDateString("ms-MY",{day:"2-digit",month:"short",year:"numeric"}):"Tiada tarikh";
-        const owner=state.profile.role==="owner";
+        let overdueDays=0;
+        if(status!=="completed"&&due){const d=new Date(due);d.setHours(0,0,0,0);overdueDays=Math.max(0,Math.floor((todayStart-d)/86400000));}
+        const management=isManagement();
         let actions="";
-        if(!owner && status==="pending") actions=`<button class="btn primary small" onclick="changeStatus('${m.id}','in_progress')">Start Mission</button>`;
-        if(!owner && status==="in_progress") actions=`<button class="btn primary small" onclick="changeStatus('${m.id}','completed')">Complete Mission</button>`;
-        if(owner){
-          const reopenButton=status==="completed"
-            ? `<button class="btn secondary small" onclick="reopenMission('${m.id}')">Buka Semula</button>`
-            : "";
-          actions=`
-            <button class="btn secondary small" onclick="editMission('${m.id}')">✏️ Edit</button>
-            ${reopenButton}
-            <button class="btn danger small" onclick="deleteMission('${m.id}')">🗑 Delete</button>
-          `;
+        if(!management && status==="pending") actions=`<button class="btn primary small" onclick="changeStatus('${m.id}','in_progress')">Start Mission</button>`;
+        if(!management && status==="in_progress") actions=`<button class="btn primary small" onclick="changeStatus('${m.id}','completed')">${m.proofRequired?"Submit Bukti & Complete":"Complete Mission"}</button>`;
+        if(management){
+          const reopenButton=status==="completed"?`<button class="btn secondary small" onclick="reopenMission('${m.id}')">Buka Semula</button>`:"";
+          actions=`<button class="btn secondary small" onclick="editMission('${m.id}')">✏️ Edit</button>${reopenButton}<button class="btn danger small" onclick="deleteMission('${m.id}')">🗑 Delete</button>`;
         }
+        const proofBlock=m.proofUrl?`<div class="proof-preview"><a href="${escapeHtml(m.proofUrl)}" target="_blank" rel="noopener"><img src="${escapeHtml(m.proofUrl)}" alt="Bukti mission"></a><p class="proof-note">Bukti dihantar oleh ${escapeHtml(m.proofSubmittedByName||m.assignedToName||"Staff")}</p></div>`:"";
         return `<article class="mission">
-          <div class="mission-top">
-            <div>
-              <h4>${escapeHtml(m.title||"Tanpa tajuk")}</h4>
-              <p class="desc">${escapeHtml(m.description||"Tiada penerangan.")}</p>
-            </div>
-            <span class="badge ${escapeHtml(status)}">${formatStatus(status)}</span>
-          </div>
+          <div class="mission-top"><div><h4>${escapeHtml(m.title||"Tanpa tajuk")}</h4><p class="desc">${escapeHtml(m.description||"Tiada penerangan.")}</p></div><span class="badge ${escapeHtml(status)}">${formatStatus(status)}</span></div>
           <div class="badges">
+            ${overdueDays?`<span class="badge overdue">TERTUNGGAK · ${overdueDays} HARI</span>`:""}
+            ${m.proofRequired?`<span class="badge proof">BUKTI DIPERLUKAN</span>`:""}
             <span class="badge ${escapeHtml(m.priority||"medium")}">Priority: ${escapeHtml(capitalize(m.priority||"medium"))}</span>
-            <span class="badge">Staff: ${escapeHtml(m.assignedToName||"-")}</span>
-            <span class="badge">Due: ${escapeHtml(dueText)}</span>
+            <span class="badge">Staff: ${escapeHtml(m.assignedToName||"-")}</span><span class="badge">Due: ${escapeHtml(dueText)}</span>
           </div>
-          ${actions?`<div class="mission-actions">${actions}</div>`:""}
+          ${m.proofRequired&&m.proofInstruction?`<p class="proof-note"><strong>Arahan bukti:</strong> ${escapeHtml(m.proofInstruction)}</p>`:""}
+          ${proofBlock}${actions?`<div class="mission-actions">${actions}</div>`:""}
         </article>`;
       }).join("");
     }
@@ -683,3 +774,5 @@
   });
 </script></body>
 </html>
+
+
