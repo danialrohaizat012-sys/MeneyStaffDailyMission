@@ -157,7 +157,7 @@
     .document-sheet{border:1px solid var(--line);border-radius:14px;padding:22px;background:#fff}
     .document-head{display:flex;justify-content:space-between;gap:18px;padding-bottom:15px;border-bottom:2px solid #111827}
     .document-brand h2{margin:0;font-size:20px}.document-brand p{margin:4px 0 0;color:var(--muted);font-size:11px}
-    .document-meta{text-align:right;font-size:11px}.document-meta strong{display:block;font-size:16px;margin-bottom:4px}
+    .document-meta{text-align:right;font-size:11px;line-height:1.55}.document-meta span{font-weight:800;font-size:12px;letter-spacing:.04em}.document-meta strong{display:block;font-size:16px;margin-bottom:4px}
     .document-customer{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:16px 0;padding:12px;background:#f8fafc;border-radius:10px;font-size:11px}
     .document-customer span{display:block;color:var(--muted);margin-bottom:3px}.document-customer strong{font-size:12px}
     .document-table{width:100%;min-width:0}.document-table th,.document-table td{font-size:11px;padding:9px 6px}
@@ -860,26 +860,40 @@
     return n;
   };
   const docDate=()=>new Intl.DateTimeFormat("ms-MY",{dateStyle:"medium",timeStyle:"short"}).format(new Date());
+  const RECEIPT_BUSINESS={
+    brand:"MENEY",
+    legalName:"MENEY EMPIRE",
+    registrationNo:"IP0602724-K",
+    addressLines:[
+      "LOT 89, TINGKAT BAWAH",
+      "DALAM PASAR LAMA PASIR TUMBOH",
+      "16150 KOTA BHARU, KELANTAN"
+    ],
+    phone:"011-7595 6474"
+  };
+  function receiptBusinessText(){
+    return [RECEIPT_BUSINESS.brand,RECEIPT_BUSINESS.legalName,`SSM: ${RECEIPT_BUSINESS.registrationNo}`,...RECEIPT_BUSINESS.addressLines,`Tel: ${RECEIPT_BUSINESS.phone}`];
+  }
   function showTransactionDocument(data){
     state.lastDocument=data;
     $("documentModalTitle").textContent=data.title;
     const rows=(data.items||[]).map((i,k)=>`<tr><td>${k+1}</td><td><strong>${esc(i.name)}</strong>${i.detail?`<br><span class="muted">${esc(i.detail)}</span>`:""}</td><td>${esc(String(i.warranty||"").trim()||"—")}</td><td>${i.qty||1}</td><td>${money(i.unitPrice??i.amount)}</td><td><strong>${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}</strong></td></tr>`).join("");
     const totals=(data.totals||[]).map(t=>`<div class="document-total ${t.grand?"grand":""}"><span>${esc(t.label)}</span><strong>${money(t.value)}</strong></div>`).join("");
     $("documentPreview").innerHTML=`
-      <div class="document-head"><div class="document-brand"><h2>MENEY GAMING</h2><p>Sell · Buy · Trade-In · Repair</p></div><div class="document-meta"><strong>${esc(data.number)}</strong>${esc(data.date||docDate())}<br>${esc(data.staff||"")}</div></div>
+      <div class="document-head"><div class="document-brand"><h2>${esc(RECEIPT_BUSINESS.brand)}</h2><p><strong>${esc(RECEIPT_BUSINESS.legalName)}</strong><br>SSM: ${esc(RECEIPT_BUSINESS.registrationNo)}<br>${RECEIPT_BUSINESS.addressLines.map(esc).join("<br>")}<br>Tel: ${esc(RECEIPT_BUSINESS.phone)}</p></div><div class="document-meta"><span>${esc(data.title)}</span><br><strong>${esc(data.number)}</strong>${esc(data.date||docDate())}<br>Staff: ${esc(data.staff||"—")}</div></div>
       <div class="document-customer"><div><span>Customer</span><strong>${esc(data.customer||"Walk-in")}</strong></div><div><span>Contact</span><strong>${esc(data.phone||"—")}</strong></div></div>
       <table class="document-table"><thead><tr><th>#</th><th>Description</th><th>Warranty</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
       <div class="document-totals">${totals}</div>
-      ${data.payment?`<div class="document-note"><strong>Payment:</strong> ${esc(data.payment)}<br>${esc(data.note||"Terima kasih kerana berurusan dengan Meney Gaming.")}</div>`:`<div class="document-note">${esc(data.note||"Terima kasih kerana berurusan dengan Meney Gaming.")}</div>`}`;
+      ${data.payment?`<div class="document-note"><strong>Payment:</strong> ${esc(data.payment)}${data.note?`<br>${esc(data.note)}`:""}</div>`:(data.note?`<div class="document-note">${esc(data.note)}</div>`:"")}`;
     $("documentModal").classList.remove("hidden");
   }
   function documentText(d){
-    const lines=[`*MENEY GAMING*`,`${d.title}`,`No: ${d.number}`,`Tarikh: ${d.date||docDate()}`,`Customer: ${d.customer||"Walk-in"}`];
+    const lines=[`*${RECEIPT_BUSINESS.brand}*`,RECEIPT_BUSINESS.legalName,`SSM: ${RECEIPT_BUSINESS.registrationNo}`,...RECEIPT_BUSINESS.addressLines,`Tel: ${RECEIPT_BUSINESS.phone}`,"",`${d.title}`,`No: ${d.number}`,`Tarikh: ${d.date||docDate()}`,`Customer: ${d.customer||"Walk-in"}`];
     if(d.phone)lines.push(`Telefon: ${d.phone}`);
     lines.push("",...(d.items||[]).map((i,k)=>`${k+1}. ${i.name}${i.detail?` (${i.detail})`:""} x${i.qty||1} — ${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}${i.warranty?`\n   Warranty: ${i.warranty}`:""}`),"");
     (d.totals||[]).forEach(t=>lines.push(`${t.label}: ${money(t.value)}`));
     if(d.payment)lines.push(`Bayaran: ${d.payment}`);
-    lines.push("",d.note||"Terima kasih kerana berurusan dengan Meney Gaming.");
+    if(d.note)lines.push("",d.note);
     return lines.join("\n");
   }
   $("closeDocument").onclick=()=>$("documentModal").classList.add("hidden");
@@ -892,8 +906,8 @@ body{font-family:Arial,sans-serif;padding:28px;color:#101828;background:#fff}
 .document-sheet{max-width:760px;margin:auto}
 .document-head{display:flex;justify-content:space-between;gap:18px;border-bottom:3px solid #101828;padding-bottom:16px}
 .document-brand h2{margin:0;font-size:23px;letter-spacing:.04em}
-.document-brand p{margin:7px 0 0;color:#667085;font-size:11px;font-weight:bold}
-.document-meta{text-align:right;font-size:11px}
+.document-brand p{margin:7px 0 0;color:#475467;font-size:10px;font-weight:600;line-height:1.55}
+.document-meta{text-align:right;font-size:11px;line-height:1.55}.document-meta span{font-weight:800;font-size:12px;letter-spacing:.04em}
 .document-meta strong{display:inline-block;background:#101828;color:#fff;border-radius:7px;padding:7px 9px;margin-bottom:7px}
 .document-customer{display:grid;grid-template-columns:1fr 1fr;background:#f3f7f4;border:1px solid #e2e8e4;border-radius:10px;padding:12px;margin:16px 0}
 .document-customer span{display:block;color:#667085;font-size:10px;margin-bottom:3px}
@@ -1062,7 +1076,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       }));
       const customer=$("saleCustomer").value.trim(),phone=$("salePhone").value.trim(),payment=payments.map(p=>`${p.method}: ${money(p.amount)}`).join(" · ");
       state.cart=[];$("saleDiscount").value=0;$("saleCustomer").value="";$("salePhone").value="";$("salePayment").value="Cash";$("splitPaymentBox").classList.add("hidden");resetSplitPayments();renderCart();toast("Payment successful · "+receipt);
-      showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:"Terima kasih kerana berurusan dengan Meney Gaming."})
+      showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:""})
     }catch(err){toast("Sale gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Payment"}
   };
 
@@ -1087,7 +1101,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         }
         tx.set(buyRef,{buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),item:name,sku,serial,itemType,offer:Number($("buyOffer").value),expectedSellPrice:Number($("buySellPrice").value),paymentMethod:$("buyPayment").value,productId,inventoryAction:existing?"merged":"created",status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",createdAt:serverTimestamp()});
       });
-      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name,detail:`${itemType} · SKU ${sku}${serial?" · S/N "+serial:""}`,qty:1,amount:Number($("buyOffer").value),total:Number($("buyOffer").value)}],totals:[{label:"Amount Paid to Customer",value:Number($("buyOffer").value),grand:true}],payment:$("buyPayment").value,note:existing?"Item ditambah kepada stok produk sedia ada.":"Item baru telah didaftarkan ke inventory."});
+      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name,detail:`${itemType} · SKU ${sku}${serial?" · S/N "+serial:""}`,qty:1,amount:Number($("buyOffer").value),total:Number($("buyOffer").value)}],totals:[{label:"Amount Paid to Customer",value:Number($("buyOffer").value),grand:true}],payment:$("buyPayment").value,note:""});
       e.target.reset();$("buySku").value="Auto-generated upon save";toast(`${buyNo} complete · ${existing?"stock updated":"new SKU "+sku}`)
     }catch(err){toast("Buy gagal: "+err.message)}
   };
@@ -1261,7 +1275,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         ...outItems.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:i.price,total:i.price*i.qty})),
         ...inItems.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:-(i.tradeValue/i.qty),total:-i.tradeValue}))
       ];
-      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer,phone,staff:state.profile.name||state.user.email,items:receiptItems,totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:netBalance>0?"Amount Paid by Customer":netBalance<0?"Amount Paid by Meney":"Even Trade Balance",value:Math.abs(netBalance),grand:true}],payment:paymentMethod,note:`Stock Out: ${outItems.reduce((s,i)=>s+i.qty,0)} unit · Stock In: ${inItems.reduce((s,i)=>s+i.qty,0)} unit.`});
+      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer,phone,staff:state.profile.name||state.user.email,items:receiptItems,totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:netBalance>0?"Amount Paid by Customer":netBalance<0?"Amount Paid by Meney":"Even Trade Balance",value:Math.abs(netBalance),grand:true}],payment:paymentMethod,note:""});
       state.tradeInItems=[];state.tradeOutItems=[];e.target.reset();resetTradeInInputs();resetTradeOutInputs();calcTrade();toast(`${tradeNo} completed dan receipt dijana.`);
     }catch(err){console.error("Trade-in error",err);toast("Trade-in gagal: "+err.message)}
     finally{completeBtn.disabled=false;completeBtn.textContent="Complete Trade-In & Generate Receipt"}
@@ -1337,7 +1351,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       closeModal("repairModal");
       const totals=[{label:"Estimated Repair Cost",value:estimate}];
       if(depositAmount>0){totals.push({label:"Deposit Paid",value:depositAmount},{label:"Estimated Balance",value:Math.max(0,estimate-depositAmount),grand:true})}else totals[0].grand=true;
-      showTransactionDocument({title:"REPAIR INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals,payment:depositAmount>0?`Deposit · ${depositPaymentMethod}`:"No deposit received",note:"Dokumen ini ialah bukti penerimaan barang dan anggaran awal sahaja. Repair belum direkod sebagai jualan sehingga status Completed dan bayaran akhir disahkan."});
+      showTransactionDocument({title:"REPAIR INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals,payment:depositAmount>0?`Deposit · ${depositPaymentMethod}`:"No deposit received",note:"Please keep this receipt for item collection."});
       e.target.reset();$("repairDeposit").value=0;toast("Repair intake created · "+ticketNo)
     }catch(err){toast(err.message)}
   };
@@ -1371,7 +1385,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     try{
       await updateDoc(doc(db,"repairs",id),{status:"Completed",isSale:true,finalPrice,balanceDue,balancePaid:balanceDue,finalPaymentMethod:balanceDue>0?paymentMethod:"Covered by deposit",paymentStatus:"paid_in_full",repairMethod,sparePartCost,outsourceCost,additionalCost,totalCost,netProfit,profitMargin,warranty,completedAt:serverTimestamp(),completedBy:state.user.uid,completedByName:state.profile.name||state.user.email,updatedAt:serverTimestamp()});
       closeModal("completeRepairModal");
-      showTransactionDocument({title:"REPAIR PAYMENT RECEIPT",number:r.ticketNo,customer:r.customer,phone:r.phone,staff:state.profile.name||state.user.email,items:[{name:r.device,detail:`Repair completed · ${r.issue||""}${r.serial?" · S/N "+r.serial:""}`,warranty,qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-depositAmount},{label:"Balance Paid Today",value:balanceDue},{label:"Total Paid",value:finalPrice,grand:true}],payment:balanceDue>0?`${paymentMethod} · Balance ${money(balanceDue)}`:`Fully covered by deposit`,note:"Repair completed and paid in full. Kos spare part, outsource dan keuntungan adalah rekod dalaman dan tidak dipaparkan pada resit ini."});toast("Repair completed · receipt generated")
+      showTransactionDocument({title:"REPAIR PAYMENT RECEIPT",number:r.ticketNo,customer:r.customer,phone:r.phone,staff:state.profile.name||state.user.email,items:[{name:r.device,detail:`Repair completed · ${r.issue||""}${r.serial?" · S/N "+r.serial:""}`,warranty,qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-depositAmount},{label:"Balance Paid Today",value:balanceDue},{label:"Total Paid",value:finalPrice,grand:true}],payment:balanceDue>0?`${paymentMethod} · Balance ${money(balanceDue)}`:`Fully covered by deposit`,note:""});toast("Repair completed · receipt generated")
     }catch(err){toast(err.message)}
   };
 
@@ -1392,16 +1406,16 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
   function transactionDocument(t){
     const x=t.data,staff=x.staffName||"",cancelNote=x.status==="cancelled"||x.transactionStatus==="cancelled"?`CANCELLED: ${x.cancelReason||"No reason recorded"}`:"";
-    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warranty||"",qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote||"Terima kasih kerana berurusan dengan Meney Gaming."};
-    if(t.kind==="buy")return {title:"PURCHASE RECEIPT",number:x.buyNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.item,detail:`${x.itemType||"Used"} · SKU ${x.sku||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,amount:x.offer,total:x.offer}],totals:[{label:"Amount Paid to Customer",value:x.offer,grand:true}],payment:x.paymentMethod,note:cancelNote||"Barang diterima masuk ke inventory Meney."};
+    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warranty||"",qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote};
+    if(t.kind==="buy")return {title:"PURCHASE RECEIPT",number:x.buyNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.item,detail:`${x.itemType||"Used"} · SKU ${x.sku||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,amount:x.offer,total:x.offer}],totals:[{label:"Amount Paid to Customer",value:x.offer,grand:true}],payment:x.paymentMethod,note:cancelNote};
     if(t.kind==="trade"){
       const outs=x.stockOutItems||[{name:x.newProductName,sku:"",qty:1,price:Number(x.newProductPrice||0)}],ins=x.stockInItems||[{name:x.tradeItem,sku:x.tradeItemSku||"",itemType:x.itemType||"Used",qty:1,tradeValue:Number(x.tradeValue||0)}];
       const net=Number(x.netBalance ?? (Number(x.newProductPrice||0)-Number(x.tradeValue||0))),outTotal=Number(x.totalStockOut ?? (x.newProductPrice||0)),inTotal=Number(x.totalTradeValue ?? (x.tradeValue||0));
-      return {title:"TRADE-IN RECEIPT",number:x.tradeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[...outs.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:Number(i.price||0),total:Number(i.price||0)*Number(i.qty||1)})),...ins.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:-(Number(i.tradeValue||0)/Number(i.qty||1)),total:-Number(i.tradeValue||0)}))],totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:net>=0?"Amount Paid by Customer":"Amount Paid by Meney",value:Math.abs(net),grand:true}],payment:x.paymentMethod,note:cancelNote||"Trade-in stock in/out transaction."};
+      return {title:"TRADE-IN RECEIPT",number:x.tradeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[...outs.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:Number(i.price||0),total:Number(i.price||0)*Number(i.qty||1)})),...ins.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:-(Number(i.tradeValue||0)/Number(i.qty||1)),total:-Number(i.tradeValue||0)}))],totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:net>=0?"Amount Paid by Customer":"Amount Paid by Meney",value:Math.abs(net),grand:true}],payment:x.paymentMethod,note:cancelNote};
     }
-    if(t.kind==="repairDeposit")return {title:"REPAIR DEPOSIT RECEIPT",number:`${x.ticketNo}-DEP`,date:timestampText(x.depositPaidAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair intake · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,unitPrice:Number(x.depositAmount||0),total:Number(x.depositAmount||0)}],totals:[{label:"Deposit Paid",value:Number(x.depositAmount||0),grand:true}],payment:x.depositPaymentMethod||"—",note:cancelNote||"Deposit diterima untuk repair. Repair belum dianggap jualan lengkap sehingga kerja selesai."};
+    if(t.kind==="repairDeposit")return {title:"REPAIR DEPOSIT RECEIPT",number:`${x.ticketNo}-DEP`,date:timestampText(x.depositPaidAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair intake · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,unitPrice:Number(x.depositAmount||0),total:Number(x.depositAmount||0)}],totals:[{label:"Deposit Paid",value:Number(x.depositAmount||0),grand:true}],payment:x.depositPaymentMethod||"—",note:cancelNote};
     const finalPrice=Number(x.finalPrice||x.estimate||0),deposit=Number(x.depositAmount||0),balance=Math.max(0,finalPrice-deposit);
-    return {title:"REPAIR PAYMENT RECEIPT",number:x.ticketNo,date:timestampText(x.completedAt||x.updatedAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair completed · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,warranty:x.warranty||"",qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-deposit},{label:"Balance Paid",value:balance},{label:"Total Paid",value:finalPrice,grand:true}],payment:x.finalPaymentMethod||"Paid",note:cancelNote||"Repair completed and paid in full."};
+    return {title:"REPAIR PAYMENT RECEIPT",number:x.ticketNo,date:timestampText(x.completedAt||x.updatedAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair completed · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,warranty:x.warranty||"",qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-deposit},{label:"Balance Paid",value:balance},{label:"Total Paid",value:finalPrice,grand:true}],payment:x.finalPaymentMethod||"Paid",note:cancelNote};
   }
   window.openReceipt=(kind,id)=>{const t=allTransactions().find(x=>x.kind===kind&&x.data.id===id);if(t)showTransactionDocument(transactionDocument(t))};
   function renderReceipts(){
