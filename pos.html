@@ -264,18 +264,6 @@
     .document-note{background:#f8faf9;border:1px dashed #bdc9c1;border-radius:10px;padding:12px;margin-top:20px;color:#475467}
     @media(max-width:590px){.page-wrap{padding:14px}.product-toolbar{grid-template-columns:1fr}.product-row{min-height:82px}.document-sheet{padding:18px}}
 
-
-    .repair-finance-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 16px}
-    .repair-finance-card{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--soft)}
-    .repair-finance-card span{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    .repair-finance-card strong{font-size:18px}
-    .repair-cost-box{margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--soft)}
-    .repair-cost-box .cost-title{font-weight:800;margin-bottom:10px}
-    .repair-cost-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
-    .repair-cost-summary div{padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
-    .repair-cost-summary span{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
-    .repair-cost-summary strong{font-size:15px}
-    @media(max-width:760px){.repair-finance-panel{grid-template-columns:repeat(2,minmax(0,1fr))}.repair-cost-summary{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -555,14 +543,8 @@
               <div><h3>Repair Management</h3><p>Terima repair, jejak status dan rekod bayaran.</p></div>
               <button id="newRepairBtn" class="btn btn-green">🛠 New Repair</button>
             </div>
-            <div id="repairFinancePanel" class="repair-finance-panel hidden">
-              <div class="repair-finance-card"><span>Repair Revenue</span><strong id="repairRevenue">RM0.00</strong></div>
-              <div class="repair-finance-card"><span>Internal Cost</span><strong id="repairTotalCost">RM0.00</strong></div>
-              <div class="repair-finance-card"><span>Net Repair Profit</span><strong id="repairNetProfit">RM0.00</strong></div>
-              <div class="repair-finance-card"><span>Average Margin</span><strong id="repairMargin">0%</strong></div>
-            </div>
             <div class="table-wrap">
-              <table><thead><tr><th>Ticket</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Customer Price</th><th class="repair-finance-col hidden">Internal Cost</th><th class="repair-finance-col hidden">Net Profit</th><th>Action</th></tr></thead><tbody id="repairBody"></tbody></table>
+              <table><thead><tr><th>Ticket</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Estimate</th><th>Action</th></tr></thead><tbody id="repairBody"></tbody></table>
             </div>
           </div>
         </section>
@@ -743,25 +725,49 @@
         </div>
         <div class="field"><label>Issue</label><textarea id="repairIssue" required></textarea></div>
         <div class="two">
-          <div class="field"><label>Customer Price / Estimate (RM)</label><input id="repairEstimate" type="number" min="0" step=".01"></div>
-          <div class="field"><label>Status</label><select id="repairStatus"><option>Received</option><option>Diagnosing</option><option>Waiting Parts</option><option>Ready</option><option>Completed</option></select></div>
+          <div class="field"><label>Estimated Repair Price (RM)</label><input id="repairEstimate" type="number" min="0" step=".01"></div>
+          <div class="field"><label>Initial Status</label><input value="Received" readonly></div>
         </div>
-        <div class="repair-cost-box">
-          <div class="cost-title">Internal Repair Cost <span class="muted">— tidak dicetak pada resit customer</span></div>
-          <div class="field"><label>Repair Method</label><select id="repairMethod"><option value="internal">Internal Repair</option><option value="outsource">Outsource Technician</option><option value="hybrid">Internal + Outsource</option></select></div>
-          <div class="two">
-            <div class="field" id="sparePartCostField"><label>Spare Part Cost (RM)</label><input id="repairSparePartCost" type="number" min="0" step=".01" value="0"></div>
-            <div class="field hidden" id="outsourceCostField"><label>Outsource / Technician Cost (RM)</label><input id="repairOutsourceCost" type="number" min="0" step=".01" value="0"></div>
-          </div>
-          <div class="field"><label>Additional Internal Cost (RM) <span class="muted">(optional)</span></label><input id="repairAdditionalCost" type="number" min="0" step=".01" value="0"></div>
-          <div class="repair-cost-summary">
-            <div><span>Total Internal Cost</span><strong id="repairCostPreview">RM0.00</strong></div>
-            <div><span>Estimated Net Profit</span><strong id="repairProfitPreview">RM0.00</strong></div>
-            <div><span>Profit Margin</span><strong id="repairMarginPreview">0%</strong></div>
-          </div>
+        <div class="two">
+          <div class="field"><label>Deposit Received (RM)</label><input id="repairDeposit" type="number" min="0" step=".01" value="0"><span class="field-help">Deposit ialah kutipan awal, bukan completed repair sales.</span></div>
+          <div class="field"><label>Deposit Payment Method</label><select id="repairDepositMethod"><option>Cash</option><option>QR</option><option>Card</option><option>Bank Transfer</option></select></div>
         </div>
         <div class="field"><label>Repair Warranty <span class="muted">(optional)</span></label><input id="repairWarranty" placeholder="Blank / No Warranty / e.g. 30 days"></div>
-        <div class="modal-actions"><button type="button" id="cancelRepair" class="btn btn-light">Cancel</button><button class="btn btn-green">Save Repair</button></div>
+        <div class="modal-actions"><button type="button" id="cancelRepair" class="btn btn-light">Cancel</button><button class="btn btn-green">Create Intake Ticket</button></div>
+      </form>
+    </div>
+  </div>
+
+
+  <div id="completeRepairModal" class="modal-backdrop hidden">
+    <div class="modal" style="width:min(760px,100%)">
+      <h3>Complete Repair & Collect Payment</h3><p>Sahkan harga akhir, baki bayaran dan kos dalaman sebelum repair ditutup.</p>
+      <form id="completeRepairForm">
+        <input id="completeRepairId" type="hidden">
+        <div class="two">
+          <div class="field"><label>Final Repair Price (RM)</label><input id="completeFinalPrice" type="number" min="0" step=".01" required></div>
+          <div class="field"><label>Deposit Previously Received</label><input id="completeDeposit" readonly></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Balance Due</label><input id="completeBalance" readonly></div>
+          <div class="field"><label>Balance Payment Method</label><select id="completePaymentMethod"><option>Cash</option><option>QR</option><option>Card</option><option>Bank Transfer</option><option>Split Payment</option></select></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Repair Execution</label><select id="completeRepairMethod"><option value="internal">Internal Repair</option><option value="outsource">Outsource Technician</option><option value="hybrid">Internal + Outsource</option></select></div>
+          <div class="field"><label>Warranty</label><input id="completeWarranty" placeholder="e.g. 30 days / No Warranty"></div>
+        </div>
+        <div class="three">
+          <div class="field" id="spareCostField"><label>Spare Part Cost (RM)</label><input id="completeSpareCost" type="number" min="0" step=".01" value="0"></div>
+          <div class="field" id="outsourceCostField"><label>Technician / Outsource Cost (RM)</label><input id="completeOutsourceCost" type="number" min="0" step=".01" value="0"></div>
+          <div class="field"><label>Additional Internal Cost (RM)</label><input id="completeAdditionalCost" type="number" min="0" step=".01" value="0"></div>
+        </div>
+        <div class="summary-strip" style="margin-top:10px">
+          <div><span>Total Internal Cost</span><strong id="completeTotalCost">RM 0.00</strong></div>
+          <div><span>Net Repair Profit</span><strong id="completeNetProfit">RM 0.00</strong></div>
+          <div><span>Profit Margin</span><strong id="completeMargin">0%</strong></div>
+        </div>
+        <p class="muted" style="margin-top:10px">Kos dan profit adalah data dalaman sahaja dan tidak akan dicetak pada resit customer.</p>
+        <div class="modal-actions"><button type="button" id="cancelCompleteRepair" class="btn btn-light">Cancel</button><button class="btn btn-green">Complete & Generate Receipt</button></div>
       </form>
     </div>
   </div>
@@ -847,7 +853,6 @@
   const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
   const toast=m=>{$("toast").textContent=m;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2600)}
   const isOwner=()=>state.profile?.role==="owner";
-  const canViewRepairFinance=()=>["owner","admin"].includes(String(state.profile?.role||"").toLowerCase());
   const cleanPhone=phone=>{
     let n=String(phone||"").replace(/\D/g,"");
     if(n.startsWith("0"))n="60"+n.slice(1);
@@ -1320,70 +1325,71 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     }catch(err){toast("Save gagal: "+err.message)}
   };
 
-  function updateRepairCostFields(){
-    const method=$("repairMethod").value;
-    $("sparePartCostField").classList.toggle("hidden",method==="outsource");
-    $("outsourceCostField").classList.toggle("hidden",method==="internal");
-    if(method==="outsource")$("repairSparePartCost").value=0;
-    if(method==="internal")$("repairOutsourceCost").value=0;
-    updateRepairProfitPreview();
-  }
-  function updateRepairProfitPreview(){
-    const price=Number($("repairEstimate").value||0);
-    const spare=Number($("repairSparePartCost").value||0);
-    const outsource=Number($("repairOutsourceCost").value||0);
-    const additional=Number($("repairAdditionalCost").value||0);
-    const totalCost=spare+outsource+additional;
-    const profit=price-totalCost;
-    const margin=price>0?(profit/price)*100:0;
-    $("repairCostPreview").textContent=money(totalCost);
-    $("repairProfitPreview").textContent=money(profit);
-    $("repairMarginPreview").textContent=`${margin.toFixed(1)}%`;
-  }
-  $("repairMethod").onchange=updateRepairCostFields;
-  ["repairEstimate","repairSparePartCost","repairOutsourceCost","repairAdditionalCost"].forEach(id=>$(id).oninput=updateRepairProfitPreview);
-  $("newRepairBtn").onclick=()=>{updateRepairCostFields();$("repairModal").classList.remove("hidden")};$("cancelRepair").onclick=()=>closeModal("repairModal");
+  $("newRepairBtn").onclick=()=>$("repairModal").classList.remove("hidden");$("cancelRepair").onclick=()=>closeModal("repairModal");
   $("repairForm").onsubmit=async e=>{
     e.preventDefault();
-    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),status=$("repairStatus").value,warranty=$("repairWarranty").value.trim();
-    const repairMethod=$("repairMethod").value,sparePartCost=Number($("repairSparePartCost").value||0),outsourceCost=Number($("repairOutsourceCost").value||0),additionalCost=Number($("repairAdditionalCost").value||0);
-    const totalInternalCost=Number((sparePartCost+outsourceCost+additionalCost).toFixed(2));
-    const netProfit=Number((estimate-totalInternalCost).toFixed(2));
-    const profitMargin=estimate>0?Number(((netProfit/estimate)*100).toFixed(2)):0;
-    let ticketNo="";
+    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),depositAmount=Number($("repairDeposit").value||0),depositPaymentMethod=$("repairDepositMethod").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
+    if(depositAmount<0)return toast("Deposit tidak boleh negatif.");
+    if(estimate>0&&depositAmount>estimate)return toast("Deposit tidak boleh melebihi anggaran harga repair.");
     try{
       const repairRef=doc(collection(db,"repairs"));ticketNo=await reserveDocumentNumber("repair","RPR");
-      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status,warranty,repairMethod,sparePartCost,outsourceCost,additionalCost,totalInternalCost,netProfit,profitMargin,financeVisibility:"admin_owner_only",staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()})});
+      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status:"Received",warranty,depositAmount,depositPaymentMethod:depositAmount>0?depositPaymentMethod:"",depositStatus:depositAmount>0?"paid":"none",paymentStatus:depositAmount>0?"deposit_paid":"no_deposit",isSale:false,staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp(),depositPaidAt:depositAmount>0?serverTimestamp():null})});
       closeModal("repairModal");
-      showTransactionDocument({title:"REPAIR QUOTATION / INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals:[{label:"Estimated Repair Cost",value:estimate,grand:true}],payment:"Payment upon confirmation/completion",note:"Quotation ini adalah anggaran awal. Kos akhir mungkin berubah selepas diagnosis dan persetujuan customer diperlukan sebelum kerja tambahan."});
-      e.target.reset();$("repairSparePartCost").value=0;$("repairOutsourceCost").value=0;$("repairAdditionalCost").value=0;updateRepairCostFields();toast("Repair ticket created · "+ticketNo)
+      const totals=[{label:"Estimated Repair Cost",value:estimate}];
+      if(depositAmount>0){totals.push({label:"Deposit Paid",value:depositAmount},{label:"Estimated Balance",value:Math.max(0,estimate-depositAmount),grand:true})}else totals[0].grand=true;
+      showTransactionDocument({title:"REPAIR INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals,payment:depositAmount>0?`Deposit · ${depositPaymentMethod}`:"No deposit received",note:"Dokumen ini ialah bukti penerimaan barang dan anggaran awal sahaja. Repair belum direkod sebagai jualan sehingga status Completed dan bayaran akhir disahkan."});
+      e.target.reset();$("repairDeposit").value=0;toast("Repair intake created · "+ticketNo)
     }catch(err){toast(err.message)}
   };
   function renderRepairs(){
-    const privileged=canViewRepairFinance();
-    $("repairFinancePanel").classList.toggle("hidden",!privileged);
-    document.querySelectorAll(".repair-finance-col").forEach(el=>el.classList.toggle("hidden",!privileged));
-    const activeRepairs=state.repairs.filter(r=>r.transactionStatus!=="cancelled");
-    const revenue=activeRepairs.reduce((sum,r)=>sum+Number(r.estimate||0),0);
-    const totalCost=activeRepairs.reduce((sum,r)=>sum+Number(r.totalInternalCost??(Number(r.sparePartCost||0)+Number(r.outsourceCost||0)+Number(r.additionalCost||0))),0);
-    const netProfit=revenue-totalCost;
-    if(privileged){$("repairRevenue").textContent=money(revenue);$("repairTotalCost").textContent=money(totalCost);$("repairNetProfit").textContent=money(netProfit);$("repairMargin").textContent=revenue>0?`${((netProfit/revenue)*100).toFixed(1)}%`:"0%"}
-    $("repairBody").innerHTML=state.repairs.length?state.repairs.map(r=>{
-      const cost=Number(r.totalInternalCost??(Number(r.sparePartCost||0)+Number(r.outsourceCost||0)+Number(r.additionalCost||0)));
-      const profit=Number(r.netProfit??(Number(r.estimate||0)-cost));
-      return `<tr><td><strong>${esc(r.ticketNo)}</strong></td><td>${esc(r.customer)}<br><span class="muted">${esc(r.phone||"")}</span></td><td>${esc(r.device)}</td><td>${esc(r.issue)}</td><td><span class="badge ${r.status==="Completed"?"green":r.status==="Ready"?"blue":"orange"}">${esc(r.status)}</span></td><td>${money(r.estimate)}</td>${privileged?`<td><strong>${money(cost)}</strong><br><span class="muted">${esc(r.repairMethod||"not set")}</span></td><td><strong>${money(profit)}</strong><br><span class="muted">${Number(r.estimate||0)>0?((profit/Number(r.estimate||0))*100).toFixed(1):"0"}%</span></td>`:""}<td><select onchange="window.repairStatus('${r.id}',this.value)"><option ${r.status==="Received"?"selected":""}>Received</option><option ${r.status==="Diagnosing"?"selected":""}>Diagnosing</option><option ${r.status==="Waiting Parts"?"selected":""}>Waiting Parts</option><option ${r.status==="Ready"?"selected":""}>Ready</option><option ${r.status==="Completed"?"selected":""}>Completed</option></select></td></tr>`
-    }).join(""):`<tr><td colspan="${privileged?9:7}" class="muted" style="text-align:center;padding:30px">Belum ada repair.</td></tr>`
+    $("repairBody").innerHTML=state.repairs.length?state.repairs.map(r=>`<tr><td><strong>${esc(r.ticketNo)}</strong></td><td>${esc(r.customer)}<br><span class="muted">${esc(r.phone||"")}</span></td><td>${esc(r.device)}</td><td>${esc(r.issue)}</td><td><span class="badge ${r.status==="Completed"?"green":r.status==="Ready"?"blue":"orange"}">${esc(r.status)}</span><br><span class="muted">${Number(r.depositAmount||0)>0?`Deposit ${money(r.depositAmount)}`:"No deposit"}</span></td><td>${money(r.status==="Completed"?Number(r.finalPrice||r.estimate||0):Number(r.estimate||0))}</td><td><select ${r.status==="Completed"?"disabled":""} onchange="window.repairStatus('${r.id}',this.value,this)"><option ${r.status==="Received"?"selected":""}>Received</option><option ${r.status==="Diagnosing"?"selected":""}>Diagnosing</option><option ${r.status==="Waiting Approval"?"selected":""}>Waiting Approval</option><option ${r.status==="Waiting Parts"?"selected":""}>Waiting Parts</option><option ${r.status==="In Progress"?"selected":""}>In Progress</option><option ${r.status==="Ready"?"selected":""}>Ready</option><option ${r.status==="Completed"?"selected":""}>Completed</option><option ${r.status==="Cancelled"?"selected":""}>Cancelled</option></select></td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Belum ada repair.</td></tr>'
   }
-  window.repairStatus=async(id,status)=>{try{await updateDoc(doc(db,"repairs",id),{status,updatedAt:serverTimestamp()});toast("Repair updated")}catch(e){toast(e.message)}};
+  const repairById=id=>state.repairs.find(r=>r.id===id);
+  function updateCompleteRepairMath(){
+    const price=Number($("completeFinalPrice").value||0),deposit=Number($("completeDeposit").dataset.value||0),spare=Number($("completeSpareCost").value||0),outsource=Number($("completeOutsourceCost").value||0),additional=Number($("completeAdditionalCost").value||0),cost=spare+outsource+additional,profit=price-cost;
+    $("completeBalance").value=money(Math.max(0,price-deposit));$("completeTotalCost").textContent=money(cost);$("completeNetProfit").textContent=money(profit);$("completeMargin").textContent=price>0?`${((profit/price)*100).toFixed(1)}%`:"0%";
+  }
+  function syncRepairCostFields(){
+    const method=$("completeRepairMethod").value;
+    $("spareCostField").classList.toggle("hidden",method==="outsource");$("outsourceCostField").classList.toggle("hidden",method==="internal");
+    if(method==="outsource")$("completeSpareCost").value=0;if(method==="internal")$("completeOutsourceCost").value=0;updateCompleteRepairMath();
+  }
+  ["completeFinalPrice","completeSpareCost","completeOutsourceCost","completeAdditionalCost"].forEach(id=>$(id).addEventListener("input",updateCompleteRepairMath));$("completeRepairMethod").onchange=syncRepairCostFields;
+  $("cancelCompleteRepair").onclick=()=>closeModal("completeRepairModal");
+  window.repairStatus=async(id,status,select)=>{
+    const r=repairById(id);if(!r)return;
+    if(status==="Completed"){
+      if(select)select.value=r.status||"Received";
+      $("completeRepairId").value=id;$("completeFinalPrice").value=Number(r.finalPrice||r.estimate||0);$("completeDeposit").dataset.value=Number(r.depositAmount||0);$("completeDeposit").value=money(Number(r.depositAmount||0));$("completeWarranty").value=r.warranty||"";$("completeRepairMethod").value=r.repairMethod||"internal";$("completeSpareCost").value=Number(r.sparePartCost||0);$("completeOutsourceCost").value=Number(r.outsourceCost||0);$("completeAdditionalCost").value=Number(r.additionalCost||0);syncRepairCostFields();$("completeRepairModal").classList.remove("hidden");return;
+    }
+    try{await updateDoc(doc(db,"repairs",id),{status,updatedAt:serverTimestamp()});toast("Repair updated")}catch(e){toast(e.message)}
+  };
+  $("completeRepairForm").onsubmit=async e=>{
+    e.preventDefault();const id=$("completeRepairId").value,r=repairById(id);if(!r)return toast("Repair record tidak ditemui.");
+    const finalPrice=Number($("completeFinalPrice").value||0),depositAmount=Number(r.depositAmount||0),balanceDue=Math.max(0,finalPrice-depositAmount),paymentMethod=$("completePaymentMethod").value,repairMethod=$("completeRepairMethod").value,warranty=$("completeWarranty").value.trim(),sparePartCost=repairMethod==="outsource"?0:Number($("completeSpareCost").value||0),outsourceCost=repairMethod==="internal"?0:Number($("completeOutsourceCost").value||0),additionalCost=Number($("completeAdditionalCost").value||0),totalCost=sparePartCost+outsourceCost+additionalCost,netProfit=finalPrice-totalCost,profitMargin=finalPrice>0?(netProfit/finalPrice)*100:0;
+    if(finalPrice<depositAmount)return toast("Harga akhir tidak boleh lebih rendah daripada deposit. Buat proses refund dahulu.");
+    try{
+      await updateDoc(doc(db,"repairs",id),{status:"Completed",isSale:true,finalPrice,balanceDue,balancePaid:balanceDue,finalPaymentMethod:balanceDue>0?paymentMethod:"Covered by deposit",paymentStatus:"paid_in_full",repairMethod,sparePartCost,outsourceCost,additionalCost,totalCost,netProfit,profitMargin,warranty,completedAt:serverTimestamp(),completedBy:state.user.uid,completedByName:state.profile.name||state.user.email,updatedAt:serverTimestamp()});
+      closeModal("completeRepairModal");
+      showTransactionDocument({title:"REPAIR PAYMENT RECEIPT",number:r.ticketNo,customer:r.customer,phone:r.phone,staff:state.profile.name||state.user.email,items:[{name:r.device,detail:`Repair completed · ${r.issue||""}${r.serial?" · S/N "+r.serial:""}`,warranty,qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-depositAmount},{label:"Balance Paid Today",value:balanceDue},{label:"Total Paid",value:finalPrice,grand:true}],payment:balanceDue>0?`${paymentMethod} · Balance ${money(balanceDue)}`:`Fully covered by deposit`,note:"Repair completed and paid in full. Kos spare part, outsource dan keuntungan adalah rekod dalaman dan tidak dipaparkan pada resit ini."});toast("Repair completed · receipt generated")
+    }catch(err){toast(err.message)}
+  };
 
   function allTransactions(){
+    const repairTransactions=state.repairs.flatMap(x=>{
+      const rows=[];
+      if(Number(x.depositAmount||0)>0)rows.push({kind:"repairDeposit",filterKind:"repair",number:`${x.ticketNo}-DEP`,total:Number(x.depositAmount||0),payment:x.depositPaymentMethod||"—",customer:x.customer||"—",createdAt:x.depositPaidAt||x.createdAt,data:x,status:x.transactionStatus==="cancelled"?"cancelled":"active"});
+      if(x.status==="Completed"||x.isSale)rows.push({kind:"repair",filterKind:"repair",number:x.ticketNo,total:Number(x.finalPrice||x.estimate||0),payment:x.finalPaymentMethod||"Paid",customer:x.customer||"—",createdAt:x.completedAt||x.updatedAt||x.createdAt,data:x,status:x.transactionStatus==="cancelled"?"cancelled":"active"});
+      return rows;
+    });
     return [
-      ...state.sales.map(x=>({kind:"sale",number:x.receiptNo,total:Number(x.total||0),payment:x.paymentMethod||"—",customer:x.customer||"Walk-in",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
-      ...state.buys.map(x=>({kind:"buy",number:x.buyNo,total:Number(x.offer||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
-      ...state.trades.map(x=>({kind:"trade",number:x.tradeNo,total:Number(x.balance||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
-      ...state.repairs.map(x=>({kind:"repair",number:x.ticketNo,total:Number(x.estimate||0),payment:x.paymentMethod||"Not recorded",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.transactionStatus==="cancelled"?"cancelled":"active"}))
-    ].sort((a,b)=>{const ad=a.createdAt?.toMillis?a.createdAt.toMillis():0,bd=b.createdAt?.toMillis?b.createdAt.toMillis():0;return bd-ad});
+      ...state.sales.map(x=>({kind:"sale",filterKind:"sale",number:x.receiptNo,total:Number(x.total||0),payment:x.paymentMethod||"—",customer:x.customer||"Walk-in",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.buys.map(x=>({kind:"buy",filterKind:"buy",number:x.buyNo,total:Number(x.offer||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.trades.map(x=>({kind:"trade",filterKind:"trade",number:x.tradeNo,total:Number(x.balance||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...repairTransactions
+    ].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
   }
+
   function transactionDocument(t){
     const x=t.data,staff=x.staffName||"",cancelNote=x.status==="cancelled"||x.transactionStatus==="cancelled"?`CANCELLED: ${x.cancelReason||"No reason recorded"}`:"";
     if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warranty||"",qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote||"Terima kasih kerana berurusan dengan Meney Gaming."};
@@ -1393,15 +1399,17 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       const net=Number(x.netBalance ?? (Number(x.newProductPrice||0)-Number(x.tradeValue||0))),outTotal=Number(x.totalStockOut ?? (x.newProductPrice||0)),inTotal=Number(x.totalTradeValue ?? (x.tradeValue||0));
       return {title:"TRADE-IN RECEIPT",number:x.tradeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[...outs.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:Number(i.price||0),total:Number(i.price||0)*Number(i.qty||1)})),...ins.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:-(Number(i.tradeValue||0)/Number(i.qty||1)),total:-Number(i.tradeValue||0)}))],totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:net>=0?"Amount Paid by Customer":"Amount Paid by Meney",value:Math.abs(net),grand:true}],payment:x.paymentMethod,note:cancelNote||"Trade-in stock in/out transaction."};
     }
-    return {title:"REPAIR QUOTATION / INTAKE RECEIPT",number:x.ticketNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Issue: ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,warranty:x.warranty||"",qty:1,amount:x.estimate,total:x.estimate}],totals:[{label:"Estimated Repair Cost",value:x.estimate,grand:true}],payment:x.paymentMethod||"Payment upon confirmation/completion",note:cancelNote||`Repair status: ${x.status||"Received"}`};
+    if(t.kind==="repairDeposit")return {title:"REPAIR DEPOSIT RECEIPT",number:`${x.ticketNo}-DEP`,date:timestampText(x.depositPaidAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair intake · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,unitPrice:Number(x.depositAmount||0),total:Number(x.depositAmount||0)}],totals:[{label:"Deposit Paid",value:Number(x.depositAmount||0),grand:true}],payment:x.depositPaymentMethod||"—",note:cancelNote||"Deposit diterima untuk repair. Repair belum dianggap jualan lengkap sehingga kerja selesai."};
+    const finalPrice=Number(x.finalPrice||x.estimate||0),deposit=Number(x.depositAmount||0),balance=Math.max(0,finalPrice-deposit);
+    return {title:"REPAIR PAYMENT RECEIPT",number:x.ticketNo,date:timestampText(x.completedAt||x.updatedAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair completed · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,warranty:x.warranty||"",qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-deposit},{label:"Balance Paid",value:balance},{label:"Total Paid",value:finalPrice,grand:true}],payment:x.finalPaymentMethod||"Paid",note:cancelNote||"Repair completed and paid in full."};
   }
   window.openReceipt=(kind,id)=>{const t=allTransactions().find(x=>x.kind===kind&&x.data.id===id);if(t)showTransactionDocument(transactionDocument(t))};
   function renderReceipts(){
     if(!$("receiptBody"))return;
     const q=normalizeText($("receiptSearch").value),type=$("receiptType").value,status=$("receiptStatus").value;
-    const rows=allTransactions().filter(t=>(!type||t.kind===type)&&(!status||(status==="cancelled"?t.status==="cancelled":t.status!=="cancelled"))&&(!q||normalizeText(`${t.number} ${t.customer} ${JSON.stringify(t.data)}`).includes(q)));
-    const labels={sale:"Sales",buy:"Buy",trade:"Trade-In",repair:"Repair"};
-    $("receiptBody").innerHTML=rows.length?rows.map(t=>`<tr><td><strong>${esc(t.number||"—")}</strong></td><td>${timestampText(t.createdAt)}</td><td>${esc(t.customer)}</td><td><span class="badge ${t.kind==="sale"?"green":t.kind==="buy"?"orange":t.kind==="trade"?"purple":"blue"}">${labels[t.kind]}</span></td><td>${esc(t.payment)}</td><td><strong>${money(t.total)}</strong></td><td><span class="badge ${t.status==="cancelled"?"gray":"green"}">${t.status==="cancelled"?"Cancelled":"Active"}</span></td><td><button class="btn btn-light" style="padding:7px 9px" onclick="window.openReceipt('${t.kind}','${t.data.id}')">View</button> ${isOwner()&&t.status!=="cancelled"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="window.cancelBill('${t.kind}','${t.data.id}')">Cancel</button>`:""}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Tiada transaksi ditemui.</td></tr>';
+    const rows=allTransactions().filter(t=>(!type||t.filterKind===type)&&(!status||(status==="cancelled"?t.status==="cancelled":t.status!=="cancelled"))&&(!q||normalizeText(`${t.number} ${t.customer} ${JSON.stringify(t.data)}`).includes(q)));
+    const labels={sale:"Sales",buy:"Buy",trade:"Trade-In",repair:"Repair",repairDeposit:"Repair Deposit"};
+    $("receiptBody").innerHTML=rows.length?rows.map(t=>`<tr><td><strong>${esc(t.number||"—")}</strong></td><td>${timestampText(t.createdAt)}</td><td>${esc(t.customer)}</td><td><span class="badge ${t.kind==="sale"?"green":t.kind==="buy"?"orange":t.kind==="trade"?"purple":"blue"}">${labels[t.kind]}</span></td><td>${esc(t.payment)}</td><td><strong>${money(t.total)}</strong></td><td><span class="badge ${t.status==="cancelled"?"gray":"green"}">${t.status==="cancelled"?"Cancelled":"Active"}</span></td><td><button class="btn btn-light" style="padding:7px 9px" onclick="window.openReceipt('${t.kind}','${t.data.id}')">View</button> ${isOwner()&&t.status!=="cancelled"&&t.kind!=="repairDeposit"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="window.cancelBill('${t.kind}','${t.data.id}')">Cancel</button>`:""}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Tiada transaksi ditemui.</td></tr>';
   }
   $("receiptSearch").oninput=renderReceipts;$("receiptType").onchange=renderReceipts;$("receiptStatus").onchange=renderReceipts;
   window.cancelBill=async(kind,id)=>{
