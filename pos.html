@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Customer Master V1 · System Maintenance V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-CUSTOMER-MASTER-V1-20260801" />
+  <title>Meney POS Enterprise · Trade-In Product Master V1 · System Maintenance V1 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-TRADEIN-PRODUCT-MASTER-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -385,7 +385,7 @@
     .reset-progress{margin-top:12px;padding:11px;border-radius:11px;background:#f8fafc;border:1px solid var(--line);font-size:11px;line-height:1.5}
     @media(max-width:850px){.maintenance-grid{grid-template-columns:1fr}}
 
-    /* ===== Customer Master V1 ===== */
+    /* ===== Trade-In Product Master V1 ===== */
     .customer-selector{border:1px solid var(--line);background:#f8faf9;border-radius:14px;padding:12px;margin-bottom:12px}
     .customer-selector-grid{display:grid;grid-template-columns:160px minmax(180px,1fr) auto;gap:9px;align-items:end}
     .customer-selector .field{margin:0}.customer-channel-row{margin-top:9px;display:grid;grid-template-columns:180px 1fr;gap:9px}
@@ -764,8 +764,13 @@
             <div class="flow-form" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start">
               <div class="flow-col">
                 <div class="section-head"><div><h4>Stock In — Barang Customer</h4><p id="tradeInCount">0 item dalam draft</p></div></div>
-                <div class="field"><label>Item Name</label><input id="tradeItem" placeholder="Contoh: PS4 Slim 500GB"></div>
-                <div class="form-grid cols-2"><div class="field"><label>Category</label><select id="tradeCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div><div class="field"><label>Item Type</label><select id="tradeItemType"><option value="Used" selected>Used</option><option value="New">New</option></select></div></div>
+                <div class="field"><label>Stock In Product</label><select id="tradeInProduct"><option value="">Select existing SKU</option><option value="__new__">＋ Create New Item</option></select><span class="field-help">Pilih produk inventory sedia ada untuk elak duplicate SKU.</span></div>
+                <div id="tradeInExistingInfo" class="sp-product-status existing hidden"></div>
+                <div id="tradeInNewBox" class="sp-create-box hidden">
+                  <div class="field"><label>New Item Name</label><input id="tradeItem" placeholder="Contoh: PS4 Slim 500GB"></div>
+                  <div class="form-grid cols-2"><div class="field"><label>Category</label><select id="tradeCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div><div class="field"><label>Item Type</label><select id="tradeItemType"><option value="Used" selected>Used</option><option value="New">New</option></select></div></div>
+                  <div class="sp-product-status new">SKU baharu hanya akan dicipta apabila transaksi Trade-In berjaya diselesaikan.</div>
+                </div>
                 <div class="form-grid cols-2"><div class="field"><label>Serial Number</label><input id="tradeSerial" placeholder="Kosongkan jika tiada"></div><div class="field"><label>Quantity</label><input id="tradeInQty" type="number" min="1" step="1" value="1"></div></div>
                 <div class="form-grid cols-2"><div class="field"><label>Total Trade Value (RM)</label><input id="tradeValue" type="number" min="0" step=".01" placeholder="Jumlah untuk semua unit"></div><div class="field"><label>Expected Sell Price / Unit (RM)</label><input id="tradeSellPrice" type="number" min="0" step=".01"></div></div>
                 <button class="btn btn-purple btn-block" type="button" id="addTradeInItem">＋ Add to Stock In List</button>
@@ -1329,7 +1334,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
 
 
-  // ===== Customer Master V1 =====
+  // ===== Trade-In Product Master V1 =====
   const customerPrefixes=["sale","buy","trade","repair"];
   function customerPhoneKey(v){return cleanPhone(v||"")}
   function customerDisplay(c){return `${c.name||"Unnamed"}${c.phone?" · "+c.phone:""}${c.customerNo?" · "+c.customerNo:""}`}
@@ -1927,6 +1932,25 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     calcTrade();
   }
 
+  function populateTradeInProducts(){
+    const select=$("tradeInProduct");if(!select)return;
+    const current=select.value;
+    select.innerHTML='<option value="">Select existing SKU</option><option value="__new__">＋ Create New Item</option>'+state.products.slice().sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""))).map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.sku||"No SKU")} · Stock ${Number(p.stock||0)}</option>`).join("");
+    if([...select.options].some(o=>o.value===current))select.value=current;
+  }
+  function updateTradeInProductSelection(){
+    const value=$("tradeInProduct").value,newMode=value==="__new__",p=state.products.find(x=>x.id===value);
+    $("tradeInNewBox").classList.toggle("hidden",!newMode);
+    $("tradeInExistingInfo").classList.toggle("hidden",!p);
+    if(p){
+      $("tradeInExistingInfo").innerHTML=`Selected: <strong>${esc(p.name)}</strong> · SKU ${esc(p.sku||"No SKU")} · Current stock ${Number(p.stock||0)}`;
+      $("tradeItem").value=p.name||"";$("tradeCategory").value=p.category||"Others";$("tradeItemType").value=p.itemType||"Used";$("tradeSellPrice").value=Number(p.price||0).toFixed(2);
+    }else if(newMode){
+      $("tradeItem").value="";$("tradeCategory").value="Console";$("tradeItemType").value="Used";$("tradeSellPrice").value="";
+    }
+  }
+  $("tradeInProduct").addEventListener("change",updateTradeInProductSelection);
+
   function updateTradeOutSelection(){
     const p=state.products.find(x=>x.id===$("tradeNewProduct").value);
     if(p){
@@ -1969,7 +1993,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
 
   function resetTradeInInputs(){
-    $("tradeItem").value="";$("tradeSerial").value="";$("tradeInQty").value=1;$("tradeValue").value="";$("tradeSellPrice").value="";$("tradeCategory").value="Console";$("tradeItemType").value="Used";
+    $("tradeInProduct").value="";$("tradeItem").value="";$("tradeSerial").value="";$("tradeInQty").value=1;$("tradeValue").value="";$("tradeSellPrice").value="";$("tradeCategory").value="Console";$("tradeItemType").value="Used";
+    $("tradeInNewBox").classList.add("hidden");$("tradeInExistingInfo").classList.add("hidden");$("tradeInExistingInfo").innerHTML="";
     delete $("addTradeInItem").dataset.editIndex;$("addTradeInItem").textContent="＋ Add to Stock In List";
   }
   function resetTradeOutInputs(){
@@ -1986,6 +2011,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   window.removeTradeOut=k=>{state.tradeOutItems.splice(k,1);calcTrade()};
   window.editTradeIn=k=>{
     const i=state.tradeInItems[k];if(!i)return;
+    populateTradeInProducts();$("tradeInProduct").value=i.mode==="new"?"__new__":(i.productId||"");updateTradeInProductSelection();
     $("tradeItem").value=i.name;$("tradeCategory").value=i.category;$("tradeItemType").value=i.itemType||"Used";$("tradeSerial").value=i.serial||"";$("tradeInQty").value=i.qty;$("tradeValue").value=i.tradeValue;$("tradeSellPrice").value=i.sellPrice;
     $("addTradeInItem").dataset.editIndex=String(k);$("addTradeInItem").textContent="Save Stock In Changes";
   };
@@ -1996,7 +2022,10 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   };
 
   $("addTradeInItem").addEventListener("click",()=>{
-    const name=$("tradeItem").value.trim(),category=$("tradeCategory").value,itemType=$("tradeItemType").value,serial=$("tradeSerial").value.trim();
+    const selected=$("tradeInProduct").value,mode=selected==="__new__"?"new":"existing",product=state.products.find(x=>x.id===selected);
+    if(!selected)return toast("Pilih existing SKU atau Create New Item.");
+    if(mode==="existing"&&!product)return toast("Produk inventory tidak ditemui.");
+    const name=(mode==="existing"?product.name:$("tradeItem").value).trim(),category=mode==="existing"?(product.category||"Others"):$("tradeCategory").value,itemType=mode==="existing"?(product.itemType||"Used"):$("tradeItemType").value,serial=$("tradeSerial").value.trim();
     const qty=Number($("tradeInQty").value),tradeValue=Number($("tradeValue").value),sellPrice=Number($("tradeSellPrice").value);
     if(!name)return toast("Masukkan nama item Stock In.");
     if(!Number.isInteger(qty)||qty<1)return toast("Quantity Stock In mesti nombor bulat sekurang-kurangnya 1.");
@@ -2006,7 +2035,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const editIndex=$("addTradeInItem").dataset.editIndex;
     const duplicate=duplicateSerial(serial);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
     if(serial&&state.tradeInItems.some((i,k)=>String(k)!==String(editIndex)&&normalizeSerial(i.serial)===normalizeSerial(serial)))return toast("Serial number duplicate dalam draft ini.");
-    const row={name,category,itemType,serial,qty,tradeValue:Number(tradeValue.toFixed(2)),sellPrice:Number(sellPrice.toFixed(2))};
+    if(mode==="new"&&state.products.some(p=>normalizeText(p.name)===normalizeText(name)&&p.category===category&&(p.itemType||"Used")===itemType))return toast(`${name} sudah wujud. Sila pilih SKU sedia ada daripada dropdown.`);
+    const row={mode,productId:product?.id||null,sku:product?.sku||null,name,category,itemType,serial,qty,tradeValue:Number(tradeValue.toFixed(2)),sellPrice:Number(sellPrice.toFixed(2))};
     if(editIndex!==undefined)state.tradeInItems[Number(editIndex)]=row;else state.tradeInItems.push(row);
     resetTradeInInputs();calcTrade();toast("Item ditambah ke Stock In list.");
   });
@@ -2032,13 +2062,13 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const plan=[];
     for(const raw of items){
       const item={...raw};
-      const existing=mergeCandidate({name:item.name,category:item.category,itemType:item.itemType||"Used",serial:item.serial});
+      const existing=item.mode==="existing"?state.products.find(p=>p.id===item.productId):null;
       const key=existing?`existing:${existing.id}`:`new:${normalizeText(item.name)}|${item.category}|${item.itemType||"Used"}|${normalizeSerial(item.serial)}`;
       const row=plan.find(x=>x.key===key);
       if(row&&!item.serial){
         const combinedQty=Number(row.qty)+Number(item.qty),combinedValue=Number(row.tradeValue)+Number(item.tradeValue);
         row.qty=combinedQty;row.tradeValue=Number(combinedValue.toFixed(2));row.sellPrice=item.sellPrice;
-      }else plan.push({...item,key,existingId:existing?.id||null,sku:existing?.sku||null,inventoryAction:existing?"merged":"created"});
+      }else plan.push({...item,key,existingId:existing?.id||null,productId:existing?.id||null,sku:existing?.sku||item.sku||null,inventoryAction:existing?"merged":"created"});
     }
     return plan;
   }
