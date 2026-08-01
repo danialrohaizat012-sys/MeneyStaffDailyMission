@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <title>Meney POS Enterprise · Trade-In Accounting V1 · System Maintenance V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-DASHBOARD-FULL-MERGE-V1-20260801" />
+  <meta name="meney-build" content="POS-BUY-DROPDOWN-FIX-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -1735,8 +1735,10 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function newBuyItem(){return{id:buyUid(),productId:"",name:"",category:"Console",itemType:"Used",serial:"",buyPrice:0,notes:"",qc:defaultQc("Console"),showSuggestions:false}}
   function buyTotal(){return state.buyItems.reduce((sum,i)=>sum+Number(i.buyPrice||0),0)}
   function productSearchResults(item){
-    const q=normalizeText(item.name);if(!q)return [];
-    return state.products.filter(p=>normalizeText(`${p.name} ${p.sku} ${p.category}`).includes(q)).slice(0,7)
+    const q=normalizeText(item.name);
+    const products=[...state.products].sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+    if(!q)return products.slice(0,10);
+    return products.filter(p=>normalizeText(`${p.name} ${p.sku} ${p.category}`).includes(q)).slice(0,10)
   }
   function serialOwner(serial){
     const key=normalizeSerial(serial);if(!key)return null;
@@ -1750,7 +1752,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       return `<div class="buy-item-card" data-buy-card="${item.id}">
         <div class="buy-item-head"><div><h4>Item ${index+1}</h4><p>${selected?`Existing SKU · ${esc(selected.sku||"")}`:"New product if no existing product is selected"}</p></div>${state.buyItems.length>1?`<button class="btn btn-danger" type="button" data-remove-buy="${item.id}">Remove</button>`:""}</div>
         <div class="two">
-          <div class="field buy-product-search"><label>Search Product / SKU</label><input data-buy-name="${item.id}" value="${esc(item.name)}" autocomplete="off" placeholder="Contoh: PS4 Slim 1TB"><div class="buy-suggestions ${item.showSuggestions&&item.name?"":"hidden"}">${results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")}${results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${item.id}"><strong>＋ Create New Product</strong><span>Tiada produk sepadan ditemui</span></button>`}</div></div>
+          <div class="field buy-product-search"><label>Search Product / SKU</label><input data-buy-name="${item.id}" value="${esc(item.name)}" autocomplete="off" placeholder="Contoh: PS4 Slim 1TB"><div class="buy-suggestions ${item.showSuggestions?"":"hidden"}">${results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")}${results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${item.id}"><strong>＋ Create New Product</strong><span>Produk tiada dalam Product Master</span></button>`}</div></div>
           <div class="field"><label>Category</label><select data-buy-category="${item.id}" ${selected?"disabled":""}>${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===item.category?"selected":""}>${c}</option>`).join("")}</select></div>
         </div>
         ${selected?`<div class="selected-product"><div><strong>${esc(selected.name)}</strong><span>Using existing product · ${esc(selected.sku||"")}</span></div><button type="button" class="btn btn-light" data-clear-buy-product="${item.id}">Change</button></div>`:`<div class="new-product-note">Produk baru akan dicipta hanya jika tiada produk sedia ada dipilih. Sistem akan jana SKU automatik.</div>`}
@@ -1767,8 +1769,10 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   function bindBuyItemEvents(){
     document.querySelectorAll("[data-buy-name]").forEach(el=>{
-      const refreshSuggestions=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyName);if(!i)return;i.name=el.value;i.productId="";i.showSuggestions=true;const box=el.parentElement.querySelector(".buy-suggestions"),results=productSearchResults(i);if(!box)return;box.classList.toggle("hidden",!i.name);box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")+(results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${i.id}"><strong>＋ Create New Product</strong><span>Tiada produk sepadan ditemui</span></button>`);box.querySelectorAll("[data-select-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.selectBuyProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!item||!product)return;item.productId=product.id;item.name=product.name;item.category=product.category||"Others";item.itemType=product.itemType||"Used";item.qc=defaultQc(item.category);item.showSuggestions=false;renderBuyItems()});box.querySelectorAll("[data-create-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.createBuyProduct);if(item){item.productId="";item.showSuggestions=false;renderBuyItems()}})};
-      el.oninput=refreshSuggestions;el.onfocus=refreshSuggestions;
+      const refreshSuggestions=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyName);if(!i)return;i.name=el.value;i.productId="";i.showSuggestions=true;const box=el.parentElement.querySelector(".buy-suggestions"),results=productSearchResults(i);if(!box)return;box.classList.remove("hidden");box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")+(results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${i.id}"><strong>＋ Create New Product</strong><span>Produk tiada dalam Product Master</span></button>`);box.querySelectorAll("[data-select-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.selectBuyProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!item||!product)return;item.productId=product.id;item.name=product.name;item.category=product.category||"Others";item.itemType=product.itemType||"Used";item.qc=defaultQc(item.category);item.showSuggestions=false;renderBuyItems()});box.querySelectorAll("[data-create-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.createBuyProduct);if(item){item.productId="";item.showSuggestions=false;renderBuyItems()}})};
+      el.oninput=refreshSuggestions;
+      el.onfocus=refreshSuggestions;
+      el.onblur=()=>setTimeout(()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyName);if(i){i.showSuggestions=false;const box=el.parentElement.querySelector(".buy-suggestions");if(box)box.classList.add("hidden")}},180);
     });
     document.querySelectorAll("[data-select-buy-product]").forEach(el=>el.onclick=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.selectBuyProduct),p=state.products.find(x=>x.id===el.dataset.productId);if(!i||!p)return;i.productId=p.id;i.name=p.name;i.category=p.category||"Others";i.itemType=p.itemType||"Used";i.qc=defaultQc(i.category);i.showSuggestions=false;renderBuyItems()});
     document.querySelectorAll("[data-create-buy-product]").forEach(el=>el.onclick=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.createBuyProduct);if(i){i.productId="";i.showSuggestions=false;renderBuyItems()}});
