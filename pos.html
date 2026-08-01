@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · After-Sales V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-AFTERSALES-V1-20260801" />
+  <title>Meney POS Enterprise · After-Sales V1.1 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-AFTERSALES-V1.1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -1403,14 +1403,58 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function returnedStatus(v){return v==="available"?"Available":v==="repair"?"Repair":v==="write_off"?"Write-Off":"QC Required"}
   async function completeRefund(){
     const {sale,item}=selectedAfter(),amount=Number($("afterRefundAmount").value||0),reason=$("afterReason").value,method=$("afterMethod").value,disposition=$("afterDisposition").value;
-    if(!isOwner())return toast("Owner sahaja boleh complete refund.");if(amount<=0||amount>Number(item.price||0))return toast("Refund amount tidak sah.");
+    if(!isOwner())return toast("Owner sahaja boleh complete refund.");
+    if(amount<=0||amount>Number(item.price||0))return toast("Refund amount tidak sah.");
     const ref=doc(collection(db,"refunds"));let no="";
-    try{await runTransaction(db,async tx=>{no=await nextDocumentNumber(tx,"refund","REF");const pr=doc(db,"products",item.productId),ps=await tx.get(pr);if(!ps.exists())throw new Error("Product tidak ditemui");if(disposition!=="write_off")tx.update(pr,{stock:Number(ps.data().stock||0)+1,status:returnedStatus(disposition),updatedAt:serverTimestamp()});tx.set(ref,{refundNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,productId:item.productId,name:item.name,quantity:1,originalPrice:Number(item.price||0),refundAmount:amount,reason,refundMethod:method,disposition,status:"completed",customer:sale.customer||"Walk-in",phone:sale.phone||"",processedBy:state.user.uid,processedByName:state.profile.name||state.user.email,createdAt:serverTimestamp()});if(method==="Cash")tx.set(doc(collection(db,"cashMoves")),{type:"out",amount,reason:`Refund ${no}`,referenceType:"refund",referenceId:ref.id,staffId:state.user.uid,staffName:state.profile.name||state.user.email,shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})});showTransactionDocument({title:"REFUND RECEIPT",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`Original invoice ${sale.receiptNo} · ${reason}`,qty:1,unitPrice:-amount,total:-amount}],totals:[{label:"Refund Paid",value:amount,grand:true}],payment:method,note:`Returned stock: ${returnedStatus(disposition)}`});toast(no+" completed");renderAfterSales()}catch(e){toast("Refund gagal: "+e.message)}
+    try{
+      await runTransaction(db,async tx=>{
+        // Firestore mewajibkan semua READ dibuat sebelum sebarang WRITE.
+        const pr=doc(db,"products",item.productId),ps=await tx.get(pr);
+        if(!ps.exists())throw new Error("Product tidak ditemui");
+        no=await nextDocumentNumber(tx,"refund","REF");
+        if(disposition!=="write_off"){
+          tx.update(pr,{stock:Number(ps.data().stock||0)+1,status:returnedStatus(disposition),updatedAt:serverTimestamp()});
+        }
+        tx.set(ref,{refundNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,productId:item.productId,name:item.name,quantity:1,originalPrice:Number(item.price||0),refundAmount:amount,reason,refundMethod:method,disposition,status:"completed",customer:sale.customer||"Walk-in",phone:sale.phone||"",processedBy:state.user.uid,processedByName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
+        if(method==="Cash")tx.set(doc(collection(db,"cashMoves")),{type:"out",amount,reason:`Refund ${no}`,referenceType:"refund",referenceId:ref.id,staffId:state.user.uid,staffName:state.profile.name||state.user.email,shiftId:currentShift()?.id||null,createdAt:serverTimestamp()});
+      });
+      showTransactionDocument({title:"REFUND RECEIPT",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`Original invoice ${sale.receiptNo} · ${reason}`,qty:1,unitPrice:-amount,total:-amount}],totals:[{label:"Refund Paid",value:amount,grand:true}],payment:method,note:`Returned stock: ${returnedStatus(disposition)}`});
+      toast(no+" completed");renderAfterSales();
+    }catch(e){console.error("Refund failed",e);toast("Refund gagal: "+e.message)}
   }
   async function completeExchange(){
-    const {sale,item}=selectedAfter(),pid=$("afterReplacement").value,p=state.products.find(x=>x.id===pid),method=$("afterMethod").value,disposition=$("afterDisposition").value;if(!p)return toast("Pilih replacement product.");
+    const {sale,item}=selectedAfter(),pid=$("afterReplacement").value,p=state.products.find(x=>x.id===pid),method=$("afterMethod").value,disposition=$("afterDisposition").value;
+    if(!p)return toast("Pilih replacement product.");
     const ref=doc(collection(db,"exchanges"));let no="",diff=Number(p.price||0)-Number(item.price||0);
-    try{await runTransaction(db,async tx=>{no=await nextDocumentNumber(tx,"exchange","EXC");const oldRef=doc(db,"products",item.productId),newRef=doc(db,"products",p.id),oldSnap=await tx.get(oldRef),newSnap=await tx.get(newRef);if(!oldSnap.exists()||!newSnap.exists()||Number(newSnap.data().stock||0)<1)throw new Error("Replacement stock tidak mencukupi");if(disposition!=="write_off")tx.update(oldRef,{stock:Number(oldSnap.data().stock||0)+1,status:returnedStatus(disposition),updatedAt:serverTimestamp()});const ns=Number(newSnap.data().stock||0)-1;tx.update(newRef,{stock:ns,status:ns>0?"Available":"No Stock",updatedAt:serverTimestamp()});tx.set(ref,{exchangeNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,returnedProductId:item.productId,returnedItem:item.name,replacementProductId:p.id,replacementItem:p.name,returnedValue:Number(item.price||0),replacementValue:Number(p.price||0),balanceAmount:Math.abs(diff),balanceType:diff>0?"customer_pay":diff<0?"meney_refund":"even",paymentMethod:method,disposition,quantity:1,status:"completed",customer:sale.customer||"Walk-in",phone:sale.phone||"",processedBy:state.user.uid,processedByName:state.profile.name||state.user.email,createdAt:serverTimestamp()});if(diff!==0&&method==="Cash")tx.set(doc(collection(db,"cashMoves")),{type:diff>0?"in":"out",amount:Math.abs(diff),reason:`Exchange ${no}`,referenceType:"exchange",referenceId:ref.id,staffId:state.user.uid,staffName:state.profile.name||state.user.email,shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})});showTransactionDocument({title:"EXCHANGE RECEIPT",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`RETURNED · Original invoice ${sale.receiptNo}`,qty:1,unitPrice:-Number(item.price||0),total:-Number(item.price||0)},{name:p.name,detail:"REPLACEMENT",qty:1,unitPrice:Number(p.price||0),total:Number(p.price||0)}],totals:[{label:diff>0?"Customer Paid":diff<0?"Meney Refunded":"Balance",value:Math.abs(diff),grand:true}],payment:method,note:`Returned stock: ${returnedStatus(disposition)}`});toast(no+" completed");renderAfterSales()}catch(e){toast("Exchange gagal: "+e.message)}
+    try{
+      await runTransaction(db,async tx=>{
+        // Semua product READ dibuat dahulu sebelum counter/product WRITE.
+        const oldRef=doc(db,"products",item.productId),newRef=doc(db,"products",p.id);
+        const sameProduct=oldRef.path===newRef.path;
+        const oldSnap=await tx.get(oldRef);
+        const newSnap=sameProduct?oldSnap:await tx.get(newRef);
+        if(!oldSnap.exists()||!newSnap.exists()||Number(newSnap.data().stock||0)<1)throw new Error("Replacement stock tidak mencukupi");
+
+        no=await nextDocumentNumber(tx,"exchange","EXC");
+
+        if(sameProduct){
+          const current=Number(oldSnap.data().stock||0);
+          // Return +1 dan replacement -1 saling mengimbangi. Write-off hanya menolak replacement.
+          const finalStock=disposition==="write_off"?current-1:current;
+          if(finalStock<0)throw new Error("Replacement stock tidak mencukupi");
+          tx.update(oldRef,{stock:finalStock,status:finalStock>0?(disposition==="write_off"?"Available":returnedStatus(disposition)):"No Stock",updatedAt:serverTimestamp()});
+        }else{
+          if(disposition!=="write_off")tx.update(oldRef,{stock:Number(oldSnap.data().stock||0)+1,status:returnedStatus(disposition),updatedAt:serverTimestamp()});
+          const ns=Number(newSnap.data().stock||0)-1;
+          tx.update(newRef,{stock:ns,status:ns>0?"Available":"No Stock",updatedAt:serverTimestamp()});
+        }
+
+        tx.set(ref,{exchangeNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,returnedProductId:item.productId,returnedItem:item.name,replacementProductId:p.id,replacementItem:p.name,returnedValue:Number(item.price||0),replacementValue:Number(p.price||0),balanceAmount:Math.abs(diff),balanceType:diff>0?"customer_pay":diff<0?"meney_refund":"even",paymentMethod:method,disposition,quantity:1,status:"completed",customer:sale.customer||"Walk-in",phone:sale.phone||"",processedBy:state.user.uid,processedByName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
+        if(diff!==0&&method==="Cash")tx.set(doc(collection(db,"cashMoves")),{type:diff>0?"in":"out",amount:Math.abs(diff),reason:`Exchange ${no}`,referenceType:"exchange",referenceId:ref.id,staffId:state.user.uid,staffName:state.profile.name||state.user.email,shiftId:currentShift()?.id||null,createdAt:serverTimestamp()});
+      });
+      showTransactionDocument({title:"EXCHANGE RECEIPT",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`RETURNED · Original invoice ${sale.receiptNo}`,qty:1,unitPrice:-Number(item.price||0),total:-Number(item.price||0)},{name:p.name,detail:"REPLACEMENT",qty:1,unitPrice:Number(p.price||0),total:Number(p.price||0)}],totals:[{label:diff>0?"Customer Paid":diff<0?"Meney Refunded":"Balance",value:Math.abs(diff),grand:true}],payment:method,note:`Returned stock: ${returnedStatus(disposition)}`});
+      toast(no+" completed");renderAfterSales();
+    }catch(e){console.error("Exchange failed",e);toast("Exchange gagal: "+e.message)}
   }
   async function completeWarranty(){
     const {sale,item}=selectedAfter(),issue=$("afterIssue").value.trim(),decision=$("afterWarrantyDecision").value,notes=$("afterWarrantyNotes").value.trim();if(!issue)return toast("Masukkan reported issue.");
