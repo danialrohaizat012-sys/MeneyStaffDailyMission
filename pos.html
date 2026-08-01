@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Stock Purchase V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-STOCK-PURCHASE-V1-20260801" />
+  <title>Meney POS Enterprise · Stock Purchase V1.1 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-STOCK-PURCHASE-V1.1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -351,6 +351,9 @@
     .sp-summary{position:sticky;top:94px;padding:18px;border-top:4px solid var(--purple)}
     .sp-summary-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line2);font-size:11px}
     .sp-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.sp-tab.active{background:#111827;color:#fff}
+    .sp-create-box{padding:12px;border:1px dashed #cfd8d2;border-radius:12px;background:#f8faf9;margin-top:10px}
+    .sp-product-status{margin-top:8px;padding:9px 10px;border-radius:10px;font-size:10px;font-weight:800}
+    .sp-product-status.existing{background:#edf9f1;color:#166534}.sp-product-status.new{background:#fff7ed;color:#9a3412}
     .receive-grid{display:grid;gap:10px}.receive-line{display:grid;grid-template-columns:minmax(180px,1fr) 90px 110px 110px;gap:9px;align-items:end;border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff}
     @media(max-width:1000px){.sp-layout{grid-template-columns:1fr}.sp-summary{position:static}}
     @media(max-width:700px){.receive-line{grid-template-columns:1fr 1fr}.sp-item-card{padding:12px}}
@@ -621,7 +624,7 @@
               <div class="card section" style="margin-bottom:16px">
                 <div class="section-head"><div><h3>Supplier Stock Purchase</h3><p>Create purchase order. Stock only enters inventory after receiving.</p></div><button id="clearStockPurchase" type="button" class="btn btn-light">Clear Draft</button></div>
                 <div class="three">
-                  <div class="field"><label>Supplier Name</label><input id="spSupplier" list="supplierList" required placeholder="Select or type supplier"><datalist id="supplierList"></datalist></div>
+                  <div class="field"><label>Supplier</label><select id="spSupplier" required><option value="">Select supplier</option><option value="__new__">＋ Create New Supplier</option></select><div id="spNewSupplierBox" class="sp-create-box hidden"><div class="field" style="margin:0"><label>New Supplier Name</label><input id="spNewSupplierName" placeholder="Contoh: UGK Trading"></div></div></div>
                   <div class="field"><label>Supplier Invoice No.</label><input id="spInvoice" placeholder="Optional"></div>
                   <div class="field"><label>Expected Delivery</label><input id="spExpectedDate" type="date"></div>
                 </div>
@@ -2068,23 +2071,23 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   // ==========================
   // STOCK PURCHASE V1
   // ==========================
-  const newStockPurchaseItem=()=>({id:crypto.randomUUID(),productId:"",name:"",category:"Console",qty:1,unitCost:0});
+  const newStockPurchaseItem=()=>({id:crypto.randomUUID(),mode:"existing",productId:"",name:"",category:"Console",qty:1,unitCost:0});
   function resetStockPurchaseDraft(){
     state.stockPurchaseItems=[newStockPurchaseItem()];
-    ["spSupplier","spInvoice","spExpectedDate","spNotes"].forEach(id=>{if($(id))$(id).value=""});
+    ["spSupplier","spNewSupplierName","spInvoice","spExpectedDate","spNotes"].forEach(id=>{if($(id))$(id).value=""});if($("spNewSupplierBox"))$("spNewSupplierBox").classList.add("hidden");
     if($("spShipping"))$("spShipping").value=0;if($("spDiscount"))$("spDiscount").value=0;if($("spAmountPaid"))$("spAmountPaid").value=0;if($("spPaymentStatus"))$("spPaymentStatus").value="unpaid";
     renderStockPurchaseItems();
   }
   function stockPurchaseSubtotal(){return state.stockPurchaseItems.reduce((sum,i)=>sum+(Number(i.qty||0)*Number(i.unitCost||0)),0)}
   function stockPurchaseTotal(){return Math.max(0,stockPurchaseSubtotal()+Number($("spShipping")?.value||0)-Number($("spDiscount")?.value||0))}
-  function renderSupplierList(){if($("supplierList"))$("supplierList").innerHTML=state.suppliers.filter(x=>x.active!==false).map(x=>`<option value="${esc(x.name||x.supplierName||"")}"></option>`).join("")}
+  function renderSupplierList(){if(!$("spSupplier"))return;const old=$("spSupplier").value;$("spSupplier").innerHTML='<option value="">Select supplier</option><option value="__new__">＋ Create New Supplier</option>'+state.suppliers.filter(x=>x.active!==false).sort((a,b)=>String(a.name||a.supplierName||"").localeCompare(String(b.name||b.supplierName||""))).map(x=>`<option value="${x.id}">${esc(x.name||x.supplierName||"Unnamed supplier")}</option>`).join("");if([...$("spSupplier").options].some(o=>o.value===old))$("spSupplier").value=old}
   function renderStockPurchaseItems(){
     if(!$("spItemList"))return;
-    const productOptions='<option value="">Create / choose product</option>'+state.products.map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.sku||"No SKU")}</option>`).join("");
-    $("spItemList").innerHTML=state.stockPurchaseItems.map((i,k)=>`<div class="sp-item-card"><div class="sp-item-head"><h4>Product ${k+1}</h4>${state.stockPurchaseItems.length>1?`<button type="button" class="btn btn-danger" data-sp-remove="${i.id}" style="padding:7px 9px">Remove</button>`:""}</div><div class="field"><label>Existing Product</label><select data-sp-product="${i.id}">${productOptions}</select><span class="field-help">Select existing SKU. Leave blank to create a new product.</span></div><div class="three"><div class="field"><label>Product Name</label><input data-sp-name="${i.id}" value="${esc(i.name)}" placeholder="Product name"></div><div class="field"><label>Category</label><select data-sp-category="${i.id}">${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select></div><div class="field"><label>Quantity Ordered</label><input data-sp-qty="${i.id}" type="number" min="1" step="1" value="${Number(i.qty||1)}"></div></div><div class="two"><div class="field"><label>Unit Cost (RM)</label><input data-sp-cost="${i.id}" type="number" min="0" step=".01" value="${Number(i.unitCost||0)}"></div><div class="summary-mini"><span>Subtotal</span><strong>${money(Number(i.qty||0)*Number(i.unitCost||0))}</strong></div></div></div>`).join("");
-    state.stockPurchaseItems.forEach(i=>{const sel=document.querySelector(`[data-sp-product="${i.id}"]`);if(sel)sel.value=i.productId||""});
+    const productOptions='<option value="">Select existing inventory product</option><option value="__new__">＋ Create New Item</option>'+state.products.slice().sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""))).map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.sku||"No SKU")} · Stock ${Number(p.stock||0)}</option>`).join("");
+    $("spItemList").innerHTML=state.stockPurchaseItems.map((i,k)=>`<div class="sp-item-card"><div class="sp-item-head"><div><h4>Product ${k+1}</h4><div class="muted" style="font-size:10px">Link kepada Product Master atau create item baharu.</div></div>${state.stockPurchaseItems.length>1?`<button type="button" class="btn btn-danger" data-sp-remove="${i.id}" style="padding:7px 9px">Remove</button>`:""}</div><div class="field"><label>Product</label><select data-sp-product="${i.id}">${productOptions}</select></div>${i.mode==="new"?`<div class="sp-create-box"><div class="two"><div class="field"><label>New Product Name</label><input data-sp-name="${i.id}" value="${esc(i.name)}" placeholder="Contoh: DualShock 4 Midnight Blue"></div><div class="field"><label>Category</label><select data-sp-category="${i.id}">${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select></div></div><div class="sp-product-status new">Produk baharu akan dicipta dalam inventory dengan stok 0. Kuantiti hanya bertambah selepas Stock Received.</div></div>`:`<div class="sp-product-status existing">Pilih SKU yang sudah ada supaya stock purchase dikaitkan dengan inventory yang sama.</div>`}<div class="three" style="margin-top:11px"><div class="field"><label>Quantity Ordered</label><input data-sp-qty="${i.id}" type="number" min="1" step="1" value="${Number(i.qty||1)}"></div><div class="field"><label>Unit Cost (RM)</label><input data-sp-cost="${i.id}" type="number" min="0" step=".01" value="${Number(i.unitCost||0)}"></div><div class="summary-mini"><span>Subtotal</span><strong>${money(Number(i.qty||0)*Number(i.unitCost||0))}</strong></div></div></div>`).join("");
+    state.stockPurchaseItems.forEach(i=>{const sel=document.querySelector(`[data-sp-product="${i.id}"]`);if(sel)sel.value=i.mode==="new"?"__new__":(i.productId||"")});
     document.querySelectorAll('[data-sp-remove]').forEach(b=>b.onclick=()=>{state.stockPurchaseItems=state.stockPurchaseItems.filter(i=>i.id!==b.dataset.spRemove);renderStockPurchaseItems()});
-    document.querySelectorAll('[data-sp-product]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spProduct);if(!i)return;i.productId=el.value;const p=state.products.find(x=>x.id===el.value);if(p){i.name=p.name;i.category=p.category||"Others";i.unitCost=Number(p.cost||0)}renderStockPurchaseItems()});
+    document.querySelectorAll('[data-sp-product]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spProduct);if(!i)return;if(el.value==="__new__"){i.mode="new";i.productId="";i.name="";i.category="Console";i.unitCost=0}else{i.mode="existing";i.productId=el.value;const p=state.products.find(x=>x.id===el.value);if(p){i.name=p.name;i.category=p.category||"Others";i.unitCost=Number(p.cost||0)}else{i.name=""}}renderStockPurchaseItems()});
     document.querySelectorAll('[data-sp-name]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spName);if(i){i.name=el.value;renderStockPurchaseSummary()}});
     document.querySelectorAll('[data-sp-category]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spCategory);if(i)i.category=el.value});
     document.querySelectorAll('[data-sp-qty]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spQty);if(i){i.qty=Math.max(1,Number(el.value||1));renderStockPurchaseSummary()}});
@@ -2104,19 +2107,19 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   function renderStockPurchase(){renderSupplierList();renderStockPurchaseSummary();renderStockPurchaseHistory();renderStockReceiving()}
   $("spTabCreate")?.addEventListener("click",()=>setStockPurchaseTab("create"));$("spTabReceive")?.addEventListener("click",()=>setStockPurchaseTab("receive"));$("spTabHistory")?.addEventListener("click",()=>setStockPurchaseTab("history"));
+  $("spSupplier")?.addEventListener("change",()=>{$("spNewSupplierBox")?.classList.toggle("hidden",$("spSupplier").value!=="__new__")});
   $("addStockPurchaseItem")?.addEventListener("click",()=>{state.stockPurchaseItems.push(newStockPurchaseItem());renderStockPurchaseItems()});
   $("clearStockPurchase")?.addEventListener("click",()=>{if(confirm("Clear stock purchase draft?"))resetStockPurchaseDraft()});
   ["spShipping","spDiscount","spAmountPaid"].forEach(id=>$(id)?.addEventListener("input",renderStockPurchaseSummary));
   $("stockPurchaseForm")?.addEventListener("submit",async e=>{
-    e.preventDefault();const supplierName=$("spSupplier").value.trim();if(!supplierName)return toast("Masukkan supplier name.");
+    e.preventDefault();const supplierChoice=$("spSupplier").value;if(!supplierChoice)return toast("Pilih supplier.");const newSupplierName=$("spNewSupplierName")?.value.trim()||"";if(supplierChoice==="__new__"&&!newSupplierName)return toast("Masukkan nama supplier baharu.");
     const items=state.stockPurchaseItems.map(i=>({...i,name:i.name.trim(),qty:Number(i.qty||0),unitCost:Number(i.unitCost||0)}));
-    for(const i of items){if(!i.name)return toast("Setiap product mesti ada nama.");if(i.qty<1)return toast(`Quantity tidak sah: ${i.name}`);if(i.unitCost<0)return toast(`Unit cost tidak sah: ${i.name}`)}
+    for(const i of items){if(i.mode!=="new"&&!i.productId)return toast("Pilih existing product atau Create New Item untuk setiap baris.");if(!i.name)return toast("Setiap product mesti ada nama.");if(i.mode==="new"&&state.products.some(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category))return toast(`${i.name} sudah wujud. Sila pilih SKU sedia ada.`);if(i.qty<1)return toast(`Quantity tidak sah: ${i.name}`);if(i.unitCost<0)return toast(`Unit cost tidak sah: ${i.name}`)}
     const btn=e.submitter;btn.disabled=true;btn.textContent="Creating...";
     try{
       const poNo=await reserveDocumentNumber("stockPurchase","PO");
-      let supplier=state.suppliers.find(x=>normalizeText(x.name||x.supplierName)===normalizeText(supplierName));
-      if(!supplier){const ref=doc(collection(db,"suppliers"));await runTransaction(db,async tx=>tx.set(ref,{name:supplierName,active:true,createdAt:serverTimestamp(),createdBy:state.user.uid}));supplier={id:ref.id,name:supplierName}}
-      const prepared=[];for(const i of items){const existing=i.productId?state.products.find(p=>p.id===i.productId):state.products.find(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category);let productId=existing?.id||"",sku=existing?.sku||"";if(!productId){sku=await reserveSku(i.category);productId=doc(collection(db,"products")).id}prepared.push({...i,productId,sku,isNew:!existing})}
+      let supplier,supplierName;if(supplierChoice==="__new__"){supplierName=newSupplierName;const duplicate=state.suppliers.find(x=>normalizeText(x.name||x.supplierName)===normalizeText(supplierName));if(duplicate)throw new Error("Supplier sudah wujud. Sila pilih daripada dropdown.");const ref=doc(collection(db,"suppliers"));await runTransaction(db,async tx=>tx.set(ref,{name:supplierName,active:true,createdAt:serverTimestamp(),createdBy:state.user.uid}));supplier={id:ref.id,name:supplierName}}else{supplier=state.suppliers.find(x=>x.id===supplierChoice);if(!supplier)throw new Error("Supplier tidak ditemui");supplierName=supplier.name||supplier.supplierName||"Unnamed supplier"}
+      const prepared=[];for(const i of items){const existing=i.mode!=="new"?state.products.find(p=>p.id===i.productId):null;let productId=existing?.id||"",sku=existing?.sku||"";if(!productId){sku=await reserveSku(i.category);productId=doc(collection(db,"products")).id}prepared.push({...i,productId,sku,isNew:!existing})}
       const purchaseRef=doc(collection(db,"stockPurchases"));const subtotal=prepared.reduce((s,i)=>s+i.qty*i.unitCost,0),shipping=Number($("spShipping").value||0),discount=Number($("spDiscount").value||0),total=Math.max(0,subtotal+shipping-discount),amountPaid=Math.min(total,Number($("spAmountPaid").value||0));
       await runTransaction(db,async tx=>{prepared.filter(i=>i.isNew).forEach(i=>tx.set(doc(db,"products",i.productId),{name:i.name,sku:i.sku,category:i.category,itemType:"New",status:"Awaiting Stock",cost:i.unitCost,price:0,stock:0,lowStock:1,createdAt:serverTimestamp(),createdBy:state.user.uid}));tx.set(purchaseRef,{purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,quantityOrdered:i.qty,quantityReceived:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,purchaseStatus:"ordered",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile.name||state.user.email})});
       toast(`${poNo} created`);resetStockPurchaseDraft();setStockPurchaseTab("history");
