@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <title>Meney POS Enterprise · Trade-In Accounting V1 · System Maintenance V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-DASHBOARD-ACCESS-CLEANUP-V1-20260801" />
+  <meta name="meney-build" content="POS-DASHBOARD-FULL-MERGE-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -1437,8 +1437,9 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
   const RESET_COLLECTIONS=["sales","buys","trades","repairs","refunds","exchanges","warrantyClaims","inventoryUnits","cashMoves","shifts","stockPurchases","stockReceipts"];
   const settingsRef=()=>doc(db,"systemSettings","company");
-  const isOwner=()=>state.profile?.role==="owner";
-  const canViewFinancialDashboard=()=>["owner","manager"].includes(state.profile?.role);
+  const currentRole=()=>String(state.profile?.role||"").trim().toLowerCase();
+  const isOwner=()=>currentRole()==="owner";
+  const canViewFinancialDashboard=()=>["owner","manager"].includes(currentRole());
   function syncDashboardAccess(){
     const allowed=canViewFinancialDashboard();
     $("dashboardOwnerOnly")?.classList.toggle("hidden",!allowed);
