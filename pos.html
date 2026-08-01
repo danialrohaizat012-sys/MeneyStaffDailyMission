@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <title>Meney POS Enterprise · Trade-In Accounting V1 · System Maintenance V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-BUY-DROPDOWN-FIX-V1-20260801" />
+  <meta name="meney-build" content="POS-SHIFT-LAYOUT-FIX-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -401,6 +401,36 @@
     .custom-date-range{display:flex;gap:8px;align-items:end}
     @media(max-width:900px){.dashboard-filter{grid-template-columns:1fr}.dashboard-filter-controls{justify-content:flex-start}.custom-date-range{width:100%}.custom-date-range .field{flex:1}}
     @media(max-width:590px){.dashboard-filter-controls,.custom-date-range{display:grid;grid-template-columns:1fr;width:100%}.dashboard-filter-controls .field{min-width:0}}
+
+
+    /* ===== Shift & Cash Drawer Layout Fix V1 ===== */
+    .flow-page{grid-template-columns:minmax(0,1fr) 315px}
+    .flow-main,.pos-layout,.pos-layout>div,.cart-box{min-width:0}
+    .pos-layout{grid-template-columns:minmax(0,1.1fr) minmax(320px,.85fr)}
+
+    /* Laptop / medium desktop: move drawer below the POS so it never covers Cart */
+    @media(max-width:1700px){
+      #page-pos .flow-page{grid-template-columns:minmax(0,1fr)}
+      #page-pos .shift-panel{
+        position:static;top:auto;width:100%;display:grid;
+        grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:16px;
+      }
+      #page-pos .shift-panel .section-head{grid-column:1/-1;margin-bottom:2px}
+      #page-pos .shift-panel .cash-row{
+        display:block;border:1px solid var(--line);border-radius:12px;
+        padding:11px 12px;background:#f8faf9;min-width:0
+      }
+      #page-pos .shift-panel .cash-row span{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}
+      #page-pos .shift-panel .cash-row strong{display:block;font-size:13px;overflow-wrap:anywhere}
+      #page-pos .shift-panel .btn{grid-column:1/-1;margin-top:2px!important}
+    }
+    @media(max-width:900px){
+      #page-pos .shift-panel{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media(max-width:590px){
+      #page-pos .shift-panel{grid-template-columns:1fr}
+      .pos-layout{grid-template-columns:1fr}
+    }
 
 </style>
 </head>
