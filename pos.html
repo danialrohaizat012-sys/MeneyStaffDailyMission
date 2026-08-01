@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · System Maintenance V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-DASHBOARD-REPAIR-SUMMARY-V1-20260801" />
+  <title>Meney POS Enterprise · Customer Master V1 · System Maintenance V1 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-CUSTOMER-MASTER-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -385,6 +385,13 @@
     .reset-progress{margin-top:12px;padding:11px;border-radius:11px;background:#f8fafc;border:1px solid var(--line);font-size:11px;line-height:1.5}
     @media(max-width:850px){.maintenance-grid{grid-template-columns:1fr}}
 
+    /* ===== Customer Master V1 ===== */
+    .customer-selector{border:1px solid var(--line);background:#f8faf9;border-radius:14px;padding:12px;margin-bottom:12px}
+    .customer-selector-grid{display:grid;grid-template-columns:160px minmax(180px,1fr) auto;gap:9px;align-items:end}
+    .customer-selector .field{margin:0}.customer-channel-row{margin-top:9px;display:grid;grid-template-columns:180px 1fr;gap:9px}
+    .customer-selected-note{margin-top:8px;padding:8px 10px;border-radius:9px;background:#ecfdf3;color:#166534;font-size:10px;font-weight:800}
+    @media(max-width:700px){.customer-selector-grid,.customer-channel-row{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -579,6 +586,15 @@
                   <div class="cart-box">
                     <div class="section-head"><div><h3>Cart</h3><p id="cartCount">0 item</p></div><button id="clearCart" class="btn btn-light">Clear</button></div>
                     <div id="cartItems" class="cart-items"></div>
+                    <div class="customer-selector" data-customer-selector="sale">
+                  <div class="customer-selector-grid">
+                    <div class="field"><label>Customer Type</label><select id="saleCustomerType"><option value="registered">Registered Customer</option><option value="walk_in">Walk-In Customer</option><option value="online">Online Customer</option></select></div>
+                    <div class="field" id="saleExistingWrap"><label>Search Existing Customer</label><select id="saleExistingCustomer"><option value="">Select customer / search by name or phone</option></select></div>
+                    <button id="saleCreateCustomer" class="btn btn-light" type="button">＋ New Customer</button>
+                  </div>
+                  <div id="saleChannelRow" class="customer-channel-row hidden"><div class="field"><label>Online Channel</label><select id="saleCustomerChannel"><option>WhatsApp</option><option>Facebook</option><option>TikTok</option><option>Instagram</option><option>Marketplace</option><option>Shopee</option><option>Others</option></select></div><div class="field"><label>Online Customer Name (Optional)</label><input id="saleOnlineName" placeholder="Online Customer / nama sebenar"></div></div>
+                  <div id="saleCustomerNote" class="customer-selected-note hidden"></div>
+                </div>
                     <div class="two" style="margin-top:11px">
                       <div class="field"><label>Customer Name</label><input id="saleCustomer" placeholder="Walk-in / customer name"></div>
                       <div class="field"><label>WhatsApp Number</label><input id="salePhone" inputmode="tel" placeholder="01XXXXXXXX"></div>
@@ -629,6 +645,15 @@
           <form id="buyForm" novalidate>
             <div class="card section" style="margin-bottom:16px">
               <div class="section-head"><div><h3>Buy From Customer V2</h3><p>Satu customer boleh menjual banyak item dalam satu transaksi.</p></div><button id="clearBuyDraft" class="btn btn-light" type="button">Clear Draft</button></div>
+              <div class="customer-selector" data-customer-selector="buy">
+                  <div class="customer-selector-grid">
+                    <div class="field"><label>Customer Type</label><select id="buyCustomerType"><option value="registered">Registered Customer</option><option value="walk_in">Walk-In Customer</option><option value="online">Online Customer</option></select></div>
+                    <div class="field" id="buyExistingWrap"><label>Search Existing Customer</label><select id="buyExistingCustomer"><option value="">Select customer / search by name or phone</option></select></div>
+                    <button id="buyCreateCustomer" class="btn btn-light" type="button">＋ New Customer</button>
+                  </div>
+                  <div id="buyChannelRow" class="customer-channel-row hidden"><div class="field"><label>Online Channel</label><select id="buyCustomerChannel"><option>WhatsApp</option><option>Facebook</option><option>TikTok</option><option>Instagram</option><option>Marketplace</option><option>Shopee</option><option>Others</option></select></div><div class="field"><label>Online Customer Name (Optional)</label><input id="buyOnlineName" placeholder="Online Customer / nama sebenar"></div></div>
+                  <div id="buyCustomerNote" class="customer-selected-note hidden"></div>
+                </div>
               <div class="two">
                 <div class="field"><label>Customer Name</label><input id="buyCustomer" required placeholder="Contoh: Ahmad"></div>
                 <div class="field"><label>Phone</label><input id="buyPhone" inputmode="tel" placeholder="01XXXXXXXX"></div>
@@ -724,6 +749,15 @@
           <form id="tradeForm" novalidate>
             <div class="card section" style="margin-bottom:16px">
               <div class="section-head"><div><h3>Trade-In Transaction</h3><p>Tambah seberapa banyak item Stock In dan Stock Out sebelum melengkapkan transaksi.</p></div><button id="clearTradeDraft" class="btn btn-light" type="button">Clear Draft</button></div>
+              <div class="customer-selector" data-customer-selector="trade">
+                  <div class="customer-selector-grid">
+                    <div class="field"><label>Customer Type</label><select id="tradeCustomerType"><option value="registered">Registered Customer</option><option value="walk_in">Walk-In Customer</option><option value="online">Online Customer</option></select></div>
+                    <div class="field" id="tradeExistingWrap"><label>Search Existing Customer</label><select id="tradeExistingCustomer"><option value="">Select customer / search by name or phone</option></select></div>
+                    <button id="tradeCreateCustomer" class="btn btn-light" type="button">＋ New Customer</button>
+                  </div>
+                  <div id="tradeChannelRow" class="customer-channel-row hidden"><div class="field"><label>Online Channel</label><select id="tradeCustomerChannel"><option>WhatsApp</option><option>Facebook</option><option>TikTok</option><option>Instagram</option><option>Marketplace</option><option>Shopee</option><option>Others</option></select></div><div class="field"><label>Online Customer Name (Optional)</label><input id="tradeOnlineName" placeholder="Online Customer / nama sebenar"></div></div>
+                  <div id="tradeCustomerNote" class="customer-selected-note hidden"></div>
+                </div>
               <div class="form-grid cols-2"><div class="field"><label>Customer Name</label><input id="tradeCustomer" required placeholder="Contoh: Ahmad"></div><div class="field"><label>Phone</label><input id="tradePhone" placeholder="Contoh: 60123456789"></div></div>
             </div>
 
@@ -1015,6 +1049,15 @@
       <h3>New Repair Ticket</h3><p>Rekod repair customer.</p>
       <form id="repairForm">
         <div class="two">
+          <div class="customer-selector" data-customer-selector="repair">
+                  <div class="customer-selector-grid">
+                    <div class="field"><label>Customer Type</label><select id="repairCustomerType"><option value="registered">Registered Customer</option><option value="walk_in">Walk-In Customer</option><option value="online">Online Customer</option></select></div>
+                    <div class="field" id="repairExistingWrap"><label>Search Existing Customer</label><select id="repairExistingCustomer"><option value="">Select customer / search by name or phone</option></select></div>
+                    <button id="repairCreateCustomer" class="btn btn-light" type="button">＋ New Customer</button>
+                  </div>
+                  <div id="repairChannelRow" class="customer-channel-row hidden"><div class="field"><label>Online Channel</label><select id="repairCustomerChannel"><option>WhatsApp</option><option>Facebook</option><option>TikTok</option><option>Instagram</option><option>Marketplace</option><option>Shopee</option><option>Others</option></select></div><div class="field"><label>Online Customer Name (Optional)</label><input id="repairOnlineName" placeholder="Online Customer / nama sebenar"></div></div>
+                  <div id="repairCustomerNote" class="customer-selected-note hidden"></div>
+                </div>
           <div class="field"><label>Customer Name</label><input id="repairCustomer" required></div>
           <div class="field"><label>Phone</label><input id="repairPhone"></div>
         </div>
@@ -1071,6 +1114,19 @@
     </div>
   </div>
 
+
+  <div id="customerModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h3>Create New Customer</h3><p>Create sekali dan gunakan semula dalam semua transaksi.</p>
+      <form id="customerForm">
+        <div class="two"><div class="field"><label>Full Name</label><input id="customerNewName" required></div><div class="field"><label>Phone (Optional)</label><input id="customerNewPhone" inputmode="tel"></div></div>
+        <div class="two"><div class="field"><label>Email (Optional)</label><input id="customerNewEmail" type="email"></div><div class="field"><label>Customer Type</label><select id="customerNewType"><option value="registered">Registered Customer</option><option value="online">Online Customer</option></select></div></div>
+        <div class="field"><label>Address (Optional)</label><textarea id="customerNewAddress" rows="2"></textarea></div>
+        <div class="field"><label>Notes (Optional)</label><textarea id="customerNewNotes" rows="2"></textarea></div>
+        <div class="modal-actions"><button id="closeCustomerModal" type="button" class="btn btn-light">Cancel</button><button class="btn btn-green" type="submit">Save Customer</button></div>
+      </form>
+    </div>
+  </div>
   <div id="documentModal" class="modal-backdrop hidden">
     <div class="modal" style="width:min(780px,100%)">
       <div class="section-head"><div><h3 id="documentModalTitle">Transaction Document</h3><p>Print, save as PDF atau hantar melalui WhatsApp.</p></div><button id="closeDocument" class="btn btn-light">✕</button></div>
@@ -1112,7 +1168,7 @@
 
   document.querySelectorAll('input[name="entryMode"]').forEach(el=>el.addEventListener("change",syncEntryModePanel));
 
-  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],refunds:[],exchanges:[],warrantyClaims:[],suppliers:[],stockPurchases:[],stockReceipts:[],stockPurchaseItems:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,companySettings:{mode:"setup",goLiveDate:""},unsubs:[]};
+  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],refunds:[],exchanges:[],warrantyClaims:[],suppliers:[],customers:[],stockPurchases:[],stockReceipts:[],stockPurchaseItems:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,companySettings:{mode:"setup",goLiveDate:""},activeCustomerPrefix:null,unsubs:[]};
   const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
   const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
   const warrantyPresets=[
@@ -1272,6 +1328,80 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   };
 
 
+
+  // ===== Customer Master V1 =====
+  const customerPrefixes=["sale","buy","trade","repair"];
+  function customerPhoneKey(v){return cleanPhone(v||"")}
+  function customerDisplay(c){return `${c.name||"Unnamed"}${c.phone?" · "+c.phone:""}${c.customerNo?" · "+c.customerNo:""}`}
+  function populateCustomerDropdowns(){
+    customerPrefixes.forEach(prefix=>{
+      const select=$(prefix+"ExistingCustomer");if(!select)return;
+      const old=select.value;
+      const sorted=[...state.customers].sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+      select.innerHTML='<option value="">Select customer / search by name or phone</option>'+sorted.map(c=>`<option value="${c.id}">${esc(customerDisplay(c))}</option>`).join("");
+      if(sorted.some(c=>c.id===old))select.value=old;
+    });
+  }
+  function customerFields(prefix){return {name:$(prefix+"Customer"),phone:$(prefix+"Phone")}}
+  function setCustomerMode(prefix,mode){
+    const existing=$(prefix+"ExistingWrap"),create=$(prefix+"CreateCustomer"),channel=$(prefix+"ChannelRow"),note=$(prefix+"CustomerNote"),fields=customerFields(prefix);
+    existing?.classList.toggle("hidden",mode!=="registered");create?.classList.toggle("hidden",mode!=="registered");channel?.classList.toggle("hidden",mode!=="online");note?.classList.add("hidden");
+    if(mode==="walk_in"){
+      if(fields.name)fields.name.value="Walk-In Customer";if(fields.phone)fields.phone.value="";
+      if(fields.name)fields.name.readOnly=true;if(fields.phone)fields.phone.readOnly=true;
+      $(prefix+"ExistingCustomer")&&( $(prefix+"ExistingCustomer").value="" );
+    }else if(mode==="online"){
+      if(fields.name){fields.name.readOnly=false;fields.name.value=$(prefix+"OnlineName")?.value.trim()||"Online Customer"}
+      if(fields.phone)fields.phone.readOnly=false;
+      $(prefix+"ExistingCustomer")&&( $(prefix+"ExistingCustomer").value="" );
+    }else{
+      if(fields.name)fields.name.readOnly=false;if(fields.phone)fields.phone.readOnly=false;
+    }
+  }
+  function selectCustomer(prefix,id){
+    const c=state.customers.find(x=>x.id===id),fields=customerFields(prefix),note=$(prefix+"CustomerNote");
+    if(!c){if(note)note.classList.add("hidden");return}
+    if(fields.name)fields.name.value=c.name||"";if(fields.phone)fields.phone.value=c.phone||"";
+    if(fields.name)fields.name.dataset.customerId=c.id;if(fields.phone)fields.phone.dataset.customerId=c.id;
+    if(note){note.textContent=`Selected: ${customerDisplay(c)}`;note.classList.remove("hidden")}
+  }
+  function clearCustomerSelection(prefix){
+    const fields=customerFields(prefix);if(fields.name)delete fields.name.dataset.customerId;if(fields.phone)delete fields.phone.dataset.customerId;
+  }
+  function getCustomerPayload(prefix){
+    const type=$(prefix+"CustomerType")?.value||"registered",fields=customerFields(prefix),selectedId=fields.name?.dataset.customerId||null;
+    let name=fields.name?.value.trim()||"",phone=fields.phone?.value.trim()||"",channel="";
+    if(type==="walk_in"){name="Walk-In Customer";phone=""}
+    if(type==="online"){name=$(prefix+"OnlineName")?.value.trim()||name||"Online Customer";channel=$(prefix+"CustomerChannel")?.value||"WhatsApp"}
+    return {customerId:type==="registered"?selectedId:null,customerType:type,customer:name||(type==="online"?"Online Customer":"Walk-In Customer"),phone,customerChannel:channel};
+  }
+  function resetCustomerSelector(prefix,defaultType="registered"){
+    clearCustomerSelection(prefix);const type=$(prefix+"CustomerType");if(type)type.value=defaultType;
+    const existing=$(prefix+"ExistingCustomer");if(existing)existing.value="";
+    const online=$(prefix+"OnlineName");if(online)online.value="";
+    setCustomerMode(prefix,defaultType);
+  }
+  customerPrefixes.forEach(prefix=>{
+    const type=$(prefix+"CustomerType"),existing=$(prefix+"ExistingCustomer"),create=$(prefix+"CreateCustomer"),online=$(prefix+"OnlineName");
+    if(type)type.onchange=()=>{clearCustomerSelection(prefix);setCustomerMode(prefix,type.value)};
+    if(existing)existing.onchange=()=>selectCustomer(prefix,existing.value);
+    if(create)create.onclick=()=>{state.activeCustomerPrefix=prefix;$("customerNewName").value="";$("customerNewPhone").value="";$("customerNewEmail").value="";$("customerNewAddress").value="";$("customerNewNotes").value="";$("customerModal").classList.remove("hidden")};
+    if(online)online.oninput=()=>{if(type?.value==="online")customerFields(prefix).name.value=online.value.trim()||"Online Customer"};
+    setCustomerMode(prefix,type?.value||"registered");
+  });
+  $("closeCustomerModal").onclick=()=>$("customerModal").classList.add("hidden");
+  $("customerForm").onsubmit=async e=>{
+    e.preventDefault();const name=$("customerNewName").value.trim(),phone=$("customerNewPhone").value.trim(),phoneKey=customerPhoneKey(phone);
+    if(!name)return toast("Masukkan nama customer.");
+    const duplicate=phoneKey?state.customers.find(c=>customerPhoneKey(c.phone)===phoneKey):state.customers.find(c=>normalizeText(c.name)===normalizeText(name)&&!c.phone);
+    if(duplicate){$("customerModal").classList.add("hidden");const prefix=state.activeCustomerPrefix;if(prefix){$(prefix+"ExistingCustomer").value=duplicate.id;selectCustomer(prefix,duplicate.id)}return toast("Customer sedia ada dipilih.")}
+    try{
+      const customerNo=await reserveDocumentNumber("customer","CUS",false),ref=doc(collection(db,"customers"));
+      await setDoc(ref,{customerNo,name,normalizedName:normalizeText(name),phone,normalizedPhone:phoneKey,email:$("customerNewEmail").value.trim(),address:$("customerNewAddress").value.trim(),notes:$("customerNewNotes").value.trim(),profileType:$("customerNewType").value,active:true,createdBy:state.user.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+      $("customerModal").classList.add("hidden");const prefix=state.activeCustomerPrefix;if(prefix){setTimeout(()=>{$(prefix+"ExistingCustomer").value=ref.id;selectCustomer(prefix,ref.id)},300)}toast(`${customerNo} created`);
+    }catch(err){console.error(err);toast("Create customer gagal: "+err.message)}
+  };
+
   const RESET_COLLECTIONS=["sales","buys","trades","repairs","refunds","exchanges","warrantyClaims","inventoryUnits","cashMoves","shifts","stockPurchases","stockReceipts"];
   const settingsRef=()=>doc(db,"systemSettings","company");
   const isOwner=()=>state.profile?.role==="owner";
@@ -1413,7 +1543,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   function subscribeAll(){
     const up=onSnapshot(query(collection(db,"products"),orderBy("name")),snap=>{state.products=snap.docs.map(d=>({id:d.id,...d.data()}));refresh()},err=>toast("Products: "+err.message));
-    state.unsubs.push(up);["inventoryUnits","sales","buys","trades","repairs","shifts","cashMoves","refunds","exchanges","warrantyClaims","suppliers","stockPurchases","stockReceipts"].forEach(n=>sub(n))
+    state.unsubs.push(up);["inventoryUnits","sales","buys","trades","repairs","shifts","cashMoves","refunds","exchanges","warrantyClaims","suppliers","customers","stockPurchases","stockReceipts"].forEach(n=>sub(n))
   }
 
   const pages={
@@ -1535,7 +1665,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
         refs.forEach((r,k)=>{const newStock=Number(snaps[k].data().stock)-state.cart[k].qty;tx.update(r,{stock:newStock,status:newStock>0?"Available":"No Stock",updatedAt:serverTimestamp()})});
         tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,warranty:warrantyDisplay(i),lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
-          paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:entry.transactionDateOnly,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,shiftId:entry.isBackdated?null:(currentShift()?.id||null),createdAt:serverTimestamp()})
+          paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,...getCustomerPayload("sale"),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:entry.transactionDateOnly,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,shiftId:entry.isBackdated?null:(currentShift()?.id||null),createdAt:serverTimestamp()})
       });
       const completedItems=state.cart.map(i=>({
         name:i.name,
@@ -1546,7 +1676,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         total:i.price*i.qty
       }));
       const customer=$("saleCustomer").value.trim(),phone=$("salePhone").value.trim(),payment=payments.map(p=>`${p.method}: ${money(p.amount)}`).join(" · ");
-      state.cart=[];$("saleDiscount").value=0;$("saleCustomer").value="";$("salePhone").value="";$("salePayment").value="Cash";$("splitPaymentBox").classList.add("hidden");resetSplitPayments();renderCart();toast("Payment successful · "+receipt);
+      state.cart=[];$("saleDiscount").value=0;$("saleCustomer").value="";$("salePhone").value="";resetCustomerSelector("sale");$("salePayment").value="Cash";$("splitPaymentBox").classList.add("hidden");resetSplitPayments();renderCart();toast("Payment successful · "+receipt);
       showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,date:timestampText(entry.transactionDate),customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:""})
     }catch(err){toast("Sale gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Payment"}
   };
@@ -1617,7 +1747,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     $("buySummaryItems").innerHTML=state.buyItems.length?state.buyItems.map((i,k)=>`<div class="buy-summary-line"><strong>${k+1}. ${esc(i.name||"Unnamed item")}</strong><span>${money(i.buyPrice)}</span></div>`).join(""):'<div class="muted" style="font-size:11px">Belum ada item.</div>';
     $("buyGrandTotal").textContent=money(buyTotal());
   }
-  function resetBuyDraft(){state.buyItems=[newBuyItem()];$("buyCustomer").value="";$("buyPhone").value="";$("buyPayment").value="Cash";renderBuyItems()}
+  function resetBuyDraft(){state.buyItems=[newBuyItem()];$("buyCustomer").value="";$("buyPhone").value="";resetCustomerSelector("buy");$("buyPayment").value="Cash";renderBuyItems()}
   $("addBuyItem").onclick=()=>{state.buyItems.push(newBuyItem());renderBuyItems()};
   $("clearBuyDraft").onclick=()=>{if(confirm("Clear semua item dalam draft Buy From Customer?"))resetBuyDraft()};
   resetBuyDraft();
@@ -1625,7 +1755,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   $("buyForm").onsubmit=async e=>{
     e.preventDefault();
     let entry;try{entry=entryContext()}catch(err){return toast(err.message)}
-    const customer=$("buyCustomer").value.trim(),phone=$("buyPhone").value.trim(),paymentMethod=$("buyPayment").value;
+    const customerData=getCustomerPayload("buy"),customer=customerData.customer,phone=customerData.phone,paymentMethod=$("buyPayment").value;
     if(!customer)return toast("Masukkan nama customer.");
     if(!state.buyItems.length)return toast("Tambah sekurang-kurangnya satu item.");
     const items=state.buyItems.map(i=>({...i,name:i.name.trim(),serial:i.serial.trim(),notes:i.notes.trim(),buyPrice:Number(i.buyPrice||0)}));
@@ -1658,7 +1788,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         prepared.filter(i=>i.inventoryAction==="created").forEach(i=>tx.set(i.productRef,{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,status:"Pricing Required",cost:i.buyPrice,price:0,stock:1,lowStock:1,serial:"",intakeHistory:[{source:"buy",buyNo,itemType:i.itemType,qty:1,cost:i.buyPrice,serial:i.serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid}));
         prepared.forEach(i=>tx.set(i.unitRef,{unitId:i.inventoryUnitId,productId:i.productId,sku:i.sku,productName:i.name,category:i.category,itemType:i.itemType,serialNumber:i.serial||"",costPrice:i.buyPrice,sourceType:"customer_purchase",sourceTransactionId:buyRef.id,buyNo,status:i.inventoryAction==="created"?"pricing_required":"available",qcResults:i.qc,notes:i.notes||"",createdAt:serverTimestamp(),createdBy:state.user.uid}));
         const totalAmount=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
-        tx.set(buyRef,{buyNo,customer,phone,paymentMethod,totalAmount,itemCount:prepared.length,items:prepared.map(i=>({productId:i.productId,inventoryUnitId:i.inventoryUnitId,name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,serial:i.serial,buyPrice:i.buyPrice,inventoryAction:i.inventoryAction,qcResults:i.qc,notes:i.notes||""})),status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp()});
+        tx.set(buyRef,{buyNo,...customerData,paymentMethod,totalAmount,itemCount:prepared.length,items:prepared.map(i=>({productId:i.productId,inventoryUnitId:i.inventoryUnitId,name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,serial:i.serial,buyPrice:i.buyPrice,inventoryAction:i.inventoryAction,qcResults:i.qc,notes:i.notes||""})),status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp()});
       });
       const total=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
       showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,date:timestampText(entry.transactionDate),customer,phone,staff:state.profile.name||state.user.email,items:prepared.map(i=>({name:i.name,detail:`${i.itemType} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:i.buyPrice,total:i.buyPrice})),totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:paymentMethod,note:""});
@@ -1919,7 +2049,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const completeBtn=$("completeTradeBtn");
     if(!state.tradeInItems.length)return toast("Tambah sekurang-kurangnya satu item Stock In.");
     if(!state.tradeOutItems.length)return toast("Tambah sekurang-kurangnya satu item Stock Out.");
-    const customer=$("tradeCustomer").value.trim();if(!customer)return toast("Masukkan nama customer.");
+    const customerData=getCustomerPayload("trade"),customer=customerData.customer;if(!customer)return toast("Masukkan nama customer.");
     const phone=$("tradePhone").value.trim(),paymentMethod=$("tradePayment").value;
     const rawIn=state.tradeInItems.map(i=>({...i})),outItems=state.tradeOutItems.map(i=>({...i}));
     const inItems=buildTradeInventoryPlan(rawIn),{stockIn:inTotal,stockOut:outTotal,balance:netBalance}=tradeTotals();
@@ -2025,12 +2155,12 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   $("repairForm").onsubmit=async e=>{
     e.preventDefault();
     let entry;try{entry=entryContext()}catch(err){return toast(err.message)}
-    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),depositAmount=Number($("repairDeposit").value||0),depositPaymentMethod=$("repairDepositMethod").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
+    const customerData=getCustomerPayload("repair"),customer=customerData.customer,phone=customerData.phone,device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),depositAmount=Number($("repairDeposit").value||0),depositPaymentMethod=$("repairDepositMethod").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
     if(depositAmount<0)return toast("Deposit tidak boleh negatif.");
     if(estimate>0&&depositAmount>estimate)return toast("Deposit tidak boleh melebihi anggaran harga repair.");
     try{
       const repairRef=doc(collection(db,"repairs"));ticketNo=await reserveDocumentNumber("repair","RPR");
-      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status:"Received",warranty,depositAmount,depositPaymentMethod:depositAmount>0?depositPaymentMethod:"",depositStatus:depositAmount>0?"paid":"none",paymentStatus:depositAmount>0?"deposit_paid":"no_deposit",isSale:false,staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),depositPaidAt:depositAmount>0?entry.transactionDate:null})});
+      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,...customerData,device,serial,issue,estimate,status:"Received",warranty,depositAmount,depositPaymentMethod:depositAmount>0?depositPaymentMethod:"",depositStatus:depositAmount>0?"paid":"none",paymentStatus:depositAmount>0?"deposit_paid":"no_deposit",isSale:false,staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),depositPaidAt:depositAmount>0?entry.transactionDate:null})});
       closeModal("repairModal");
       const totals=[{label:"Estimated Repair Cost",value:estimate}];
       if(depositAmount>0){totals.push({label:"Deposit Paid",value:depositAmount},{label:"Estimated Balance",value:Math.max(0,estimate-depositAmount),grand:true})}else totals[0].grand=true;
