@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · After-Sales V1.1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-AFTERSALES-V1.1-20260801" />
+  <title>Meney POS Enterprise · After-Sales V1.2 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-AFTERSALES-V1.2-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -1407,11 +1407,11 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     if(amount<=0||amount>Number(item.price||0))return toast("Refund amount tidak sah.");
     const ref=doc(collection(db,"refunds"));let no="";
     try{
+      no=await reserveDocumentNumber("refund","REF");
       await runTransaction(db,async tx=>{
         // Firestore mewajibkan semua READ dibuat sebelum sebarang WRITE.
         const pr=doc(db,"products",item.productId),ps=await tx.get(pr);
         if(!ps.exists())throw new Error("Product tidak ditemui");
-        no=await nextDocumentNumber(tx,"refund","REF");
         if(disposition!=="write_off"){
           tx.update(pr,{stock:Number(ps.data().stock||0)+1,status:returnedStatus(disposition),updatedAt:serverTimestamp()});
         }
@@ -1427,15 +1427,15 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     if(!p)return toast("Pilih replacement product.");
     const ref=doc(collection(db,"exchanges"));let no="",diff=Number(p.price||0)-Number(item.price||0);
     try{
+      // Jana nombor dokumen dalam transaction berasingan supaya transaction stok
+      // hanya melakukan semua READ dahulu, kemudian semua WRITE.
+      no=await reserveDocumentNumber("exchange","EXC");
       await runTransaction(db,async tx=>{
-        // Semua product READ dibuat dahulu sebelum counter/product WRITE.
         const oldRef=doc(db,"products",item.productId),newRef=doc(db,"products",p.id);
         const sameProduct=oldRef.path===newRef.path;
         const oldSnap=await tx.get(oldRef);
         const newSnap=sameProduct?oldSnap:await tx.get(newRef);
         if(!oldSnap.exists()||!newSnap.exists()||Number(newSnap.data().stock||0)<1)throw new Error("Replacement stock tidak mencukupi");
-
-        no=await nextDocumentNumber(tx,"exchange","EXC");
 
         if(sameProduct){
           const current=Number(oldSnap.data().stock||0);
