@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Trade-In Product Master V1 · System Maintenance V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-TRADEIN-PRODUCT-MASTER-V1-20260801" />
+  <title>Meney POS Enterprise · Trade-In Accounting V1 · System Maintenance V1 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-DASHBOARD-ACCESS-CLEANUP-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -385,12 +385,22 @@
     .reset-progress{margin-top:12px;padding:11px;border-radius:11px;background:#f8fafc;border:1px solid var(--line);font-size:11px;line-height:1.5}
     @media(max-width:850px){.maintenance-grid{grid-template-columns:1fr}}
 
-    /* ===== Trade-In Product Master V1 ===== */
+    /* ===== Trade-In Accounting V1 ===== */
     .customer-selector{border:1px solid var(--line);background:#f8faf9;border-radius:14px;padding:12px;margin-bottom:12px}
     .customer-selector-grid{display:grid;grid-template-columns:160px minmax(180px,1fr) auto;gap:9px;align-items:end}
     .customer-selector .field{margin:0}.customer-channel-row{margin-top:9px;display:grid;grid-template-columns:180px 1fr;gap:9px}
     .customer-selected-note{margin-top:8px;padding:8px 10px;border-radius:9px;background:#ecfdf3;color:#166534;font-size:10px;font-weight:800}
     @media(max-width:700px){.customer-selector-grid,.customer-channel-row{grid-template-columns:1fr}}
+
+    /* ===== Dashboard Date Filter V1 ===== */
+    .dashboard-filter{margin-bottom:16px;padding:16px 18px;display:grid;grid-template-columns:minmax(210px,1fr) auto;gap:14px;align-items:end}
+    .dashboard-filter-head h3{margin:0;font-size:15px}.dashboard-filter-head p{margin:4px 0 0;font-size:10px;color:var(--muted)}
+    .dashboard-filter-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:end;justify-content:flex-end}
+    .dashboard-filter-controls .field{margin:0;min-width:150px}.dashboard-filter-controls select,.dashboard-filter-controls input{min-height:38px;padding:8px 10px}
+    .dashboard-range-label{display:inline-flex;align-items:center;min-height:38px;padding:8px 11px;border-radius:10px;background:#edf9f1;color:#166534;font-size:10px;font-weight:900}
+    .custom-date-range{display:flex;gap:8px;align-items:end}
+    @media(max-width:900px){.dashboard-filter{grid-template-columns:1fr}.dashboard-filter-controls{justify-content:flex-start}.custom-date-range{width:100%}.custom-date-range .field{flex:1}}
+    @media(max-width:590px){.dashboard-filter-controls,.custom-date-range{display:grid;grid-template-columns:1fr;width:100%}.dashboard-filter-controls .field{min-width:0}}
 
 </style>
 </head>
@@ -530,15 +540,33 @@
           <div id="entryBackdatedBanner" class="entry-backdated-banner hidden">⚠ BACKDATED ENTRY — transaksi ini tidak akan dikaitkan dengan cash drawer shift hari ini.</div>
         </section>
         <section id="page-overview" class="page">
+          <div id="dashboardOwnerOnly">
+          <div class="card dashboard-filter">
+            <div class="dashboard-filter-head"><h3>Dashboard Period</h3><p>Summary kewangan dan transaksi terkini akan ikut tempoh yang dipilih.</p></div>
+            <div class="dashboard-filter-controls">
+              <div class="field"><label>Period</label><select id="dashboardPeriod"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="this_month">This Month</option><option value="last_month">Last Month</option><option value="all_time">All Time</option><option value="custom">Custom Date</option></select></div>
+              <div id="dashboardCustomRange" class="custom-date-range hidden">
+                <div class="field"><label>From</label><input id="dashboardDateFrom" type="date"></div>
+                <div class="field"><label>To</label><input id="dashboardDateTo" type="date"></div>
+              </div>
+              <span id="dashboardRangeLabel" class="dashboard-range-label">Today</span>
+            </div>
+          </div>
           <div class="grid stats">
-            <div class="card stat-card"><div class="label">Product Sales</div><div id="ovSell" class="value">RM0.00</div><div class="trend">Completed product sales</div></div>
-            <div class="card stat-card"><div class="label">Product Gross Profit</div><div id="ovProductProfit" class="value">RM0.00</div><div class="trend">Sales less product cost</div></div>
+            <div class="card stat-card"><div class="label">Direct Product Sales</div><div id="ovSell" class="value">RM0.00</div><div class="trend">Normal POS sales only</div></div>
+            <div class="card stat-card"><div class="label">Direct Product Profit</div><div id="ovProductProfit" class="value">RM0.00</div><div class="trend">Normal sales less product cost</div></div>
+            <div class="card stat-card"><div class="label">Trade-In Sales</div><div id="ovTradeSales" class="value">RM0.00</div><div class="trend">Value of Meney stock out</div></div>
+            <div class="card stat-card"><div class="label">Trade-In Profit</div><div id="ovTradeProfit" class="value">RM0.00</div><div class="trend">Trade stock-out sales less COGS</div></div>
             <div class="card stat-card"><div class="label">Repair Sales</div><div id="ovRepairRevenue" class="value">RM0.00</div><div class="trend">Completed repairs only</div></div>
             <div class="card stat-card"><div class="label">Repair Profit</div><div id="ovRepairProfit" class="value">RM0.00</div><div class="trend">After spare, outsource & other cost</div></div>
-            <div class="card stat-card"><div class="label">Total Revenue</div><div id="ovRevenue" class="value">RM0.00</div><div class="trend">Product sales + repair sales</div></div>
-            <div class="card stat-card"><div class="label">Total Gross Profit</div><div id="ovTotalProfit" class="value">RM0.00</div><div class="trend">Product profit + repair profit</div></div>
-            <div class="card stat-card"><div class="label">Total Buy</div><div id="ovBuy" class="value">RM0.00</div><div class="trend">Buy from customer</div></div>
+            <div class="card stat-card"><div class="label">Total Revenue</div><div id="ovRevenue" class="value">RM0.00</div><div class="trend">Direct sales + trade sales + repair</div></div>
+            <div class="card stat-card"><div class="label">Total Gross Profit</div><div id="ovTotalProfit" class="value">RM0.00</div><div class="trend">All product and repair profit</div></div>
+            <div class="card stat-card"><div class="label">Total Stock Buy</div><div id="ovBuy" class="value">RM0.00</div><div class="trend">Buy from customer + trade stock in</div></div>
             <div class="card stat-card"><div class="label">Trade Balance</div><div id="ovTrade" class="value">RM0.00</div><div class="trend">Net customer balance in trade-in</div></div>
+          </div>
+          </div>
+          <div id="dashboardRestrictedNotice" class="card section hidden" style="margin-bottom:16px;border-left:4px solid var(--green)">
+            <div class="section-head" style="margin-bottom:0"><div><h3>Operations Dashboard</h3><p>This section is only available for users with the required access level.</p></div><span class="badge gray">STAFF VIEW</span></div>
           </div>
 
           <div class="grid overview-grid" style="margin-top:16px">
@@ -550,7 +578,7 @@
                 <div class="summary-mini"><span>Reserved</span><strong id="sumReserved">0</strong></div>
                 <div class="summary-mini"><span>Repair</span><strong id="sumRepair">0</strong></div>
               </div>
-              <div class="table-wrap" style="margin-top:15px">
+              <div id="dashboardRecentFinancial" class="table-wrap" style="margin-top:15px">
                 <table><thead><tr><th>Invoice</th><th>Customer</th><th>Items</th><th>Type</th><th>Total</th></tr></thead><tbody id="overviewSales"></tbody></table>
               </div>
             </div>
@@ -1334,7 +1362,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
 
 
-  // ===== Trade-In Product Master V1 =====
+  // ===== Trade-In Accounting V1 =====
   const customerPrefixes=["sale","buy","trade","repair"];
   function customerPhoneKey(v){return cleanPhone(v||"")}
   function customerDisplay(c){return `${c.name||"Unnamed"}${c.phone?" · "+c.phone:""}${c.customerNo?" · "+c.customerNo:""}`}
@@ -1410,6 +1438,13 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   const RESET_COLLECTIONS=["sales","buys","trades","repairs","refunds","exchanges","warrantyClaims","inventoryUnits","cashMoves","shifts","stockPurchases","stockReceipts"];
   const settingsRef=()=>doc(db,"systemSettings","company");
   const isOwner=()=>state.profile?.role==="owner";
+  const canViewFinancialDashboard=()=>["owner","manager"].includes(state.profile?.role);
+  function syncDashboardAccess(){
+    const allowed=canViewFinancialDashboard();
+    $("dashboardOwnerOnly")?.classList.toggle("hidden",!allowed);
+    $("dashboardRecentFinancial")?.classList.toggle("hidden",!allowed);
+    $("dashboardRestrictedNotice")?.classList.add("hidden");
+  }
   async function loadCompanySettings(){
     try{
       const snap=await getDoc(settingsRef());
@@ -1564,7 +1599,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
   }
 
-  function refresh(){renderMaintenance();syncEntryModePanel();populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales();renderStockPurchase()}
+  function refresh(){renderMaintenance();syncEntryModePanel();syncDashboardAccess();populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales();renderStockPurchase()}
   function populateCategories(){
     const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort();
     ["posCategory","inventoryCategory"].forEach(id=>{const old=$(id).value;$(id).innerHTML='<option value="">All Category</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");$(id).value=old})
@@ -2049,7 +2084,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const editIndex=$("addTradeOutItem").dataset.editIndex;
     const reserved=state.tradeOutItems.reduce((s,i,k)=>s+(i.productId===p.id&&String(k)!==String(editIndex)?Number(i.qty):0),0);
     if(reserved+qty>Number(p.stock||0))return toast(`Stok ${p.name} tidak cukup. Available: ${Number(p.stock||0)}, sudah dalam draft: ${reserved}.`);
-    const row={productId:p.id,name:p.name,sku:p.sku||"",serial:p.serial||"",price:Number(price.toFixed(2)),qty};
+    const row={productId:p.id,name:p.name,sku:p.sku||"",serial:p.serial||"",price:Number(price.toFixed(2)),cost:Number(p.cost||0),qty};
     if(editIndex!==undefined)state.tradeOutItems[Number(editIndex)]=row;
     else{
       const existingIndex=state.tradeOutItems.findIndex(i=>i.productId===p.id&&Number(i.price)===Number(row.price));
@@ -2302,23 +2337,94 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     }catch(e){toast("Cancel gagal: "+e.message)}
   };
 
+
+  const dashboardDateState={period:"today",from:"",to:""};
+  function localDateInputValue(date){
+    const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,"0"),d=String(date.getDate()).padStart(2,"0");
+    return `${y}-${m}-${d}`;
+  }
+  function dashboardDateRange(){
+    const now=new Date(),startToday=new Date(now.getFullYear(),now.getMonth(),now.getDate()),nextToday=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+    let start=null,end=null,label="All Time";
+    if(dashboardDateState.period==="today"){start=startToday;end=nextToday;label="Today"}
+    else if(dashboardDateState.period==="yesterday"){start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1);end=startToday;label="Yesterday"}
+    else if(dashboardDateState.period==="this_month"){start=new Date(now.getFullYear(),now.getMonth(),1);end=new Date(now.getFullYear(),now.getMonth()+1,1);label="This Month"}
+    else if(dashboardDateState.period==="last_month"){start=new Date(now.getFullYear(),now.getMonth()-1,1);end=new Date(now.getFullYear(),now.getMonth(),1);label="Last Month"}
+    else if(dashboardDateState.period==="custom"){
+      if(dashboardDateState.from)start=new Date(`${dashboardDateState.from}T00:00:00`);
+      if(dashboardDateState.to){const t=new Date(`${dashboardDateState.to}T00:00:00`);end=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1)}
+      label=(dashboardDateState.from||dashboardDateState.to)?`${dashboardDateState.from||"Start"} → ${dashboardDateState.to||"Today"}`:"Custom Date";
+    }
+    return {startMs:start?.getTime()??null,endMs:end?.getTime()??null,label};
+  }
+  function recordDateMs(record){return effectiveTransactionMs(record)}
+  function inDashboardRange(record){
+    const {startMs,endMs}=dashboardDateRange(),ms=recordDateMs(record);
+    if(!ms)return dashboardDateState.period==="all_time";
+    return (startMs===null||ms>=startMs)&&(endMs===null||ms<endMs);
+  }
+  function syncDashboardDateFilter(){
+    if(!$("dashboardPeriod"))return;
+    $("dashboardPeriod").value=dashboardDateState.period;
+    $("dashboardCustomRange").classList.toggle("hidden",dashboardDateState.period!=="custom");
+    $("dashboardDateFrom").value=dashboardDateState.from;$("dashboardDateTo").value=dashboardDateState.to;
+    $("dashboardRangeLabel").textContent=dashboardDateRange().label;
+  }
+  $("dashboardPeriod")?.addEventListener("change",e=>{dashboardDateState.period=e.target.value;syncDashboardDateFilter();renderOverview();renderReports()});
+  $("dashboardDateFrom")?.addEventListener("change",e=>{dashboardDateState.from=e.target.value;if(dashboardDateState.to&&dashboardDateState.from>dashboardDateState.to)dashboardDateState.to=dashboardDateState.from;syncDashboardDateFilter();renderOverview();renderReports()});
+  $("dashboardDateTo")?.addEventListener("change",e=>{dashboardDateState.to=e.target.value;if(dashboardDateState.from&&dashboardDateState.to<dashboardDateState.from)dashboardDateState.from=dashboardDateState.to;syncDashboardDateFilter();renderOverview();renderReports()});
+  syncDashboardDateFilter();
+
+  function tradeOutUnitCost(item){
+    if(Number.isFinite(Number(item.cost)))return Number(item.cost||0);
+    const product=state.products.find(p=>p.id===item.productId);
+    return Number(product?.cost||0);
+  }
+
+  function tradeAccounting(trade){
+    const stockOutItems=trade.stockOutItems||[];
+    const stockInItems=trade.stockInItems||[];
+    const salesValue=Number(trade.totalStockOut ?? stockOutItems.reduce((sum,i)=>sum+Number(i.price||0)*Number(i.qty||1),0));
+    const cogs=stockOutItems.reduce((sum,i)=>sum+tradeOutUnitCost(i)*Number(i.qty||1),0);
+    const stockBuyValue=Number(trade.totalTradeValue ?? stockInItems.reduce((sum,i)=>sum+Number(i.tradeValue||0),0));
+    return {salesValue,cogs,profit:salesValue-cogs,stockBuyValue};
+  }
+
   function renderOverview(){
-    const activeSales=state.sales.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled");
-    const completedRepairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled");
-    const sell=activeSales.reduce((sum,x)=>sum+Number(x.total||0),0);
-    const productProfit=activeSales.reduce((sum,x)=>sum+Number(x.total||0)-Number((x.items||[]).reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)),0);
+    const activeSales=state.sales.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
+    const activeTrades=state.trades.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
+    const completedRepairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
+    const directSales=activeSales.reduce((sum,x)=>sum+Number(x.total||0),0);
+    const directProductProfit=activeSales.reduce((sum,x)=>sum+Number(x.total||0)-Number((x.items||[]).reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)),0);
+    const tradeTotals=activeTrades.reduce((acc,t)=>{const a=tradeAccounting(t);acc.sales+=a.salesValue;acc.cogs+=a.cogs;acc.profit+=a.profit;acc.buy+=a.stockBuyValue;return acc},{sales:0,cogs:0,profit:0,buy:0});
     const repairRevenue=completedRepairs.reduce((sum,x)=>sum+Number(x.finalPrice||x.estimate||0),0);
     const repairProfit=completedRepairs.reduce((sum,x)=>sum+Number(x.netProfit??(Number(x.finalPrice||x.estimate||0)-Number(x.totalCost||0))),0);
-    const totalRevenue=sell+repairRevenue,totalProfit=productProfit+repairProfit;
-    const buy=state.buys.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled").reduce((sum,x)=>sum+Number(x.totalAmount??x.offer??0),0);
-    const trade=state.trades.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled").reduce((sum,x)=>sum+Number(x.balance||0),0);
-    $("ovSell").textContent=money(sell);$("ovProductProfit").textContent=money(productProfit);$("ovRepairRevenue").textContent=money(repairRevenue);$("ovRepairProfit").textContent=money(repairProfit);$("ovRevenue").textContent=money(totalRevenue);$("ovTotalProfit").textContent=money(totalProfit);$("ovBuy").textContent=money(buy);$("ovTrade").textContent=money(trade);
+    const productRevenue=directSales+tradeTotals.sales;
+    const productProfit=directProductProfit+tradeTotals.profit;
+    const totalRevenue=productRevenue+repairRevenue,totalProfit=productProfit+repairProfit;
+    const directBuy=state.buys.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled"&&inDashboardRange(x)).reduce((sum,x)=>sum+Number(x.totalAmount??x.offer??0),0);
+    const totalStockBuy=directBuy+tradeTotals.buy;
+    const tradeBalance=activeTrades.reduce((sum,x)=>sum+Number(x.netBalance??x.balance??0),0);
+    syncDashboardAccess();
+    if(canViewFinancialDashboard()){
+    $("ovSell").textContent=money(directSales);
+    $("ovProductProfit").textContent=money(directProductProfit);
+    $("ovTradeSales").textContent=money(tradeTotals.sales);
+    $("ovTradeProfit").textContent=money(tradeTotals.profit);
+    $("ovRepairRevenue").textContent=money(repairRevenue);
+    $("ovRepairProfit").textContent=money(repairProfit);
+    $("ovRevenue").textContent=money(totalRevenue);
+    $("ovTotalProfit").textContent=money(totalProfit);
+    $("ovBuy").textContent=money(totalStockBuy);
+    $("ovTrade").textContent=money(tradeBalance);
+    }
     $("sumItems").textContent=state.products.reduce((sum,p)=>sum+Number(p.stock||0),0);$("sumAvailable").textContent=state.products.filter(p=>Number(p.stock||0)>0).length;$("sumReserved").textContent=0;$("sumRepair").textContent=state.repairs.filter(r=>!["Completed","Cancelled"].includes(r.status)).length;
     const recent=[
       ...activeSales.map(x=>({date:x.transactionDate||x.createdAt,number:x.receiptNo,customer:x.customer||"Walk-in",items:x.itemCount||x.items?.length||0,type:"Sell",badge:"green",total:Number(x.total||0)})),
+      ...activeTrades.map(x=>({date:x.transactionDate||x.createdAt,number:x.tradeNo,customer:x.customer||"—",items:(x.stockOutItems||[]).reduce((s,i)=>s+Number(i.qty||1),0),type:"Trade Sale",badge:"purple",total:tradeAccounting(x).salesValue})),
       ...completedRepairs.map(x=>({date:x.transactionDate||x.completedAt||x.createdAt,number:x.ticketNo,customer:x.customer||"—",items:1,type:"Repair",badge:"blue",total:Number(x.finalPrice||x.estimate||0)}))
-    ].sort((a,b)=>timestampMillis(b.date)-timestampMillis(a.date)).slice(0,7);
-    $("overviewSales").innerHTML=recent.length?recent.map(x=>`<tr><td>${esc(x.number||"—")}</td><td>${esc(x.customer)}</td><td>${x.items}</td><td><span class="badge ${x.badge}">${x.type}</span></td><td><strong>${money(x.total)}</strong></td></tr>`).join(""):'<tr><td colspan="5" class="muted" style="text-align:center;padding:25px">Belum ada transaksi.</td></tr>';
+    ].sort((a,b)=>{const av={transactionDate:a.date},bv={transactionDate:b.date};return effectiveTransactionMs(bv)-effectiveTransactionMs(av)}).slice(0,7);
+    if(canViewFinancialDashboard())$("overviewSales").innerHTML=recent.length?recent.map(x=>`<tr><td>${esc(x.number||"—")}</td><td>${esc(x.customer)}</td><td>${x.items}</td><td><span class="badge ${x.badge}">${x.type}</span></td><td><strong>${money(x.total)}</strong></td></tr>`).join(""):'<tr><td colspan="5" class="muted" style="text-align:center;padding:25px">Belum ada transaksi.</td></tr>';
   }
 
   function renderCustomers(){
@@ -2330,13 +2436,15 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
 
   function renderReports(){
-    const activeSales=state.sales.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled");
-    const completedRepairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled");
-    const productProfit=activeSales.reduce((sum,x)=>sum+Number(x.total||0)-Number((x.items||[]).reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)),0);
+    const activeSales=state.sales.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
+    const activeTrades=state.trades.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
+    const completedRepairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
+    const directProductProfit=activeSales.reduce((sum,x)=>sum+Number(x.total||0)-Number((x.items||[]).reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)),0);
+    const tradeProfit=activeTrades.reduce((sum,t)=>sum+tradeAccounting(t).profit,0);
     const repairProfit=completedRepairs.reduce((sum,x)=>sum+Number(x.netProfit??(Number(x.finalPrice||x.estimate||0)-Number(x.totalCost||0))),0);
-    const profit=productProfit+repairProfit;
-    $("reportProfit").textContent=money(profit);$("reportTxn").textContent=activeSales.length+state.buys.filter(x=>x.status!=="cancelled").length+state.trades.filter(x=>x.status!=="cancelled").length+completedRepairs.length;$("inventoryValue").textContent=money(state.products.reduce((sum,p)=>sum+Number(p.cost||0)*Number(p.stock||0),0));
-    const counts={};activeSales.forEach(s=>s.items?.forEach(i=>counts[i.name]=(counts[i.name]||0)+Number(i.qty||0)));$("bestSelling").textContent=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
+    const profit=directProductProfit+tradeProfit+repairProfit;
+    $("reportProfit").textContent=money(profit);$("reportTxn").textContent=activeSales.length+state.buys.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled"&&inDashboardRange(x)).length+activeTrades.length+completedRepairs.length;$("inventoryValue").textContent=money(state.products.reduce((sum,p)=>sum+Number(p.cost||0)*Number(p.stock||0),0));
+    const counts={};activeSales.forEach(s=>s.items?.forEach(i=>counts[i.name]=(counts[i.name]||0)+Number(i.qty||0)));activeTrades.forEach(t=>(t.stockOutItems||[]).forEach(i=>counts[i.name]=(counts[i.name]||0)+Number(i.qty||0)));$("bestSelling").textContent=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
     $("profitDonut").style.setProperty("--profit",profit);$("profitDonut").innerHTML=""
   }
 
