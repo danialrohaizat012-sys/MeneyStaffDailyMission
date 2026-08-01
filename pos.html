@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Buy V2 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-BUY-V2-20260801" />
+  <title>Meney POS Enterprise · After-Sales V1 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-AFTERSALES-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -333,6 +333,16 @@
     @media(max-width:1000px){.buy-v2-layout{grid-template-columns:1fr}.buy-summary{position:static}}
     @media(max-width:650px){.qc-row{grid-template-columns:1fr}.buy-item-card{padding:13px}}
 
+    /* ===== Meney After-Sales V1 ===== */
+    .after-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;align-items:start}
+    .after-sale-card{border:1px solid var(--line);border-radius:15px;padding:14px;background:#fff;margin-top:12px}
+    .after-sale-items{display:grid;gap:9px;margin-top:12px}.after-item{border:1px solid var(--line2);border-radius:12px;padding:12px;background:#fafcfb;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+    .after-item input{width:auto}.after-panel{position:sticky;top:94px;padding:18px;border-top:4px solid var(--green)}
+    .after-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.after-actions button{min-height:48px}
+    .after-history-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.after-history-tabs button.active{background:#111827;color:#fff}
+    @media(max-width:1000px){.after-grid{grid-template-columns:1fr}.after-panel{position:static}}
+    @media(max-width:650px){.after-actions{grid-template-columns:1fr}.after-item{grid-template-columns:auto 1fr}}
+
 </style>
 </head>
 <body>
@@ -412,6 +422,7 @@
           <button class="nav-btn" data-page="buy"><span class="ico">↓</span>Buy From Customer</button>
           <button class="nav-btn" data-page="trade"><span class="ico">⇄</span>Trade-In</button>
           <button class="nav-btn" data-page="repairs"><span class="ico">⚒</span>Repairs</button>
+          <button class="nav-btn" data-page="afterSales"><span class="ico">↺</span>After-Sales</button>
         </nav>
       </div>
 
@@ -641,6 +652,48 @@
           </div>
         </section>
 
+
+        <section id="page-afterSales" class="page hidden">
+          <div class="flow-steps">
+            <div class="step active"><div class="step-no">1</div><strong>Find Sale</strong><span>Invoice / phone</span></div>
+            <div class="step active"><div class="step-no">2</div><strong>Select Item</strong><span>Original item</span></div>
+            <div class="step active"><div class="step-no">3</div><strong>Action</strong><span>Refund / exchange / warranty</span></div>
+            <div class="step"><div class="step-no">4</div><strong>Stock & Payment</strong><span>Automatic update</span></div>
+            <div class="step"><div class="step-no">5</div><strong>Document</strong><span>Receipt / ticket</span></div>
+          </div>
+          <div class="after-grid">
+            <div>
+              <div class="card section">
+                <div class="section-head"><div><h3>Meney After-Sales</h3><p>Refund, exchange dan warranty claim berdasarkan transaksi asal.</p></div></div>
+                <div class="two">
+                  <div class="field"><label>Search Invoice / Customer Phone</label><input id="afterSearch" placeholder="INV-... / 01XXXXXXXX"></div>
+                  <div class="field"><label>Select Original Sale</label><select id="afterSaleSelect"><option value="">Select sale</option></select></div>
+                </div>
+                <div id="afterSalePreview" class="buy-empty">Cari dan pilih transaksi jualan asal.</div>
+              </div>
+              <div class="card section" style="margin-top:16px">
+                <div class="section-head"><div><h3>After-Sales History</h3><p>Semua refund, exchange dan warranty claim.</p></div></div>
+                <div class="after-history-tabs">
+                  <button type="button" class="btn btn-light active" data-after-filter="">All</button>
+                  <button type="button" class="btn btn-light" data-after-filter="refund">Refund</button>
+                  <button type="button" class="btn btn-light" data-after-filter="exchange">Exchange</button>
+                  <button type="button" class="btn btn-light" data-after-filter="warranty">Warranty</button>
+                </div>
+                <div class="table-wrap"><table><thead><tr><th>No.</th><th>Type</th><th>Original Invoice</th><th>Customer</th><th>Amount / Status</th><th>Action</th></tr></thead><tbody id="afterHistoryBody"></tbody></table></div>
+              </div>
+            </div>
+            <aside class="card after-panel">
+              <div class="section-head"><div><h3>Selected Item</h3><p id="afterSelectedText">No item selected</p></div></div>
+              <div class="after-actions">
+                <button id="startRefund" type="button" class="btn btn-danger">Refund</button>
+                <button id="startExchange" type="button" class="btn btn-purple">Exchange</button>
+                <button id="startWarranty" type="button" class="btn btn-blue">Warranty</button>
+              </div>
+              <div id="afterActionForm" style="margin-top:14px"><div class="muted" style="font-size:11px">Pilih sale dan item dahulu.</div></div>
+            </aside>
+          </div>
+        </section>
+
         <section id="page-inventory" class="page hidden">
           <div class="card section">
             <div class="section-head">
@@ -661,7 +714,7 @@
             </div>
             <div class="product-toolbar">
               <input id="receiptSearch" placeholder="Search transaction no., customer, item...">
-              <select id="receiptType"><option value="">All Types</option><option value="sale">Sales</option><option value="buy">Buy From Customer</option><option value="trade">Trade-In</option><option value="repair">Repair</option></select>
+              <select id="receiptType"><option value="">All Types</option><option value="sale">Sales</option><option value="buy">Buy From Customer</option><option value="trade">Trade-In</option><option value="repair">Repair</option><option value="refund">Refund</option><option value="exchange">Exchange</option><option value="warranty">Warranty</option></select>
               <select id="receiptStatus"><option value="">All Status</option><option value="active">Active</option><option value="cancelled">Cancelled</option></select>
             </div>
             <div class="table-wrap">
@@ -902,7 +955,7 @@
   function hidePosSplash(){
     if(typeof window.__hideMeneySplash==="function")window.__hideMeneySplash();
   }
-  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,unsubs:[]};
+  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],refunds:[],exchanges:[],warrantyClaims:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,unsubs:[]};
   const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
   const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
   const compactDate=()=>nowDate().replaceAll("-","");
@@ -1064,12 +1117,12 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   function subscribeAll(){
     const up=onSnapshot(query(collection(db,"products"),orderBy("name")),snap=>{state.products=snap.docs.map(d=>({id:d.id,...d.data()}));refresh()},err=>toast("Products: "+err.message));
-    state.unsubs.push(up);["inventoryUnits","sales","buys","trades","repairs","shifts","cashMoves"].forEach(n=>sub(n))
+    state.unsubs.push(up);["inventoryUnits","sales","buys","trades","repairs","shifts","cashMoves","refunds","exchanges","warrantyClaims"].forEach(n=>sub(n))
   }
 
   const pages={
     overview:["Overview","Ringkasan operasi Meney."],pos:["POS / Sales","Sell flow lengkap."],buy:["Buy From Customer","QC, offer dan stock in."],
-    trade:["Trade-In","Tolak nilai dan kira baki."],repairs:["Repairs","Repair ticket dan status."],inventory:["Inventory","Serial number tracking."],receipts:["Transactions & Receipts","Semua bill dan kawalan pembatalan."],
+    trade:["Trade-In","Tolak nilai dan kira baki."],repairs:["Repairs","Repair ticket dan status."],afterSales:["After-Sales","Refund, exchange dan warranty claim."],inventory:["Inventory","Serial number tracking."],receipts:["Transactions & Receipts","Semua bill dan kawalan pembatalan."],
     customers:["Customers","Database customer."],reports:["Reports","Profit & analytics."],shift:["Current Shift","Cash register."],settings:["Settings","Application settings."]
   };
   document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
@@ -1080,7 +1133,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
   }
 
-  function refresh(){populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts()}
+  function refresh(){populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales()}
   function populateCategories(){
     const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort();
     ["posCategory","inventoryCategory"].forEach(id=>{const old=$(id).value;$(id).innerHTML='<option value="">All Category</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");$(id).value=old})
@@ -1304,6 +1357,77 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       resetBuyDraft();toast(`${buyNo} complete · ${prepared.length} item stock in`)
     }catch(err){console.error(err);toast("Buy gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Complete Purchase & Stock In"}
   };
+
+
+  let afterSelectedSaleId="",afterSelectedItemIndex=-1,afterFilter="";
+  const activeSales=()=>state.sales.filter(s=>s.status!=="cancelled");
+  function afterSaleOptions(){
+    const q=normalizeText($("afterSearch")?.value||"");
+    const list=activeSales().filter(s=>!q||normalizeText(`${s.receiptNo} ${s.customer||""} ${s.phone||""}`).includes(q));
+    const old=$("afterSaleSelect")?.value||afterSelectedSaleId;
+    if($("afterSaleSelect")){
+      $("afterSaleSelect").innerHTML='<option value="">Select sale</option>'+list.map(s=>`<option value="${s.id}">${esc(s.receiptNo)} · ${esc(s.customer||"Walk-in")} · ${money(s.total)}</option>`).join("");
+      if(list.some(s=>s.id===old))$("afterSaleSelect").value=old;
+    }
+  }
+  function afterUsage(saleId,itemIndex){
+    const refunds=state.refunds.filter(r=>r.originalSaleId===saleId&&Number(r.originalItemIndex)===itemIndex&&r.status!=="cancelled").reduce((a,r)=>a+Number(r.quantity||1),0);
+    const exchanges=state.exchanges.filter(r=>r.originalSaleId===saleId&&Number(r.originalItemIndex)===itemIndex&&r.status!=="cancelled").reduce((a,r)=>a+Number(r.quantity||1),0);
+    return refunds+exchanges;
+  }
+  function selectedAfter(){const sale=state.sales.find(s=>s.id===afterSelectedSaleId);return {sale,item:sale?.items?.[afterSelectedItemIndex]||null}}
+  function renderAfterSalePreview(){
+    if(!$("afterSalePreview"))return;
+    const sale=state.sales.find(s=>s.id===afterSelectedSaleId);
+    if(!sale){$("afterSalePreview").className="buy-empty";$("afterSalePreview").innerHTML="Cari dan pilih transaksi jualan asal.";afterSelectedItemIndex=-1;renderAfterSelected();return}
+    $("afterSalePreview").className="after-sale-card";
+    $("afterSalePreview").innerHTML=`<div><strong>${esc(sale.receiptNo)}</strong> · ${esc(sale.customer||"Walk-in")} · ${esc(sale.phone||"—")}</div><div class="muted" style="font-size:10px;margin-top:4px">${timestampText(sale.createdAt)} · Total ${money(sale.total)}</div><div class="after-sale-items">${(sale.items||[]).map((i,k)=>{const used=afterUsage(sale.id,k),eligible=Math.max(0,Number(i.qty||1)-used);return `<label class="after-item"><input type="radio" name="afterItem" value="${k}" ${afterSelectedItemIndex===k?'checked':''} ${eligible<=0?'disabled':''}><div><strong>${esc(i.name)}</strong><div class="muted" style="font-size:10px">${esc(i.sku||"")} · Sold ${i.qty||1} · Eligible ${eligible}</div></div><strong>${money(i.price)}</strong></label>`}).join("")||'<div class="muted">No items</div>'}</div>`;
+    document.querySelectorAll('input[name="afterItem"]').forEach(r=>r.onchange=()=>{afterSelectedItemIndex=Number(r.value);renderAfterSelected()});
+    renderAfterSelected();
+  }
+  function renderAfterSelected(){
+    const {sale,item}=selectedAfter();
+    if($("afterSelectedText"))$("afterSelectedText").textContent=item?`${item.name} · ${money(item.price)}`:"No item selected";
+    if($("afterActionForm"))$("afterActionForm").innerHTML=item?'<div class="muted" style="font-size:11px">Pilih Refund, Exchange atau Warranty.</div>':'<div class="muted" style="font-size:11px">Pilih sale dan item dahulu.</div>';
+  }
+  function afterForm(type){
+    const {sale,item}=selectedAfter();if(!sale||!item)return toast("Pilih sale dan item dahulu.");
+    if(type==="refund")$("afterActionForm").innerHTML=`<div class="field"><label>Refund Amount</label><input id="afterRefundAmount" type="number" min="0" max="${Number(item.price||0)}" step=".01" value="${Number(item.price||0)}"></div><div class="field"><label>Reason</label><select id="afterReason"><option>Barang rosak</option><option>Barang salah</option><option>Tidak sesuai</option><option>Goodwill</option><option>Lain-lain</option></select></div><div class="field"><label>Refund Method</label><select id="afterMethod"><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option><option>Card Reversal</option></select></div><div class="field"><label>Returned Stock Status</label><select id="afterDisposition"><option value="qc">Send to QC</option><option value="available">Return to Available</option><option value="repair">Send to Repair</option><option value="write_off">Write-Off</option></select></div><button id="completeAfterRefund" type="button" class="btn btn-danger btn-block">Complete Refund</button>`;
+    if(type==="exchange")$("afterActionForm").innerHTML=`<div class="field"><label>Replacement Product</label><select id="afterReplacement"><option value="">Select product</option>${state.products.filter(p=>Number(p.stock||0)>0).map(p=>`<option value="${p.id}">${esc(p.name)} · ${money(p.price)} · Stock ${p.stock}</option>`).join("")}</select></div><div class="field"><label>Returned Stock Status</label><select id="afterDisposition"><option value="qc">Send to QC</option><option value="available">Return to Available</option><option value="repair">Send to Repair</option><option value="write_off">Write-Off</option></select></div><div class="field"><label>Balance Method</label><select id="afterMethod"><option>Cash</option><option>QR / DuitNow</option><option>Bank Transfer</option><option>Card</option></select></div><div id="afterExchangeSummary" class="summary-mini"><span>Select replacement</span><strong>RM0.00</strong></div><button id="completeAfterExchange" type="button" class="btn btn-purple btn-block" style="margin-top:10px">Complete Exchange</button>`;
+    if(type==="warranty")$("afterActionForm").innerHTML=`<div class="field"><label>Reported Issue</label><textarea id="afterIssue" placeholder="Terangkan masalah customer"></textarea></div><div class="field"><label>Warranty Decision</label><select id="afterWarrantyDecision"><option value="pending">Pending Inspection</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="goodwill">Goodwill Approval</option></select></div><div class="field"><label>Intake Condition / Notes</label><textarea id="afterWarrantyNotes"></textarea></div><button id="completeAfterWarranty" type="button" class="btn btn-blue btn-block">Create Warranty Ticket</button>`;
+    const rb=$("afterReplacement");if(rb)rb.onchange=()=>{const p=state.products.find(x=>x.id===rb.value),diff=p?Number(p.price||0)-Number(item.price||0):0;$("afterExchangeSummary").innerHTML=`<span>${diff>0?'Customer Pays':diff<0?'Meney Refunds':'Even Exchange'}</span><strong>${money(Math.abs(diff))}</strong>`};
+    if($("completeAfterRefund"))$("completeAfterRefund").onclick=completeRefund;
+    if($("completeAfterExchange"))$("completeAfterExchange").onclick=completeExchange;
+    if($("completeAfterWarranty"))$("completeAfterWarranty").onclick=completeWarranty;
+  }
+  function returnedStatus(v){return v==="available"?"Available":v==="repair"?"Repair":v==="write_off"?"Write-Off":"QC Required"}
+  async function completeRefund(){
+    const {sale,item}=selectedAfter(),amount=Number($("afterRefundAmount").value||0),reason=$("afterReason").value,method=$("afterMethod").value,disposition=$("afterDisposition").value;
+    if(!isOwner())return toast("Owner sahaja boleh complete refund.");if(amount<=0||amount>Number(item.price||0))return toast("Refund amount tidak sah.");
+    const ref=doc(collection(db,"refunds"));let no="";
+    try{await runTransaction(db,async tx=>{no=await nextDocumentNumber(tx,"refund","REF");const pr=doc(db,"products",item.productId),ps=await tx.get(pr);if(!ps.exists())throw new Error("Product tidak ditemui");if(disposition!=="write_off")tx.update(pr,{stock:Number(ps.data().stock||0)+1,status:returnedStatus(disposition),updatedAt:serverTimestamp()});tx.set(ref,{refundNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,productId:item.productId,name:item.name,quantity:1,originalPrice:Number(item.price||0),refundAmount:amount,reason,refundMethod:method,disposition,status:"completed",customer:sale.customer||"Walk-in",phone:sale.phone||"",processedBy:state.user.uid,processedByName:state.profile.name||state.user.email,createdAt:serverTimestamp()});if(method==="Cash")tx.set(doc(collection(db,"cashMoves")),{type:"out",amount,reason:`Refund ${no}`,referenceType:"refund",referenceId:ref.id,staffId:state.user.uid,staffName:state.profile.name||state.user.email,shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})});showTransactionDocument({title:"REFUND RECEIPT",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`Original invoice ${sale.receiptNo} · ${reason}`,qty:1,unitPrice:-amount,total:-amount}],totals:[{label:"Refund Paid",value:amount,grand:true}],payment:method,note:`Returned stock: ${returnedStatus(disposition)}`});toast(no+" completed");renderAfterSales()}catch(e){toast("Refund gagal: "+e.message)}
+  }
+  async function completeExchange(){
+    const {sale,item}=selectedAfter(),pid=$("afterReplacement").value,p=state.products.find(x=>x.id===pid),method=$("afterMethod").value,disposition=$("afterDisposition").value;if(!p)return toast("Pilih replacement product.");
+    const ref=doc(collection(db,"exchanges"));let no="",diff=Number(p.price||0)-Number(item.price||0);
+    try{await runTransaction(db,async tx=>{no=await nextDocumentNumber(tx,"exchange","EXC");const oldRef=doc(db,"products",item.productId),newRef=doc(db,"products",p.id),oldSnap=await tx.get(oldRef),newSnap=await tx.get(newRef);if(!oldSnap.exists()||!newSnap.exists()||Number(newSnap.data().stock||0)<1)throw new Error("Replacement stock tidak mencukupi");if(disposition!=="write_off")tx.update(oldRef,{stock:Number(oldSnap.data().stock||0)+1,status:returnedStatus(disposition),updatedAt:serverTimestamp()});const ns=Number(newSnap.data().stock||0)-1;tx.update(newRef,{stock:ns,status:ns>0?"Available":"No Stock",updatedAt:serverTimestamp()});tx.set(ref,{exchangeNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,returnedProductId:item.productId,returnedItem:item.name,replacementProductId:p.id,replacementItem:p.name,returnedValue:Number(item.price||0),replacementValue:Number(p.price||0),balanceAmount:Math.abs(diff),balanceType:diff>0?"customer_pay":diff<0?"meney_refund":"even",paymentMethod:method,disposition,quantity:1,status:"completed",customer:sale.customer||"Walk-in",phone:sale.phone||"",processedBy:state.user.uid,processedByName:state.profile.name||state.user.email,createdAt:serverTimestamp()});if(diff!==0&&method==="Cash")tx.set(doc(collection(db,"cashMoves")),{type:diff>0?"in":"out",amount:Math.abs(diff),reason:`Exchange ${no}`,referenceType:"exchange",referenceId:ref.id,staffId:state.user.uid,staffName:state.profile.name||state.user.email,shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})});showTransactionDocument({title:"EXCHANGE RECEIPT",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`RETURNED · Original invoice ${sale.receiptNo}`,qty:1,unitPrice:-Number(item.price||0),total:-Number(item.price||0)},{name:p.name,detail:"REPLACEMENT",qty:1,unitPrice:Number(p.price||0),total:Number(p.price||0)}],totals:[{label:diff>0?"Customer Paid":diff<0?"Meney Refunded":"Balance",value:Math.abs(diff),grand:true}],payment:method,note:`Returned stock: ${returnedStatus(disposition)}`});toast(no+" completed");renderAfterSales()}catch(e){toast("Exchange gagal: "+e.message)}
+  }
+  async function completeWarranty(){
+    const {sale,item}=selectedAfter(),issue=$("afterIssue").value.trim(),decision=$("afterWarrantyDecision").value,notes=$("afterWarrantyNotes").value.trim();if(!issue)return toast("Masukkan reported issue.");
+    let no="";try{no=await reserveDocumentNumber("warranty","WAR");await addDoc(collection(db,"warrantyClaims"),{claimNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,productId:item.productId,productName:item.name,sku:item.sku||"",warrantyText:item.warranty||"",reportedIssue:issue,intakeNotes:notes,claimStatus:decision==="approved"?"approved":decision==="rejected"?"rejected":"received",decision,customer:sale.customer||"Walk-in",phone:sale.phone||"",receivedBy:state.user.uid,receivedByName:state.profile.name||state.user.email,status:"active",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});showTransactionDocument({title:"WARRANTY CLAIM TICKET",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`Original invoice ${sale.receiptNo} · ${issue}`,warranty:item.warranty||"",qty:1,unitPrice:0,total:0}],totals:[{label:"Claim Status",text:decision}],payment:"No payment",note:notes});toast(no+" created");renderAfterSales()}catch(e){toast("Warranty gagal: "+e.message)}
+  }
+  function renderAfterHistory(){
+    if(!$("afterHistoryBody"))return;const rows=[...state.refunds.map(x=>({type:"refund",no:x.refundNo,invoice:x.originalInvoiceNo,customer:x.customer,value:money(x.refundAmount),id:x.id,data:x})),...state.exchanges.map(x=>({type:"exchange",no:x.exchangeNo,invoice:x.originalInvoiceNo,customer:x.customer,value:x.balanceType==="even"?"Even":money(x.balanceAmount),id:x.id,data:x})),...state.warrantyClaims.map(x=>({type:"warranty",no:x.claimNo,invoice:x.originalInvoiceNo,customer:x.customer,value:x.claimStatus,id:x.id,data:x}))].filter(x=>!afterFilter||x.type===afterFilter);
+    $("afterHistoryBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.no||"—")}</strong></td><td><span class="badge ${x.type==="refund"?"red":x.type==="exchange"?"purple":"blue"}">${x.type}</span></td><td>${esc(x.invoice||"—")}</td><td>${esc(x.customer||"—")}</td><td><strong>${esc(x.value||"—")}</strong></td><td><button class="btn btn-light" type="button" onclick="window.openAfterRecord('${x.type}','${x.id}')">View</button></td></tr>`).join(""):'<tr><td colspan="6" class="muted" style="text-align:center;padding:25px">Tiada rekod.</td></tr>';
+  }
+  window.openAfterRecord=(type,id)=>{const x=type==="refund"?state.refunds.find(r=>r.id===id):type==="exchange"?state.exchanges.find(r=>r.id===id):state.warrantyClaims.find(r=>r.id===id);if(!x)return;if(type==="refund")showTransactionDocument({title:"REFUND RECEIPT",number:x.refundNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.name,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reason}`,qty:1,unitPrice:-x.refundAmount,total:-x.refundAmount}],totals:[{label:"Refund Paid",value:x.refundAmount,grand:true}],payment:x.refundMethod,note:`Returned stock: ${returnedStatus(x.disposition)}`});else if(type==="exchange")showTransactionDocument({title:"EXCHANGE RECEIPT",number:x.exchangeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.returnedItem,detail:"RETURNED",qty:1,unitPrice:-x.returnedValue,total:-x.returnedValue},{name:x.replacementItem,detail:"REPLACEMENT",qty:1,unitPrice:x.replacementValue,total:x.replacementValue}],totals:[{label:x.balanceType==="customer_pay"?"Customer Paid":x.balanceType==="meney_refund"?"Meney Refunded":"Balance",value:x.balanceAmount,grand:true}],payment:x.paymentMethod,note:""});else showTransactionDocument({title:"WARRANTY CLAIM TICKET",number:x.claimNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.receivedByName,items:[{name:x.productName,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reportedIssue}`,warranty:x.warrantyText||"",qty:1,unitPrice:0,total:0}],totals:[],payment:"No payment",note:x.intakeNotes||""})};
+  function renderAfterSales(){if(!$("afterSaleSelect"))return;afterSaleOptions();renderAfterSalePreview();renderAfterHistory()}
+  if($("afterSearch"))$("afterSearch").oninput=()=>{afterSaleOptions()};
+  if($("afterSaleSelect"))$("afterSaleSelect").onchange=()=>{afterSelectedSaleId=$("afterSaleSelect").value;afterSelectedItemIndex=-1;renderAfterSalePreview()};
+  if($("startRefund"))$("startRefund").onclick=()=>afterForm("refund");
+  if($("startExchange"))$("startExchange").onclick=()=>afterForm("exchange");
+  if($("startWarranty"))$("startWarranty").onclick=()=>afterForm("warranty");
+  document.querySelectorAll("[data-after-filter]").forEach(b=>b.onclick=()=>{afterFilter=b.dataset.afterFilter;document.querySelectorAll("[data-after-filter]").forEach(x=>x.classList.toggle("active",x===b));renderAfterHistory()});
 
   function populateTradeProducts(){
     const select=$("tradeNewProduct"),old=select.value;
@@ -1598,6 +1722,9 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     return [
       ...state.sales.map(x=>({kind:"sale",filterKind:"sale",number:x.receiptNo,total:Number(x.total||0),payment:x.paymentMethod||"—",customer:x.customer||"Walk-in",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
       ...state.buys.map(x=>({kind:"buy",filterKind:"buy",number:x.buyNo,total:Number(x.totalAmount??x.offer??0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.refunds.map(x=>({kind:"refund",filterKind:"refund",number:x.refundNo,total:Number(x.refundAmount||0),payment:x.refundMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.exchanges.map(x=>({kind:"exchange",filterKind:"exchange",number:x.exchangeNo,total:Number(x.balanceAmount||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.warrantyClaims.map(x=>({kind:"warranty",filterKind:"warranty",number:x.claimNo,total:0,payment:"No payment",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"active"})),
       ...state.trades.map(x=>({kind:"trade",filterKind:"trade",number:x.tradeNo,total:Number(x.balance||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
       ...repairTransactions
     ].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
@@ -1621,8 +1748,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     if(!$("receiptBody"))return;
     const q=normalizeText($("receiptSearch").value),type=$("receiptType").value,status=$("receiptStatus").value;
     const rows=allTransactions().filter(t=>(!type||t.filterKind===type)&&(!status||(status==="cancelled"?t.status==="cancelled":t.status!=="cancelled"))&&(!q||normalizeText(`${t.number} ${t.customer} ${JSON.stringify(t.data)}`).includes(q)));
-    const labels={sale:"Sales",buy:"Buy",trade:"Trade-In",repair:"Repair",repairDeposit:"Repair Deposit"};
-    $("receiptBody").innerHTML=rows.length?rows.map(t=>`<tr><td><strong>${esc(t.number||"—")}</strong></td><td>${timestampText(t.createdAt)}</td><td>${esc(t.customer)}</td><td><span class="badge ${t.kind==="sale"?"green":t.kind==="buy"?"orange":t.kind==="trade"?"purple":"blue"}">${labels[t.kind]}</span></td><td>${esc(t.payment)}</td><td><strong>${money(t.total)}</strong></td><td><span class="badge ${t.status==="cancelled"?"gray":"green"}">${t.status==="cancelled"?"Cancelled":"Active"}</span></td><td><button class="btn btn-light" style="padding:7px 9px" onclick="window.openReceipt('${t.kind}','${t.data.id}')">View</button> ${isOwner()&&t.status!=="cancelled"&&t.kind!=="repairDeposit"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="window.cancelBill('${t.kind}','${t.data.id}')">Cancel</button>`:""}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Tiada transaksi ditemui.</td></tr>';
+    const labels={sale:"Sales",buy:"Buy",trade:"Trade-In",repair:"Repair",repairDeposit:"Repair Deposit",refund:"Refund",exchange:"Exchange",warranty:"Warranty"};
+    $("receiptBody").innerHTML=rows.length?rows.map(t=>`<tr><td><strong>${esc(t.number||"—")}</strong></td><td>${timestampText(t.createdAt)}</td><td>${esc(t.customer)}</td><td><span class="badge ${t.kind==="sale"?"green":t.kind==="buy"?"orange":t.kind==="trade"||t.kind==="exchange"?"purple":t.kind==="refund"?"red":"blue"}">${labels[t.kind]}</span></td><td>${esc(t.payment)}</td><td><strong>${money(t.total)}</strong></td><td><span class="badge ${t.status==="cancelled"?"gray":"green"}">${t.status==="cancelled"?"Cancelled":"Active"}</span></td><td><button class="btn btn-light" style="padding:7px 9px" onclick="window.openReceipt('${t.kind}','${t.data.id}')">View</button> ${isOwner()&&t.status!=="cancelled"&&t.kind!=="repairDeposit"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="window.cancelBill('${t.kind}','${t.data.id}')">Cancel</button>`:""}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Tiada transaksi ditemui.</td></tr>';
   }
   $("receiptSearch").oninput=renderReceipts;$("receiptType").onchange=renderReceipts;$("receiptStatus").onchange=renderReceipts;
   window.cancelBill=async(kind,id)=>{
