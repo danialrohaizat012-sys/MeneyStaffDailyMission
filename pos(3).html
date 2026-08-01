@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#16a34a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Meney POS" />
+  <link rel="manifest" href="./manifest-pos.json" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  <title>Meney POS Enterprise · Buy V2 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-BUY-V2-20260801" />
+  <style>
+    :root{
+      --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
+      --line:#e5e7eb;--line2:#eef0f3;--green:#16a34a;--green2:#15803d;--green-soft:#eaf8ef;
+      --purple:#6d28d9;--purple-soft:#f2eafe;--blue:#2563eb;--blue-soft:#eaf1ff;
+      --orange:#f59e0b;--orange-soft:#fff7e6;--red:#ef4444;--red-soft:#fff0f0;
+      --shadow:0 12px 34px rgba(17,24,39,.07);--radius:18px;--radius-sm:12px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    .muted{color:var(--muted)}
+    .app-shell{min-height:100vh}
+    .sidebar{
+      position:fixed;inset:0 auto 0 0;width:244px;background:#fff;border-right:1px solid var(--line);
+      padding:18px 14px;z-index:30;display:flex;flex-direction:column
+    }
+    .brand{display:flex;align-items:center;gap:12px;padding:2px 8px 18px}
+    .brand-logo{
+      width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#1f2937,#111827);
+      color:#a3ff12;font-weight:1000;font-size:21px;display:grid;place-items:center;box-shadow:var(--shadow)
+    }
+    .brand h1{font-size:17px;margin:0;letter-spacing:.02em}.brand p{margin:3px 0 0;font-size:11px;color:var(--muted)}
+    .role-pill{margin-left:auto;background:var(--green);color:#fff;font-size:10px;font-weight:900;border-radius:7px;padding:5px 7px}
+    .nav-section{margin-top:10px}
+    .nav-label{font-size:10px;font-weight:900;color:#98a2b3;letter-spacing:.08em;padding:0 10px 7px;text-transform:uppercase}
+    .nav{display:grid;gap:5px}
+    .nav-btn{
+      border:0;background:transparent;color:#475467;text-align:left;border-radius:10px;padding:10px 11px;font-weight:750;
+      display:flex;align-items:center;gap:10px;font-size:13px
+    }
+    .nav-btn:hover{background:#f6f7f9}.nav-btn.active{background:var(--green);color:#fff}
+    .nav-btn .ico{width:20px;text-align:center;font-size:15px}
+    .sidebar-bottom{margin-top:auto;border-top:1px solid var(--line2);padding:14px 8px 2px}
+    .user-card{display:flex;align-items:center;gap:9px}
+    .avatar{width:34px;height:34px;border-radius:50%;background:#111827;color:#fff;display:grid;place-items:center;font-weight:900}
+    .user-card strong{display:block;font-size:12px}.user-card span{font-size:11px;color:var(--muted)}
+    .logout{margin-left:auto;border:0;background:#f9fafb;border-radius:9px;width:32px;height:32px}
+    .main{margin-left:244px;min-height:100vh}
+    .topbar{
+      height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+      padding:0 24px;position:sticky;top:0;z-index:20
+    }
+    .topbar h2{margin:0;font-size:20px}.topbar p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+    .top-actions{display:flex;align-items:center;gap:10px}
+    .shift-chip{border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;font-weight:850;padding:8px 11px;border-radius:999px;font-size:11px}
+    .page-wrap{padding:22px}
+    .grid{display:grid;gap:16px}
+    .stats{grid-template-columns:repeat(4,1fr)}
+    .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .stat-card{padding:18px}
+    .stat-card .label{font-size:11px;color:var(--muted);font-weight:700}.stat-card .value{font-size:24px;font-weight:950;margin-top:9px}
+    .stat-card .trend{font-size:11px;color:var(--green);font-weight:850;margin-top:4px}
+    .section{padding:18px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:15px}
+    .section-head h3{margin:0;font-size:16px}.section-head p{margin:4px 0 0;color:var(--muted);font-size:11px}
+    .btn{border:0;border-radius:11px;padding:10px 13px;font-weight:850;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+    .btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green2)}
+    .btn-dark{background:#111827;color:#fff}.btn-light{background:#f7f8fa;border:1px solid var(--line);color:#344054}
+    .btn-purple{background:var(--purple);color:#fff}.btn-blue{background:var(--blue);color:#fff}
+    .btn-danger{background:#fee2e2;color:#991b1b}.btn-block{width:100%}
+    input,select,textarea{
+      width:100%;border:1px solid #d0d5dd;background:#fff;border-radius:10px;padding:10px 11px;outline:none;font-size:13px
+    }
+    input:focus,select:focus,textarea:focus{border-color:#98a2b3;box-shadow:0 0 0 3px rgba(17,24,39,.05)}
+    label{display:block;font-size:11px;font-weight:850;margin:0 0 6px}
+    .field{margin-bottom:12px}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:760px}
+    th,td{padding:11px 10px;border-bottom:1px solid var(--line2);text-align:left;font-size:12px;vertical-align:middle}
+    th{text-transform:uppercase;letter-spacing:.04em;font-size:10px;color:#98a2b3}
+    .badge{display:inline-flex;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900}
+    .green{background:var(--green-soft);color:#166534}.purple{background:var(--purple-soft);color:#5b21b6}
+    .blue{background:var(--blue-soft);color:#1d4ed8}.orange{background:var(--orange-soft);color:#92400e}
+    .red{background:var(--red-soft);color:#b91c1c}.gray{background:#f2f4f7;color:#475467}
+    .overview-grid{grid-template-columns:1.45fr .8fr}
+    .summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .summary-mini{border:1px solid var(--line2);border-radius:12px;padding:13px;background:var(--surface2)}
+    .summary-mini span{display:block;font-size:10px;color:var(--muted)}.summary-mini strong{display:block;margin-top:7px;font-size:18px}
+    .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .quick{
+      border:1px solid var(--line);background:#fff;border-radius:14px;padding:17px;text-align:left;min-height:110px
+    }
+    .quick:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+    .quick .qicon{font-size:22px}.quick strong{display:block;margin-top:12px}.quick span{font-size:11px;color:var(--muted)}
+    .flow-page{display:grid;grid-template-columns:1fr 315px;gap:16px}
+    .flow-main{min-width:0}
+    .flow-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+    .step{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
+    .step.active{border-color:#86efac;background:#f0fdf4}.step-no{width:22px;height:22px;border-radius:50%;background:#e5e7eb;display:grid;place-items:center;font-size:10px;font-weight:900}
+    .step.active .step-no{background:var(--green);color:#fff}.step strong{display:block;font-size:11px;margin-top:8px}.step span{font-size:9px;color:var(--muted)}
+    .txn-types{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .txn-card{border:1px solid var(--line);border-radius:15px;padding:18px;background:#fff;text-align:center}
+    .txn-card:hover{border-color:#86efac}.txn-card .bigico{font-size:28px}.txn-card strong{display:block;margin-top:9px}.txn-card small{color:var(--muted)}
+    .pos-layout{display:grid;grid-template-columns:1.1fr .85fr;gap:14px}
+    .product-toolbar{display:grid;grid-template-columns:1fr 160px;gap:9px;margin-bottom:12px}
+    .product-list{display:grid;gap:9px;max-height:520px;overflow:auto;padding-right:3px}
+    .product-row{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff}
+    .product-row:hover{border-color:#86efac}.product-row h4{margin:0;font-size:12px}.product-row p{margin:4px 0 0;font-size:10px;color:var(--muted)}
+    .product-row .price{font-weight:950}.add-mini{width:30px;height:30px;border:0;border-radius:9px;background:var(--green);color:#fff;font-weight:900}
+    .cart-box{border-left:1px solid var(--line2);padding-left:14px}
+    .cart-items{max-height:310px;overflow:auto}
+    .cart-line{padding:10px 0;border-bottom:1px solid var(--line2)}
+    .cart-top{display:flex;justify-content:space-between;gap:10px}.cart-line h4{margin:0;font-size:12px}.qty{display:flex;align-items:center;gap:7px;margin-top:8px}
+    .qty button{width:27px;height:27px;border:1px solid var(--line);background:#fff;border-radius:8px}.remove{margin-left:auto;border:0;background:none;color:#b42318;font-size:10px}
+    .total-line{display:flex;justify-content:space-between;margin:8px 0;font-size:12px}.total-line.grand{font-size:18px;font-weight:950;border-top:1px solid var(--line);padding-top:10px}
+    .shift-panel{padding:16px;position:sticky;top:94px;height:max-content}
+    .cash-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--line);font-size:12px}
+    .cash-row strong.redtxt{color:#dc2626}
+    .split-payment-box{margin:2px 0 14px;padding:13px;border:1px solid #d8dee8;border-radius:13px;background:#f8fafc}
+    .split-payment-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .split-payment-head strong{font-size:12px}.split-payment-head span{font-size:10px;color:var(--muted)}
+    .split-payment-row{display:grid;grid-template-columns:1fr 1fr 38px;gap:8px;align-items:end;margin-bottom:9px}
+    .split-payment-row .field{margin:0}.split-payment-remove{width:38px;height:38px;border:0;border-radius:10px;background:#fee2e2;color:#991b1b;font-weight:950}
+    .split-summary{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+    .payment-status{margin-top:8px;padding:9px 10px;border-radius:10px;font-size:11px;font-weight:850}
+    .payment-status.ok{background:#ecfdf3;color:#166534}.payment-status.warn{background:#fff7ed;color:#9a3412}.payment-status.bad{background:#fef2f2;color:#b91c1c}
+    .variance-box{margin-top:14px;padding:14px;border-radius:13px;border:1px solid var(--line);background:#f8fafc}
+    .variance-box.balanced{background:#ecfdf3;border-color:#bbf7d0;color:#166534}.variance-box.shortage{background:#fef2f2;border-color:#fecaca;color:#b91c1c}.variance-box.excess{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+    .variance-box strong{display:block;font-size:15px;margin-bottom:4px}.variance-box span{font-size:11px}
+    .auto-field{background:#f8fafc!important;color:#475467;font-weight:800}.field-help{display:block;margin-top:5px;font-size:10px;color:var(--muted);line-height:1.4}.sku-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+    .flow-form{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .flow-col{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
+    .flow-col h4{margin:0 0 12px;font-size:12px}
+    .qc-list{display:grid;gap:7px;font-size:11px}.qc-list label{display:flex;align-items:center;gap:8px;font-weight:650;margin:0}.qc-list input{width:auto}
+    .success-box{display:grid;place-items:center;text-align:center;min-height:240px;border:1px dashed #86efac;background:#f0fdf4;border-radius:14px}
+    .success-box .check{width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:24px}
+    .reports-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:14px}
+    .chart-placeholder{height:240px;border-radius:14px;background:
+      linear-gradient(180deg,rgba(22,163,74,.07),transparent),
+      repeating-linear-gradient(to right,transparent 0 55px,#eef0f3 56px),
+      repeating-linear-gradient(to bottom,transparent 0 46px,#eef0f3 47px);position:relative;overflow:hidden}
+    .chart-line{position:absolute;left:5%;right:5%;bottom:18%;height:55%;clip-path:polygon(0 82%,10% 70%,20% 76%,30% 40%,40% 58%,50% 45%,60% 49%,70% 24%,80% 28%,90% 14%,100% 0,100% 100%,0 100%);background:linear-gradient(180deg,rgba(22,163,74,.35),rgba(22,163,74,.03))}
+    .donut{width:180px;height:180px;border-radius:50%;background:conic-gradient(#16a34a 0 34%,#2563eb 34% 58%,#f59e0b 58% 77%,#ef4444 77% 90%,#8b5cf6 90%);display:grid;place-items:center;margin:auto}
+    .donut:after{content:"RM0";width:110px;height:110px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:950}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(17,24,39,.55);display:grid;place-items:center;padding:16px;z-index:100}
+    .modal{width:min(640px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.22)}
+    .modal h3{margin:0}.modal p{margin:5px 0 17px;color:var(--muted);font-size:11px}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}
+    .toast{position:fixed;right:22px;bottom:22px;background:#111827;color:#fff;padding:12px 15px;border-radius:11px;z-index:200;font-size:12px;font-weight:800}
+    .document-sheet{border:1px solid var(--line);border-radius:14px;padding:22px;background:#fff}
+    .document-head{display:flex;justify-content:space-between;gap:18px;padding-bottom:15px;border-bottom:2px solid #111827}
+    .document-brand h2{margin:0;font-size:20px}.document-brand p{margin:4px 0 0;color:var(--muted);font-size:11px}
+    .document-meta{text-align:right;font-size:11px;line-height:1.55}.document-meta span{font-weight:800;font-size:12px;letter-spacing:.04em}.document-meta strong{display:block;font-size:16px;margin-bottom:4px}
+    .document-customer{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:16px 0;padding:12px;background:#f8fafc;border-radius:10px;font-size:11px}
+    .document-customer span{display:block;color:var(--muted);margin-bottom:3px}.document-customer strong{font-size:12px}
+    .document-table{width:100%;min-width:0}.document-table th,.document-table td{font-size:11px;padding:9px 6px}
+    .document-totals{margin-left:auto;width:min(310px,100%);margin-top:14px}.document-total{display:flex;justify-content:space-between;padding:6px 0;font-size:12px}
+    .document-total.grand{font-size:17px;font-weight:950;border-top:2px solid #111827;margin-top:5px;padding-top:10px}
+    .document-note{margin-top:18px;padding-top:12px;border-top:1px dashed var(--line);font-size:10px;color:var(--muted)}
+    .document-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+    .btn-whatsapp{background:#16a34a;color:#fff}
+    .login-page{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(145deg,#f7faf8,#eef3f0)}
+    .login-card{width:min(430px,100%);padding:30px}
+    .mobile-menu{display:none}
+    @media(max-width:1150px){
+      .stats{grid-template-columns:repeat(2,1fr)}.overview-grid,.reports-grid{grid-template-columns:1fr}
+      .flow-page{grid-template-columns:1fr}.shift-panel{position:static}.flow-form{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:860px){
+      .sidebar{transform:translateX(-100%);transition:.2s}.sidebar.open{transform:translateX(0)}
+      .main{margin-left:0}.mobile-menu{display:inline-flex}.txn-types{grid-template-columns:repeat(2,1fr)}
+      .pos-layout{grid-template-columns:1fr}.summary-row{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:590px){
+      .page-wrap{padding:14px}.stats,.summary-row,.flow-form{grid-template-columns:1fr}
+      .flow-steps{grid-template-columns:1fr 1fr}.two,.three{grid-template-columns:1fr}
+      .topbar{padding:0 14px}.topbar p,.shift-chip{display:none}
+    }
+
+    .pwa-status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800}.status-dot{width:9px;height:9px;border-radius:999px;background:#16a34a}.status-dot.offline{background:#ef4444}
+    .install-card{border:1px solid #bbf7d0;background:linear-gradient(135deg,#f0fdf4,#ffffff)}
+    .bottom-nav{display:none}
+    @media(max-width:590px){
+      body{padding-bottom:74px}.main{padding-bottom:72px}.topbar{height:62px}.page-wrap{padding-bottom:24px}
+      .bottom-nav{position:fixed;left:0;right:0;bottom:0;height:68px;background:#fff;border-top:1px solid var(--line);z-index:45;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px max(6px,env(safe-area-inset-bottom));box-shadow:0 -8px 24px rgba(17,24,39,.08)}
+      .bottom-nav button{border:0;background:transparent;border-radius:11px;color:#667085;font-size:10px;font-weight:850;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.bottom-nav button span{font-size:19px;line-height:1}.bottom-nav button.active{color:#15803d;background:#ecfdf3}
+      .modal{width:calc(100vw - 20px);max-height:88vh;overflow:auto;margin:10px}.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.btn{min-height:44px}.field input,.field select,.field textarea{font-size:16px}
+    }
+  
+    /* ===== Meney POS v3.2 Premium UI ===== */
+    :root{
+      --bg:#f3f6f4;--surface:#fff;--surface2:#f8faf9;--text:#101828;--muted:#667085;
+      --line:#e4e9e6;--line2:#eef2ef;--green:#159947;--green2:#0f7d39;--green-soft:#eaf8ef;
+      --lime:#a3ff12;--charcoal:#111827;--shadow:0 14px 40px rgba(16,24,40,.075);
+      --shadow-sm:0 7px 20px rgba(16,24,40,.055);--radius:20px;--radius-sm:13px;
+    }
+    html{scroll-behavior:smooth}
+    body{background:radial-gradient(circle at 85% 0%,rgba(22,163,74,.07),transparent 25%),var(--bg)}
+    .sidebar{background:linear-gradient(180deg,#fff 0%,#fbfdfb 100%);border-right:1px solid #e7ece9;box-shadow:10px 0 35px rgba(16,24,40,.035);padding:20px 14px}
+    .brand{padding:0 8px 20px}
+    .brand-logo{width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#202a37,#0b111c);color:var(--lime);box-shadow:0 12px 28px rgba(17,24,39,.22),inset 0 1px 0 rgba(255,255,255,.08);transform:rotate(-2deg)}
+    .brand h1{font-size:16px;font-weight:950;letter-spacing:.045em}
+    .role-pill{background:#111827;color:var(--lime);border:1px solid rgba(163,255,18,.28);border-radius:999px;padding:5px 8px}
+    .nav-label{padding-left:12px;color:#98a2b3}.nav{gap:6px}
+    .nav-btn{min-height:42px;padding:11px 12px;border-radius:12px;font-weight:800;transition:.18s ease}
+    .nav-btn:hover{background:#f0f5f2;color:#101828;transform:translateX(2px)}
+    .nav-btn.active{background:linear-gradient(135deg,#159947,#0f7d39);color:#fff;box-shadow:0 8px 18px rgba(21,153,71,.22)}
+    .topbar{height:76px;padding:0 26px;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(228,233,230,.9)}
+    .topbar h2{font-size:21px;font-weight:950;letter-spacing:-.02em}.page-wrap{padding:24px}
+    .card{border:1px solid rgba(228,233,230,.95);box-shadow:var(--shadow-sm);transition:box-shadow .2s ease,transform .2s ease,border-color .2s ease}
+    .stat-card{position:relative;overflow:hidden;padding:20px;background:linear-gradient(145deg,#fff,#fbfdfb)}
+    .stat-card:before{content:"";position:absolute;right:-28px;top:-30px;width:100px;height:100px;border-radius:50%;background:rgba(21,153,71,.07)}
+    .stat-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.055em;font-weight:850}
+    .stat-card .value{font-size:27px;letter-spacing:-.04em}
+    .stat-card .trend{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#edf9f1;color:#147a3a}
+    .section{padding:20px}.section-head{margin-bottom:17px}.section-head h3{font-size:17px;font-weight:950;letter-spacing:-.015em}
+    .summary-mini{background:linear-gradient(145deg,#fbfcfb,#f5f8f6);border:1px solid #e8eeea;padding:15px}.summary-mini strong{font-size:20px}
+    .quick{min-height:116px;padding:18px;border-color:#e5ebe7;transition:.18s ease;background:linear-gradient(145deg,#fff,#fbfdfb)}
+    .quick:hover{transform:translateY(-3px);border-color:#a9d8b8;box-shadow:0 14px 28px rgba(16,24,40,.08)}
+    .quick .qicon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#ecf8f0;color:#147a3a;font-size:20px}
+    .btn{border-radius:12px;min-height:40px;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+    .btn:hover{transform:translateY(-1px);filter:saturate(1.05)}.btn:active{transform:translateY(0)}
+    .btn-green{background:linear-gradient(135deg,#18a64d,#10803a);box-shadow:0 8px 18px rgba(22,163,74,.18)}
+    .btn-purple{background:linear-gradient(135deg,#7c3aed,#5b21b6);box-shadow:0 8px 18px rgba(109,40,217,.16)}
+    .btn-dark{background:linear-gradient(135deg,#202938,#101828)}.btn-light{background:#fff;border-color:#dce4df}
+    input,select,textarea{min-height:42px;border-color:#d6ddd8;background:#fff;transition:border-color .15s ease,box-shadow .15s ease}
+    input:focus,select:focus,textarea:focus{border-color:#56b779;box-shadow:0 0 0 4px rgba(22,163,74,.09)}
+    table{border-collapse:separate;border-spacing:0}th{background:#f7faf8;color:#7b8794;border-top:1px solid var(--line2)}
+    th:first-child{border-top-left-radius:10px}th:last-child{border-top-right-radius:10px}
+    tbody tr{transition:background .15s ease}tbody tr:hover{background:#fafcfb}td{padding-top:13px;padding-bottom:13px}
+    .badge{padding:6px 9px;letter-spacing:.02em}
+    .flow-steps{gap:10px}.step{padding:12px;border-color:#e4eae6;background:linear-gradient(145deg,#fff,#fafcfb)}
+    .step.active{border-color:#a7dfb9;background:#edf9f1}.step-no{width:24px;height:24px}
+    .product-toolbar{grid-template-columns:minmax(260px,1fr) 180px}.product-list{gap:10px}
+    .product-row{min-height:78px;padding:13px 14px;border-radius:15px;border:1px solid #e3e9e5;background:linear-gradient(145deg,#fff,#fbfdfc);box-shadow:0 4px 13px rgba(16,24,40,.035);transition:.17s ease}
+    .product-row:hover{border-color:#9bd6ae;transform:translateY(-2px);box-shadow:0 10px 24px rgba(16,24,40,.075)}
+    .product-row h4{font-size:13px;font-weight:900}.product-row p{font-size:10.5px}
+    .product-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+    .product-chip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 7px;font-size:9px;font-weight:900;letter-spacing:.035em;text-transform:uppercase}
+    .product-chip.new{background:#e9f8ee;color:#087a35}.product-chip.used{background:#eef4ff;color:#1d4ed8}.product-chip.stock{background:#f2f4f7;color:#475467}
+    .product-row .price{font-size:14px;color:#101828}
+    .add-mini{width:auto;min-width:62px;height:36px;padding:0 12px;border-radius:10px;background:linear-gradient(135deg,#18a64d,#10803a);box-shadow:0 7px 15px rgba(22,163,74,.18)}
+    .cart-box{border-left:0;padding:15px;border-radius:16px;background:#f8faf9;border:1px solid #e6ece8}
+    .cart-line{background:#fff;border:1px solid #e5ebe7;border-radius:13px;padding:12px;margin-bottom:9px;box-shadow:0 4px 12px rgba(16,24,40,.03)}
+    .total-line.grand{background:#111827;color:#fff;border:0;border-radius:13px;padding:13px 14px;margin:12px 0}
+    .shift-panel{border-top:4px solid var(--green)}
+    .modal-backdrop{backdrop-filter:blur(6px)}.modal{border:1px solid rgba(255,255,255,.75);box-shadow:0 36px 100px rgba(0,0,0,.26);animation:premiumModal .18s ease-out}
+    @keyframes premiumModal{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+    .page:not(.hidden){animation:premiumPage .18s ease-out}@keyframes premiumPage{from{opacity:.25;transform:translateY(5px)}to{opacity:1;transform:none}}
+    .document-sheet{border:1px solid #dfe6e1;border-radius:18px;padding:26px;box-shadow:0 16px 34px rgba(16,24,40,.08);background:linear-gradient(180deg,#fff,#fdfefd)}
+    .document-head{border-bottom:3px solid #101828;padding-bottom:18px;align-items:flex-start}
+    .document-brand h2{font-size:23px;letter-spacing:.04em}.document-brand h2:after{content:"";display:block;width:42px;height:4px;border-radius:999px;background:var(--green);margin-top:9px}
+    .document-meta strong{display:inline-block;background:#101828;color:#fff;border-radius:9px;padding:7px 10px;margin-bottom:7px;font-size:13px}
+    .document-customer{background:#f3f7f4;border:1px solid #e4ebe6;padding:14px;border-radius:12px}
+    .document-table th{background:#101828;color:#fff;border:0;font-size:9px;padding:10px 7px}.document-table td{padding:11px 7px}
+    .document-total.grand{background:#edf9f1;color:#0b6b31;border:1px solid #bfe4cb;border-radius:10px;padding:11px 12px;margin-top:8px}
+    .document-note{background:#f8faf9;border:1px dashed #bdc9c1;border-radius:10px;padding:12px;margin-top:20px;color:#475467}
+    @media(max-width:590px){.page-wrap{padding:14px}.product-toolbar{grid-template-columns:1fr}.product-row{min-height:82px}.document-sheet{padding:18px}}
+
+    /* ===== Meney POS · Graphite Boot Experience ===== */
+    .pos-splash{
+      position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;overflow:hidden;
+      background:#0e1116;color:#fff;opacity:1;visibility:visible;
+      transition:opacity .22s ease,visibility .22s ease;
+      isolation:isolate;
+    }
+    .pos-splash::before{
+      content:"";position:absolute;inset:0;z-index:-2;
+      background:
+        radial-gradient(circle at 50% 42%,rgba(168,255,53,.07),transparent 27%),
+        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+      background-size:auto,48px 48px,48px 48px;
+      mask-image:linear-gradient(to bottom,transparent,black 22%,black 78%,transparent);
+    }
+    .pos-splash::after{
+      content:"";position:absolute;width:440px;height:440px;border-radius:50%;z-index:-1;
+      background:rgba(168,255,53,.035);filter:blur(90px);opacity:.8;
+    }
+    .pos-splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+    .pos-splash-inner{width:min(420px,calc(100vw - 48px));text-align:center;padding:28px}
+    .pos-mark{
+      width:76px;height:76px;margin:0 auto 25px;display:grid;place-items:center;border-radius:22px;
+      background:linear-gradient(145deg,#171c23,#0b0e12);border:1px solid rgba(255,255,255,.085);
+      box-shadow:0 28px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.06);
+      color:#a8ff35;font-size:34px;font-weight:950;letter-spacing:-.055em;
+      animation:meneyMarkIn .72s cubic-bezier(.22,.8,.22,1) both;
+    }
+    .pos-splash-title{margin:0;font-size:22px;line-height:1.1;font-weight:850;letter-spacing:.19em;text-indent:.19em;animation:meneyTextIn .62s ease .18s both}
+    .pos-splash-sub{margin:10px 0 0;color:#8b949e;font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;animation:meneyTextIn .62s ease .29s both}
+    .pos-splash-status{margin:34px 0 11px;color:#c4c9d0;font-size:11px;font-weight:600;letter-spacing:.035em;animation:meneyTextIn .55s ease .4s both}
+    .pos-splash-loader{position:relative;width:100%;height:2px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden;animation:meneyTextIn .5s ease .48s both}
+    .pos-splash-loader::after{content:"";position:absolute;inset:0;transform-origin:left center;background:linear-gradient(90deg,#86e82a,#b7ff5a);box-shadow:0 0 16px rgba(168,255,53,.32);animation:meneyProgress 3s cubic-bezier(.2,.7,.2,1) forwards}
+    .pos-splash-footer{position:absolute;left:0;right:0;bottom:24px;text-align:center;color:#535b66;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;animation:meneyTextIn .6s ease .6s both}
+    @keyframes meneyMarkIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+    @keyframes meneyTextIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+    @keyframes meneyProgress{0%{transform:scaleX(0)}18%{transform:scaleX(.12)}58%{transform:scaleX(.66)}86%{transform:scaleX(.88)}100%{transform:scaleX(1)}}
+    .meney-enter{animation:meneyWorkspaceIn .38s cubic-bezier(.22,.8,.22,1) both}
+    @keyframes meneyWorkspaceIn{from{opacity:.15;transform:translateX(24px)}to{opacity:1;transform:none}}
+    @media(max-width:520px){.pos-splash-inner{width:calc(100vw - 40px);padding:20px}.pos-mark{width:70px;height:70px;border-radius:20px}.pos-splash-title{font-size:20px}.pos-splash-footer{bottom:18px}}
+    @media(prefers-reduced-motion:reduce){.pos-mark,.pos-splash-title,.pos-splash-sub,.pos-splash-status,.pos-splash-loader,.pos-splash-loader::after,.pos-splash-footer,.meney-enter{animation:none}}
+
+
+
+    /* ===== Buy From Customer V2 ===== */
+    .buy-v2-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+    .buy-item-list{display:grid;gap:14px}
+    .buy-item-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:16px;box-shadow:0 5px 16px rgba(16,24,40,.04)}
+    .buy-item-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+    .buy-item-head h4{margin:0;font-size:14px}.buy-item-head p{margin:3px 0 0;font-size:10px;color:var(--muted)}
+    .buy-product-search{position:relative}
+    .buy-suggestions{position:absolute;z-index:15;left:0;right:0;top:calc(100% + 5px);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 45px rgba(16,24,40,.16);max-height:230px;overflow:auto}
+    .buy-suggestion{display:block;width:100%;border:0;border-bottom:1px solid var(--line2);background:#fff;text-align:left;padding:11px 12px}
+    .buy-suggestion:hover{background:#f0fdf4}.buy-suggestion:last-child{border-bottom:0}.buy-suggestion strong{display:block;font-size:12px}.buy-suggestion span{font-size:10px;color:var(--muted)}
+    .selected-product{margin-top:8px;padding:10px 11px;border-radius:11px;background:#edf9f1;border:1px solid #bfe4cb;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .selected-product strong{display:block;font-size:11px}.selected-product span{font-size:9px;color:#39734d}
+    .new-product-note{margin-top:8px;padding:9px 10px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:10px;font-weight:750}
+    .qc-panel{margin-top:13px;border-top:1px dashed var(--line);padding-top:13px}
+    .qc-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.qc-panel-head strong{font-size:12px}.qc-panel-head span{font-size:10px;color:var(--muted)}
+    .qc-grid{display:grid;gap:8px}.qc-row{display:grid;grid-template-columns:minmax(130px,1fr) 120px minmax(150px,1fr);gap:8px;align-items:center;padding:8px;border-radius:10px;background:#f8faf9;border:1px solid #edf1ee}
+    .qc-row label{margin:0;font-size:10px}.qc-row select,.qc-row input{min-height:36px;padding:7px 8px;font-size:11px}
+    .buy-summary{position:sticky;top:94px;padding:18px;border-top:4px solid var(--green)}
+    .buy-summary-items{display:grid;gap:8px;max-height:330px;overflow:auto;margin:12px 0}.buy-summary-line{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:11px}.buy-summary-line strong{max-width:190px}
+    .buy-empty{padding:30px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:11px}
+    @media(max-width:1000px){.buy-v2-layout{grid-template-columns:1fr}.buy-summary{position:static}}
+    @media(max-width:650px){.qc-row{grid-template-columns:1fr}.buy-item-card{padding:13px}}
+
+</style>
+</head>
+<body>
+  <div id="posSplash" class="pos-splash" role="status" aria-label="Meney POS sedang menyediakan ruang kerja">
+    <div class="pos-splash-inner">
+      <div class="pos-mark" aria-hidden="true">M</div>
+      <h1 class="pos-splash-title">MENEY POS</h1>
+      <p class="pos-splash-sub">Enterprise Management System</p>
+      <p class="pos-splash-status">Preparing Your Workspace</p>
+      <div class="pos-splash-loader" aria-hidden="true"></div>
+    </div>
+    <div class="pos-splash-footer">Meney Empire · Pasir Tumboh</div>
+  </div>
+  <script>
+    (function(){
+      var started=Date.now();
+      var minimumDisplayTime=3000;
+      window.__hideMeneySplash=function(){
+        var splash=document.getElementById('posSplash');
+        if(!splash||splash.dataset.hiding==='1') return;
+        splash.dataset.hiding='1';
+        var wait=Math.max(0,minimumDisplayTime-(Date.now()-started));
+        setTimeout(function(){
+          var target=!document.getElementById('app').classList.contains('hidden')
+            ? document.getElementById('app')
+            : document.getElementById('loginPage');
+          if(target){
+            target.classList.remove('meney-enter');
+            void target.offsetWidth;
+            target.classList.add('meney-enter');
+          }
+          splash.classList.add('hide');
+          setTimeout(function(){if(splash&&splash.parentNode)splash.parentNode.removeChild(splash)},260);
+        },wait);
+      };
+      window.addEventListener('load',function(){window.__hideMeneySplash()});
+      setTimeout(window.__hideMeneySplash,7000);
+    })();
+  </script>
+
+  <section id="loginPage" class="login-page">
+    <div class="card login-card">
+      <div class="brand" style="padding:0 0 22px">
+        <div class="brand-logo">M</div>
+        <div><h1>Meney POS Enterprise</h1><p>Sell · Buy · Trade-In · Repair</p></div>
+      </div>
+      <form id="loginForm">
+        <div class="field"><label>Email</label><input id="loginEmail" type="email" required placeholder="owner@meney.com"></div>
+        <div class="field"><label>Password</label><input id="loginPassword" type="password" required placeholder="••••••••"></div>
+        <button class="btn btn-green btn-block">Log Masuk</button>
+        <div id="loginError" class="hidden" style="margin-top:12px;padding:10px;border-radius:10px;background:#fef2f2;color:#b42318;font-size:12px"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="app" class="app-shell hidden">
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">M</div>
+        <div><h1>MENEY GAMING</h1><p>Sell · Buy · Repair</p></div>
+        <span class="role-pill">CASHIER</span>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <nav class="nav">
+          <button class="nav-btn active" data-page="overview"><span class="ico">⌂</span>Overview</button>
+          <button class="nav-btn" data-page="inventory"><span class="ico">▦</span>Inventory</button>
+          <button class="nav-btn" data-page="receipts"><span class="ico">▤</span>Receipts</button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Sales</div>
+        <nav class="nav">
+          <button class="nav-btn" data-page="pos"><span class="ico">◉</span>POS / Sales</button>
+          <button class="nav-btn" data-page="buy"><span class="ico">↓</span>Buy From Customer</button>
+          <button class="nav-btn" data-page="trade"><span class="ico">⇄</span>Trade-In</button>
+          <button class="nav-btn" data-page="repairs"><span class="ico">⚒</span>Repairs</button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Management</div>
+        <nav class="nav">
+          <button class="nav-btn" data-page="customers"><span class="ico">♙</span>Customers</button>
+          <button class="nav-btn" data-page="reports"><span class="ico">◔</span>Reports</button>
+          <button class="nav-btn" data-page="settings"><span class="ico">⚙</span>Settings</button>
+        </nav>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Cash Register</div>
+        <nav class="nav">
+          <button class="nav-btn" data-page="shift"><span class="ico">◫</span>Current Shift</button>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-card">
+          <div class="avatar">D</div>
+          <div><strong id="userName">Danial</strong><span id="userRole">Owner</span></div>
+          <button id="logoutBtn" class="logout">↪</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:11px">
+          <button id="mobileMenu" class="btn btn-light mobile-menu">☰</button>
+          <div><h2 id="pageTitle">Overview</h2><p id="pageSub">Ringkasan operasi Meney.</p></div>
+        </div>
+        <div class="top-actions">
+          <span id="shiftChip" class="shift-chip">● SHIFT OPEN</span>
+          <button class="btn btn-light" data-go="pos">＋ New Sale</button>
+        </div>
+      </header>
+
+      <div class="page-wrap">
+        <section id="page-overview" class="page">
+          <div class="grid stats">
+            <div class="card stat-card"><div class="label">Total Revenue</div><div id="ovRevenue" class="value">RM0.00</div><div class="trend">Live from Firebase</div></div>
+            <div class="card stat-card"><div class="label">Total Buy</div><div id="ovBuy" class="value">RM0.00</div><div class="trend">Customer purchases</div></div>
+            <div class="card stat-card"><div class="label">Total Sell</div><div id="ovSell" class="value">RM0.00</div><div class="trend">Completed sales</div></div>
+            <div class="card stat-card"><div class="label">Trade Profit</div><div id="ovTrade" class="value">RM0.00</div><div class="trend">Trade-in margin</div></div>
+          </div>
+
+          <div class="grid overview-grid" style="margin-top:16px">
+            <div class="card section">
+              <div class="section-head"><div><h3>Inventory Summary</h3><p>Status semasa stok Meney.</p></div><button class="btn btn-light" data-go="inventory">View All</button></div>
+              <div class="summary-row">
+                <div class="summary-mini"><span>Total Items</span><strong id="sumItems">0</strong></div>
+                <div class="summary-mini"><span>Available</span><strong id="sumAvailable">0</strong></div>
+                <div class="summary-mini"><span>Reserved</span><strong id="sumReserved">0</strong></div>
+                <div class="summary-mini"><span>Repair</span><strong id="sumRepair">0</strong></div>
+              </div>
+              <div class="table-wrap" style="margin-top:15px">
+                <table><thead><tr><th>Invoice</th><th>Customer</th><th>Items</th><th>Type</th><th>Total</th></tr></thead><tbody id="overviewSales"></tbody></table>
+              </div>
+            </div>
+            <div class="card section">
+              <div class="section-head"><div><h3>Quick Transaction</h3><p>Pilih jenis transaksi.</p></div></div>
+              <div class="quick-grid">
+                <button class="quick" data-go="pos"><div class="qicon">▤</div><strong>Sell</strong><span>Jual barang</span></button>
+                <button class="quick" data-go="buy"><div class="qicon">◈</div><strong>Buy</strong><span>Beli dari customer</span></button>
+                <button class="quick" data-go="trade"><div class="qicon">⇄</div><strong>Trade-In</strong><span>Tukar / tolak nilai</span></button>
+                <button class="quick" data-go="repairs"><div class="qicon">⚒</div><strong>Repair</strong><span>Servis / repair</span></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-pos" class="page hidden">
+          <div class="flow-page">
+            <div class="flow-main">
+              <div class="flow-steps">
+                <div class="step active"><div class="step-no">1</div><strong>Transaction</strong><span>Sell</span></div>
+                <div class="step active"><div class="step-no">2</div><strong>Products</strong><span>Search & select</span></div>
+                <div class="step active"><div class="step-no">3</div><strong>Cart</strong><span>Items & customer</span></div>
+                <div class="step"><div class="step-no">4</div><strong>Payment</strong><span>Method</span></div>
+                <div class="step"><div class="step-no">5</div><strong>Receipt</strong><span>Complete</span></div>
+              </div>
+              <div class="card section">
+                <div class="section-head"><div><h3>Sell Flow</h3><p>Cari produk dan masukkan ke cart.</p></div></div>
+                <div class="pos-layout">
+                  <div>
+                    <div class="product-toolbar"><input id="posSearch" placeholder="Search product / scan barcode..."><select id="posCategory"><option value="">All Category</option></select></div>
+                    <div id="productList" class="product-list"></div>
+                  </div>
+                  <div class="cart-box">
+                    <div class="section-head"><div><h3>Cart</h3><p id="cartCount">0 item</p></div><button id="clearCart" class="btn btn-light">Clear</button></div>
+                    <div id="cartItems" class="cart-items"></div>
+                    <div class="two" style="margin-top:11px">
+                      <div class="field"><label>Customer Name</label><input id="saleCustomer" placeholder="Walk-in / customer name"></div>
+                      <div class="field"><label>WhatsApp Number</label><input id="salePhone" inputmode="tel" placeholder="01XXXXXXXX"></div>
+                    </div>
+                    <div class="two">
+                      <div class="field"><label>Payment</label><select id="salePayment"><option>Cash</option><option>QR / DuitNow</option><option>Bank Transfer</option><option>Card</option><option>Split Payment</option></select></div>
+                      <div class="field"><label>Discount (RM)</label><input id="saleDiscount" type="number" min="0" step=".01" value="0"></div>
+                    </div>
+                    <div id="splitPaymentBox" class="split-payment-box hidden">
+                      <div class="split-payment-head"><div><strong>Split Payment</strong><span style="display:block">Tetapkan kaedah dan amaun setiap bayaran.</span></div><button id="addSplitPayment" type="button" class="btn btn-light">＋ Add</button></div>
+                      <div id="splitPaymentRows"></div>
+                      <div class="split-summary">
+                        <div class="total-line"><span>Total Paid</span><strong id="splitTotalPaid">RM0.00</strong></div>
+                        <div class="total-line"><span>Remaining / Overpaid</span><strong id="splitBalance">RM0.00</strong></div>
+                        <div id="splitPaymentStatus" class="payment-status bad">Masukkan pecahan bayaran.</div>
+                      </div>
+                    </div>
+                    <div class="total-line"><span>Subtotal</span><strong id="saleSubtotal">RM0.00</strong></div>
+                    <div class="total-line"><span>Discount</span><strong id="saleDiscountText">RM0.00</strong></div>
+                    <div class="total-line grand"><span>Total</span><span id="saleTotal">RM0.00</span></div>
+                    <button id="completeSale" class="btn btn-green btn-block">Confirm Payment →</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <aside class="card shift-panel">
+              <div class="section-head"><div><h3>Shift & Cash Drawer</h3><p>Current shift</p></div></div>
+              <div class="cash-row"><span>Staff</span><strong id="shiftStaff">—</strong></div>
+              <div class="cash-row"><span>Status</span><strong id="shiftStatus">OPEN</strong></div>
+              <div class="cash-row"><span>Opening Cash</span><strong id="openingCashText">RM0.00</strong></div>
+              <div class="cash-row"><span>Cash Sales</span><strong id="cashSalesText">RM0.00</strong></div>
+              <div class="cash-row"><span>Cash In</span><strong id="cashInText">RM0.00</strong></div>
+              <div class="cash-row"><span>Cash Out</span><strong id="cashOutText" class="redtxt">RM0.00</strong></div>
+              <div class="cash-row"><span>Expected Cash</span><strong id="expectedCashText">RM0.00</strong></div>
+              <button class="btn btn-light btn-block" data-go="shift" style="margin-top:13px">Manage Shift</button>
+            </aside>
+          </div>
+        </section>
+
+        <section id="page-buy" class="page hidden">
+          <div class="flow-steps">
+            <div class="step active"><div class="step-no">1</div><strong>Customer</strong><span>Maklumat pelanggan</span></div>
+            <div class="step active"><div class="step-no">2</div><strong>Items</strong><span>Search / create product</span></div>
+            <div class="step active"><div class="step-no">3</div><strong>Smart QC</strong><span>Pass, Fail atau N/A</span></div>
+            <div class="step active"><div class="step-no">4</div><strong>Payment</strong><span>Jumlah bayaran</span></div>
+            <div class="step"><div class="step-no">5</div><strong>Stock In</strong><span>Receipt & inventory</span></div>
+          </div>
+          <form id="buyForm" novalidate>
+            <div class="card section" style="margin-bottom:16px">
+              <div class="section-head"><div><h3>Buy From Customer V2</h3><p>Satu customer boleh menjual banyak item dalam satu transaksi.</p></div><button id="clearBuyDraft" class="btn btn-light" type="button">Clear Draft</button></div>
+              <div class="two">
+                <div class="field"><label>Customer Name</label><input id="buyCustomer" required placeholder="Contoh: Ahmad"></div>
+                <div class="field"><label>Phone</label><input id="buyPhone" inputmode="tel" placeholder="01XXXXXXXX"></div>
+              </div>
+            </div>
+            <div class="buy-v2-layout">
+              <div>
+                <div id="buyItemList" class="buy-item-list"></div>
+                <button id="addBuyItem" class="btn btn-light btn-block" type="button" style="margin-top:12px">＋ Add Another Item</button>
+              </div>
+              <aside class="card buy-summary">
+                <div class="section-head"><div><h3>Purchase Summary</h3><p id="buyItemCount">0 item</p></div></div>
+                <div id="buySummaryItems" class="buy-summary-items"></div>
+                <div class="field"><label>Payment Method</label><select id="buyPayment"><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option></select></div>
+                <div class="total-line grand"><span>Total Payable</span><span id="buyGrandTotal">RM0.00</span></div>
+                <button id="completeBuy" class="btn btn-green btn-block" type="submit">Complete Purchase & Stock In</button>
+                <span class="field-help">Produk sedia ada akan menggunakan SKU yang sama. Produk baru akan dijana SKU secara automatik.</span>
+              </aside>
+            </div>
+          </form>
+        </section>
+
+        <section id="page-trade" class="page hidden">
+          <div class="flow-steps">
+            <div class="step active"><div class="step-no">1</div><strong>Customer</strong><span>Maklumat pelanggan</span></div>
+            <div class="step active"><div class="step-no">2</div><strong>Stock In</strong><span>Barang customer</span></div>
+            <div class="step active"><div class="step-no">3</div><strong>Stock Out</strong><span>Barang Meney</span></div>
+            <div class="step active"><div class="step-no">4</div><strong>Complete</strong><span>Balance & receipt</span></div>
+          </div>
+          <form id="tradeForm" novalidate>
+            <div class="card section" style="margin-bottom:16px">
+              <div class="section-head"><div><h3>Trade-In Transaction</h3><p>Tambah seberapa banyak item Stock In dan Stock Out sebelum melengkapkan transaksi.</p></div><button id="clearTradeDraft" class="btn btn-light" type="button">Clear Draft</button></div>
+              <div class="form-grid cols-2"><div class="field"><label>Customer Name</label><input id="tradeCustomer" required placeholder="Contoh: Ahmad"></div><div class="field"><label>Phone</label><input id="tradePhone" placeholder="Contoh: 60123456789"></div></div>
+            </div>
+
+            <div class="flow-form" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start">
+              <div class="flow-col">
+                <div class="section-head"><div><h4>Stock In — Barang Customer</h4><p id="tradeInCount">0 item dalam draft</p></div></div>
+                <div class="field"><label>Item Name</label><input id="tradeItem" placeholder="Contoh: PS4 Slim 500GB"></div>
+                <div class="form-grid cols-2"><div class="field"><label>Category</label><select id="tradeCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div><div class="field"><label>Item Type</label><select id="tradeItemType"><option value="Used" selected>Used</option><option value="New">New</option></select></div></div>
+                <div class="form-grid cols-2"><div class="field"><label>Serial Number</label><input id="tradeSerial" placeholder="Kosongkan jika tiada"></div><div class="field"><label>Quantity</label><input id="tradeInQty" type="number" min="1" step="1" value="1"></div></div>
+                <div class="form-grid cols-2"><div class="field"><label>Total Trade Value (RM)</label><input id="tradeValue" type="number" min="0" step=".01" placeholder="Jumlah untuk semua unit"></div><div class="field"><label>Expected Sell Price / Unit (RM)</label><input id="tradeSellPrice" type="number" min="0" step=".01"></div></div>
+                <button class="btn btn-purple btn-block" type="button" id="addTradeInItem">＋ Add to Stock In List</button>
+                <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Item</th><th>Qty</th><th>Trade Value</th><th>Action</th></tr></thead><tbody id="tradeInBody"><tr><td colspan="4" class="muted">Belum ada item Stock In.</td></tr></tbody></table></div>
+              </div>
+
+              <div class="flow-col">
+                <div class="section-head"><div><h4>Stock Out — Barang Meney</h4><p id="tradeOutCount">0 item dalam draft</p></div></div>
+                <div class="field"><label>Select Product</label><select id="tradeNewProduct"><option value="">Select product</option></select></div>
+                <div class="form-grid cols-2"><div class="field"><label>Quantity</label><input id="tradeOutQty" type="number" min="1" step="1" value="1"></div><div class="field"><label>Unit Sell Price (RM)</label><input id="tradeOutPrice" type="number" min="0" step=".01" placeholder="Auto ikut inventory"></div></div>
+                <div id="tradeNewInfo" class="summary-mini"><span>Select a product</span><strong>RM0.00</strong></div>
+                <button class="btn btn-purple btn-block" type="button" id="addTradeOutItem">＋ Add to Stock Out List</button>
+                <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Item</th><th>Qty</th><th>Total</th><th>Action</th></tr></thead><tbody id="tradeOutBody"><tr><td colspan="4" class="muted">Belum ada item Stock Out.</td></tr></tbody></table></div>
+              </div>
+            </div>
+
+            <div class="card section" style="margin-top:16px">
+              <div class="section-head"><div><h3>Trade Summary</h3><p>Semak semua nilai sebelum complete.</p></div></div>
+              <div class="form-grid cols-2">
+                <div>
+                  <div class="cash-row"><span>Total Stock Out</span><strong id="tradeNewPrice">RM0.00</strong></div>
+                  <div class="cash-row"><span>Total Stock In / Trade Value</span><strong id="tradeValueText">RM0.00</strong></div>
+                  <div class="cash-row" style="font-size:17px"><span id="tradeBalanceLabel">Customer Pays</span><strong id="tradeBalance">RM0.00</strong></div>
+                </div>
+                <div>
+                  <div class="field"><label>Payment Method</label><select id="tradePayment"><option>QR / DuitNow</option><option>Cash</option><option>Bank Transfer</option><option>Card</option><option>No Payment / Even Trade</option></select></div>
+                  <button id="completeTradeBtn" class="btn btn-green btn-block" type="submit">Complete Trade-In & Generate Receipt</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section id="page-repairs" class="page hidden">
+          <div class="card section">
+            <div class="section-head">
+              <div><h3>Repair Management</h3><p>Terima repair, jejak status dan rekod bayaran.</p></div>
+              <button id="newRepairBtn" class="btn btn-green">🛠 New Repair</button>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Ticket</th><th>Customer</th><th>Device</th><th>Issue</th><th>Status</th><th>Estimate</th><th>Action</th></tr></thead><tbody id="repairBody"></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-inventory" class="page hidden">
+          <div class="card section">
+            <div class="section-head">
+              <div><h3>Inventory</h3><p>Produk diasingkan mengikut Item Type: New atau Used sahaja.</p></div>
+              <button id="addProductBtn" class="btn btn-purple">📦 Add Product</button>
+            </div>
+            <div class="notice" style="margin-bottom:12px"><strong>Simple Inventory Mode:</strong> Setiap produk hanya diasingkan kepada New atau Used. Tiada grading condition tambahan.</div><div class="product-toolbar"><input id="inventorySearch" placeholder="Search product / serial number..."><select id="inventoryCategory"><option value="">All Category</option></select></div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Product</th><th>Type</th><th>Serial No.</th><th>Cost</th><th>Sell Price</th><th>Status</th><th>Stock</th><th>Action</th></tr></thead><tbody id="inventoryBody"></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-receipts" class="page hidden">
+          <div class="card section">
+            <div class="section-head">
+              <div><h3>Transactions & Receipts</h3><p>Buka semula, cetak, simpan PDF, WhatsApp atau batalkan bill.</p></div>
+            </div>
+            <div class="product-toolbar">
+              <input id="receiptSearch" placeholder="Search transaction no., customer, item...">
+              <select id="receiptType"><option value="">All Types</option><option value="sale">Sales</option><option value="buy">Buy From Customer</option><option value="trade">Trade-In</option><option value="repair">Repair</option></select>
+              <select id="receiptStatus"><option value="">All Status</option><option value="active">Active</option><option value="cancelled">Cancelled</option></select>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>No.</th><th>Date</th><th>Customer</th><th>Type</th><th>Payment</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody id="receiptBody"></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-customers" class="page hidden">
+          <div class="card section">
+            <div class="section-head"><div><h3>Customers</h3><p>Database customer daripada jualan, buy dan trade-in.</p></div></div>
+            <div class="table-wrap"><table><thead><tr><th>Name / Contact</th><th>Source</th><th>Last Transaction</th><th>Total</th></tr></thead><tbody id="customerBody"></tbody></table></div>
+          </div>
+        </section>
+
+        <section id="page-reports" class="page hidden">
+          <div class="reports-grid">
+            <div class="card section">
+              <div class="section-head"><div><h3>Sales Overview</h3><p>Visual ringkasan transaksi.</p></div></div>
+              <div class="chart-placeholder"><div class="chart-line"></div></div>
+            </div>
+            <div class="card section">
+              <div class="section-head"><div><h3>Category Profit</h3><p>Demo visual berdasarkan data semasa.</p></div></div>
+              <div id="profitDonut" class="donut"></div>
+            </div>
+          </div>
+          <div class="grid stats" style="margin-top:16px">
+            <div class="card stat-card"><div class="label">Best Selling</div><div id="bestSelling" class="value" style="font-size:18px">—</div></div>
+            <div class="card stat-card"><div class="label">Total Profit</div><div id="reportProfit" class="value">RM0.00</div></div>
+            <div class="card stat-card"><div class="label">Total Transactions</div><div id="reportTxn" class="value">0</div></div>
+            <div class="card stat-card"><div class="label">Inventory Value</div><div id="inventoryValue" class="value">RM0.00</div></div>
+          </div>
+        </section>
+
+        <section id="page-shift" class="page hidden">
+          <div class="grid overview-grid">
+            <div class="card section">
+              <div class="section-head"><div><h3>Current Shift</h3><p>Open, cash movement dan close shift.</p></div></div>
+              <div class="two">
+                <div class="field"><label>Opening Cash</label><input id="shiftOpening" type="number" min="0" step=".01" value="0"></div>
+                <div class="field"><label>Actual Cash (Close)</label><input id="shiftActual" type="number" min="0" step=".01" value="0"></div>
+              </div>
+              <div id="shiftVarianceBox" class="variance-box">
+                <strong>Masukkan actual cash</strong><span>Sistem akan membandingkan dengan expected cash.</span>
+              </div>
+              <div id="varianceNoteField" class="field hidden" style="margin-top:12px"><label>Variance Reason / Note <span style="color:#dc2626">*</span></label><textarea id="shiftVarianceNote" rows="3" placeholder="Contoh: tersalah baki customer, cash refund belum direkod atau counting error"></textarea></div>
+              <div class="two">
+                <button id="openShiftBtn" class="btn btn-green">Open New Shift</button>
+                <button id="closeShiftBtn" class="btn btn-purple">Close Shift</button>
+              </div>
+            </div>
+            <div class="card section">
+              <div class="section-head"><div><h3>Cash In / Out</h3><p>Rekod pergerakan tunai.</p></div></div>
+              <div class="field"><label>Type</label><select id="cashMoveType"><option value="in">Cash In</option><option value="out">Cash Out</option></select></div>
+              <div class="field"><label>Amount</label><input id="cashMoveAmount" type="number" min="0" step=".01"></div>
+              <div class="field"><label>Note</label><input id="cashMoveNote"></div>
+              <button id="saveCashMove" class="btn btn-dark btn-block">Save Cash Movement</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-settings" class="page hidden">
+          <div class="grid overview-grid">
+            <div class="card section">
+              <div class="section-head"><div><h3>System Settings</h3><p>Firebase project yang sama dengan Meney Daily Mission.</p></div></div>
+              <div class="summary-mini"><span>Application</span><strong>Meney POS Enterprise v3.2 Premium UI Edition</strong></div>
+              <div class="summary-mini"><span>Database</span><strong>Cloud Firestore</strong></div>
+              <div class="summary-mini"><span>Data ownership</span><strong>Export anytime</strong></div>
+            </div>
+
+            <div class="card section install-card">
+              <div class="section-head"><div><h3>Install Meney POS</h3><p>Pasang pada telefon, tablet atau desktop seperti aplikasi sebenar.</p></div></div>
+              <div class="summary-mini"><span>Connection</span><strong id="connectionText">Online</strong></div>
+              <div class="summary-mini"><span>App mode</span><strong id="appModeText">Browser</strong></div>
+              <button id="installAppBtn" class="btn btn-green btn-block">Install Meney POS</button>
+              <p id="installHelp" class="muted" style="margin:12px 0 0;line-height:1.6">Android/Desktop: tekan butang install. iPhone/iPad: Safari → Share → Add to Home Screen.</p>
+            </div>
+
+            <div class="card section">
+              <div class="section-head"><div><h3>Full Backup</h3><p>Download semua data untuk backup atau pindah ke POS developer.</p></div></div>
+              <div class="field"><label>Backup format</label><select id="backupFormat"><option value="zip">ZIP — JSON + CSV semua collection</option><option value="xlsx">Excel Workbook (.xlsx)</option><option value="json">Single JSON (.json)</option></select></div>
+              <button id="fullBackupBtn" class="btn btn-purple btn-block">⬇ Export Full Backup</button>
+              <p class="muted" style="margin:12px 0 0;line-height:1.6">Backup merangkumi products, sales, buys, trades, repairs, shifts dan cash movements. ID dokumen dan timestamp turut disimpan.</p>
+            </div>
+          </div>
+
+          <div class="card section" style="margin-top:16px">
+            <div class="section-head"><div><h3>Export Individual Data</h3><p>Pilih collection dan format yang diperlukan.</p></div></div>
+            <div class="three">
+              <div class="field"><label>Data</label><select id="exportCollection"><option value="products">Inventory / Products</option><option value="sales">Sales</option><option value="buys">Buy From Customer</option><option value="trades">Trade-In</option><option value="repairs">Repairs</option><option value="shifts">Shifts</option><option value="cashMoves">Cash Movements</option></select></div>
+              <div class="field"><label>Format</label><select id="exportFormat"><option value="csv">CSV (.csv)</option><option value="xlsx">Excel (.xlsx)</option><option value="json">JSON (.json)</option></select></div>
+              <div class="field"><label>&nbsp;</label><button id="exportCollectionBtn" class="btn btn-green btn-block">Export Selected Data</button></div>
+            </div>
+          </div>
+
+          <div class="card section" style="margin-top:16px">
+            <div class="section-head"><div><h3>Migration Notes</h3><p>Maklumat untuk diberikan kepada developer sistem baru.</p></div></div>
+            <div class="document-note" style="margin:0">
+              Setiap fail export menyimpan <strong>documentId</strong> asal. Field bersarang seperti items akan disimpan sebagai JSON dalam CSV/Excel supaya maklumat transaksi tidak hilang. Sebelum berpindah sistem, buat satu Full Backup dan satu Excel Workbook.
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </section>
+
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+    <button class="active" data-page="overview"><span>⌂</span>Home</button>
+    <button data-page="pos"><span>◉</span>Sell</button>
+    <button data-page="inventory"><span>▦</span>Stock</button>
+    <button data-page="repairs"><span>⚒</span>Repair</button>
+    <button data-page="receipts"><span>▤</span>Receipts</button>
+    <button data-page="settings"><span>⚙</span>More</button>
+  </nav>
+
+  <div id="productModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h3 id="productModalTitle">Add Product</h3><p>Data disimpan dalam Firestore collection products.</p>
+      <form id="productForm">
+        <div class="two">
+          <div class="field"><label>Product Name</label><input id="productName" required></div>
+          <div class="field"><label>SKU</label><div class="sku-row"><input id="productSku" class="auto-field" readonly value="Auto-generated upon save"><button type="button" id="unlockSkuBtn" class="btn btn-light" style="padding:10px">Unlock</button></div><span id="skuHelp" class="field-help">SKU dijana automatik mengikut kategori. Owner boleh unlock untuk override.</span></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Category</label><select id="productCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div>
+          <div class="field"><label>Item Type</label><select id="productItemType"><option value="New">New</option><option value="Used" selected>Used</option></select></div>
+        </div>
+        <div class="three">
+          <div class="field"><label>Cost Price</label><input id="productCost" type="number" min="0" step=".01" required></div>
+          <div class="field"><label>Sell Price</label><input id="productPrice" type="number" min="0" step=".01" required></div>
+          <div class="field"><label>Stock</label><input id="productStock" type="number" min="0" step="1" required></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Serial Number</label><input id="productSerial"></div>
+          <div class="field"><label>Low Stock Alert</label><input id="productLowStock" type="number" min="0" value="1"></div>
+        </div>
+        <div class="modal-actions"><button type="button" id="cancelProduct" class="btn btn-light">Cancel</button><button class="btn btn-purple">Save Product</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="repairModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h3>New Repair Ticket</h3><p>Rekod repair customer.</p>
+      <form id="repairForm">
+        <div class="two">
+          <div class="field"><label>Customer Name</label><input id="repairCustomer" required></div>
+          <div class="field"><label>Phone</label><input id="repairPhone"></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Device</label><input id="repairDevice" required></div>
+          <div class="field"><label>Serial Number</label><input id="repairSerial"></div>
+        </div>
+        <div class="field"><label>Issue</label><textarea id="repairIssue" required></textarea></div>
+        <div class="two">
+          <div class="field"><label>Estimated Repair Price (RM)</label><input id="repairEstimate" type="number" min="0" step=".01"></div>
+          <div class="field"><label>Initial Status</label><input value="Received" readonly></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Deposit Received (RM)</label><input id="repairDeposit" type="number" min="0" step=".01" value="0"><span class="field-help">Deposit ialah kutipan awal, bukan completed repair sales.</span></div>
+          <div class="field"><label>Deposit Payment Method</label><select id="repairDepositMethod"><option>Cash</option><option>QR</option><option>Card</option><option>Bank Transfer</option></select></div>
+        </div>
+        <div class="field"><label>Repair Warranty <span class="muted">(optional)</span></label><input id="repairWarranty" placeholder="Blank / No Warranty / e.g. 30 days"></div>
+        <div class="modal-actions"><button type="button" id="cancelRepair" class="btn btn-light">Cancel</button><button class="btn btn-green">Create Intake Ticket</button></div>
+      </form>
+    </div>
+  </div>
+
+
+  <div id="completeRepairModal" class="modal-backdrop hidden">
+    <div class="modal" style="width:min(760px,100%)">
+      <h3>Complete Repair & Collect Payment</h3><p>Sahkan harga akhir, baki bayaran dan kos dalaman sebelum repair ditutup.</p>
+      <form id="completeRepairForm">
+        <input id="completeRepairId" type="hidden">
+        <div class="two">
+          <div class="field"><label>Final Repair Price (RM)</label><input id="completeFinalPrice" type="number" min="0" step=".01" required></div>
+          <div class="field"><label>Deposit Previously Received</label><input id="completeDeposit" readonly></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Balance Due</label><input id="completeBalance" readonly></div>
+          <div class="field"><label>Balance Payment Method</label><select id="completePaymentMethod"><option>Cash</option><option>QR</option><option>Card</option><option>Bank Transfer</option><option>Split Payment</option></select></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Repair Execution</label><select id="completeRepairMethod"><option value="internal">Internal Repair</option><option value="outsource">Outsource Technician</option><option value="hybrid">Internal + Outsource</option></select></div>
+          <div class="field"><label>Warranty</label><input id="completeWarranty" placeholder="e.g. 30 days / No Warranty"></div>
+        </div>
+        <div class="three">
+          <div class="field" id="spareCostField"><label>Spare Part Cost (RM)</label><input id="completeSpareCost" type="number" min="0" step=".01" value="0"></div>
+          <div class="field" id="outsourceCostField"><label>Technician / Outsource Cost (RM)</label><input id="completeOutsourceCost" type="number" min="0" step=".01" value="0"></div>
+          <div class="field"><label>Additional Internal Cost (RM)</label><input id="completeAdditionalCost" type="number" min="0" step=".01" value="0"></div>
+        </div>
+        <div class="summary-strip" style="margin-top:10px">
+          <div><span>Total Internal Cost</span><strong id="completeTotalCost">RM 0.00</strong></div>
+          <div><span>Net Repair Profit</span><strong id="completeNetProfit">RM 0.00</strong></div>
+          <div><span>Profit Margin</span><strong id="completeMargin">0%</strong></div>
+        </div>
+        <p class="muted" style="margin-top:10px">Kos dan profit adalah data dalaman sahaja dan tidak akan dicetak pada resit customer.</p>
+        <div class="modal-actions"><button type="button" id="cancelCompleteRepair" class="btn btn-light">Cancel</button><button class="btn btn-green">Complete & Generate Receipt</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="documentModal" class="modal-backdrop hidden">
+    <div class="modal" style="width:min(780px,100%)">
+      <div class="section-head"><div><h3 id="documentModalTitle">Transaction Document</h3><p>Print, save as PDF atau hantar melalui WhatsApp.</p></div><button id="closeDocument" class="btn btn-light">✕</button></div>
+      <div id="documentPreview" class="document-sheet"></div>
+      <div class="document-actions">
+        <button id="printDocument" class="btn btn-dark">🖨 Print / Save PDF</button>
+        <button id="whatsappDocument" class="btn btn-whatsapp">WhatsApp Customer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, collection, addDoc, updateDoc, deleteDoc,
+    onSnapshot, query, orderBy, serverTimestamp, runTransaction
+  } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",
+    authDomain: "meney-daily-mission.firebaseapp.com",
+    databaseURL: "https://meney-daily-mission-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "meney-daily-mission",
+    storageBucket: "meney-daily-mission.firebasestorage.app",
+    messagingSenderId: "1035705938755",
+    appId: "1:1035705938755:web:a9ec6c7ea9c9b91f4a35f6"
+  };
+
+  const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+  const $=id=>document.getElementById(id);
+  function hidePosSplash(){
+    if(typeof window.__hideMeneySplash==="function")window.__hideMeneySplash();
+  }
+  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,unsubs:[]};
+  const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
+  const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+  const compactDate=()=>nowDate().replaceAll("-","");
+  const normalizeText=v=>String(v||"").trim().toLowerCase().replace(/\s+/g," ");
+  const normalizeSerial=v=>String(v||"").trim().toUpperCase().replace(/\s+/g,"");
+  const skuPrefixes={Console:"CON",Controller:"CTR",Games:"GAM",Accessories:"ACC","Repair Parts":"RPT",Others:"OTH"};
+  const skuPrefix=category=>skuPrefixes[category]||"OTH";
+  async function nextCounter(tx,key){
+    const ref=doc(db,"counters",key),snap=await tx.get(ref),next=(snap.exists()?Number(snap.data().value||0):0)+1;
+    tx.set(ref,{value:next,updatedAt:serverTimestamp()},{merge:true});
+    return next;
+  }
+  async function nextDocumentNumber(tx,type,prefix,dateBased=true){
+    const date=dateBased?compactDate():"ALL",key=`${type}_${date}`,next=await nextCounter(tx,key);
+    return dateBased?`${prefix}-${date}-${String(next).padStart(4,"0")}`:`${prefix}-${String(next).padStart(6,"0")}`;
+  }
+  async function nextSku(tx,category){
+    const prefix=skuPrefix(category),next=await nextCounter(tx,`sku_${prefix}`);
+    return `${prefix}-${String(next).padStart(6,"0")}`;
+  }
+  async function reserveDocumentNumber(type,prefix,dateBased=true){
+    let number="";await runTransaction(db,async tx=>{number=await nextDocumentNumber(tx,type,prefix,dateBased)});return number;
+  }
+  async function reserveSku(category){
+    let sku="";await runTransaction(db,async tx=>{sku=await nextSku(tx,category)});return sku;
+  }
+  function duplicateSerial(serial,excludeId=null){
+    const key=normalizeSerial(serial);if(!key)return null;
+    return state.products.find(p=>p.id!==excludeId&&normalizeSerial(p.serial)===key)||null;
+  }
+  function mergeCandidate({name,category,itemType="Used",serial},excludeId=null){
+    if(normalizeSerial(serial))return null;
+    return state.products.find(p=>p.id!==excludeId&&!normalizeSerial(p.serial)&&normalizeText(p.name)===normalizeText(name)&&p.category===category&&(p.itemType||"Used")===itemType)||null;
+  }
+  function weightedAverageCost(oldQty,oldCost,inQty,inCost){
+    oldQty=Number(oldQty||0);oldCost=Number(oldCost||0);inQty=Number(inQty||0);inCost=Number(inCost||0);
+    const totalQty=oldQty+inQty;
+    return totalQty>0?Number((((oldQty*oldCost)+(inQty*inCost))/totalQty).toFixed(2)):inCost;
+  }
+  function timestampText(v){
+    try{return v?.toDate?v.toDate().toLocaleString("ms-MY"):v?new Date(v).toLocaleString("ms-MY"):"—"}catch{return "—"}
+  }
+  const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+  const toast=m=>{$("toast").textContent=m;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2600)}
+  const isOwner=()=>state.profile?.role==="owner";
+  const cleanPhone=phone=>{
+    let n=String(phone||"").replace(/\D/g,"");
+    if(n.startsWith("0"))n="60"+n.slice(1);
+    else if(n && !n.startsWith("60"))n="60"+n;
+    return n;
+  };
+  const docDate=()=>new Intl.DateTimeFormat("ms-MY",{dateStyle:"medium",timeStyle:"short"}).format(new Date());
+  const RECEIPT_BUSINESS={
+    brand:"MENEY",
+    legalName:"MENEY EMPIRE",
+    registrationNo:"IP0602724-K",
+    addressLines:[
+      "LOT 89, TINGKAT BAWAH",
+      "DALAM PASAR LAMA PASIR TUMBOH",
+      "16150 KOTA BHARU, KELANTAN"
+    ],
+    phone:"011-7595 6474"
+  };
+  function receiptBusinessText(){
+    return [RECEIPT_BUSINESS.brand,RECEIPT_BUSINESS.legalName,`SSM: ${RECEIPT_BUSINESS.registrationNo}`,...RECEIPT_BUSINESS.addressLines,`Tel: ${RECEIPT_BUSINESS.phone}`];
+  }
+  function showTransactionDocument(data){
+    state.lastDocument=data;
+    $("documentModalTitle").textContent=data.title;
+    const rows=(data.items||[]).map((i,k)=>`<tr><td>${k+1}</td><td><strong>${esc(i.name)}</strong>${i.detail?`<br><span class="muted">${esc(i.detail)}</span>`:""}</td><td>${esc(String(i.warranty||"").trim()||"—")}</td><td>${i.qty||1}</td><td>${money(i.unitPrice??i.amount)}</td><td><strong>${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}</strong></td></tr>`).join("");
+    const totals=(data.totals||[]).map(t=>`<div class="document-total ${t.grand?"grand":""}"><span>${esc(t.label)}</span><strong>${money(t.value)}</strong></div>`).join("");
+    $("documentPreview").innerHTML=`
+      <div class="document-head"><div class="document-brand"><h2>${esc(RECEIPT_BUSINESS.brand)}</h2><p><strong>${esc(RECEIPT_BUSINESS.legalName)}</strong><br>SSM: ${esc(RECEIPT_BUSINESS.registrationNo)}<br>${RECEIPT_BUSINESS.addressLines.map(esc).join("<br>")}<br>Tel: ${esc(RECEIPT_BUSINESS.phone)}</p></div><div class="document-meta"><span>${esc(data.title)}</span><br><strong>${esc(data.number)}</strong>${esc(data.date||docDate())}<br>Staff: ${esc(data.staff||"—")}</div></div>
+      <div class="document-customer"><div><span>Customer</span><strong>${esc(data.customer||"Walk-in")}</strong></div><div><span>Contact</span><strong>${esc(data.phone||"—")}</strong></div></div>
+      <table class="document-table"><thead><tr><th>#</th><th>Description</th><th>Warranty</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="document-totals">${totals}</div>
+      ${data.payment?`<div class="document-note"><strong>Payment:</strong> ${esc(data.payment)}${data.note?`<br>${esc(data.note)}`:""}</div>`:(data.note?`<div class="document-note">${esc(data.note)}</div>`:"")}`;
+    $("documentModal").classList.remove("hidden");
+  }
+  function documentText(d){
+    const lines=[`*${RECEIPT_BUSINESS.brand}*`,RECEIPT_BUSINESS.legalName,`SSM: ${RECEIPT_BUSINESS.registrationNo}`,...RECEIPT_BUSINESS.addressLines,`Tel: ${RECEIPT_BUSINESS.phone}`,"",`${d.title}`,`No: ${d.number}`,`Tarikh: ${d.date||docDate()}`,`Customer: ${d.customer||"Walk-in"}`];
+    if(d.phone)lines.push(`Telefon: ${d.phone}`);
+    lines.push("",...(d.items||[]).map((i,k)=>`${k+1}. ${i.name}${i.detail?` (${i.detail})`:""} x${i.qty||1} — ${money(i.total??(Number(i.unitPrice??i.amount)*Number(i.qty||1)))}${i.warranty?`\n   Warranty: ${i.warranty}`:""}`),"");
+    (d.totals||[]).forEach(t=>lines.push(`${t.label}: ${money(t.value)}`));
+    if(d.payment)lines.push(`Bayaran: ${d.payment}`);
+    if(d.note)lines.push("",d.note);
+    return lines.join("\n");
+  }
+  $("closeDocument").onclick=()=>$("documentModal").classList.add("hidden");
+  $("documentModal").onclick=e=>{if(e.target===$("documentModal"))$("documentModal").classList.add("hidden")};
+  $("printDocument").onclick=()=>{
+    if(!state.lastDocument)return;
+    const w=window.open("","_blank","width=850,height=900");
+    w.document.write(`<!doctype html><html><head><title>${esc(state.lastDocument.number)}</title><style>
+body{font-family:Arial,sans-serif;padding:28px;color:#101828;background:#fff}
+.document-sheet{max-width:760px;margin:auto}
+.document-head{display:flex;justify-content:space-between;gap:18px;border-bottom:3px solid #101828;padding-bottom:16px}
+.document-brand h2{margin:0;font-size:23px;letter-spacing:.04em}
+.document-brand p{margin:7px 0 0;color:#475467;font-size:10px;font-weight:600;line-height:1.55}
+.document-meta{text-align:right;font-size:11px;line-height:1.55}.document-meta span{font-weight:800;font-size:12px;letter-spacing:.04em}
+.document-meta strong{display:inline-block;background:#101828;color:#fff;border-radius:7px;padding:7px 9px;margin-bottom:7px}
+.document-customer{display:grid;grid-template-columns:1fr 1fr;background:#f3f7f4;border:1px solid #e2e8e4;border-radius:10px;padding:12px;margin:16px 0}
+.document-customer span{display:block;color:#667085;font-size:10px;margin-bottom:3px}
+table{width:100%;border-collapse:collapse}
+th{background:#101828;color:#fff;text-transform:uppercase;letter-spacing:.04em}
+th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:11px}
+.document-totals{width:310px;margin:15px 0 0 auto}
+.document-total{display:flex;justify-content:space-between;padding:6px}
+.grand{font-size:17px;font-weight:bold;border:1px solid #bfe4cb!important;background:#edf9f1;border-radius:8px;color:#0b6b31;padding:10px!important;margin-top:6px}
+.document-note{margin-top:20px;border:1px dashed #aeb9b2;background:#f8faf9;border-radius:9px;padding:11px;font-size:10px;color:#475467}
+.muted{color:#667085}
+@media print{body{padding:0}.document-sheet{max-width:none}}
+</style></head><body><div class="document-sheet">${$("documentPreview").innerHTML}</div><script>window.onload=()=>window.print()<\/script></body></html>`);
+    w.document.close();
+  };
+  $("whatsappDocument").onclick=()=>{
+    if(!state.lastDocument)return;
+    const phone=cleanPhone(state.lastDocument.phone),text=encodeURIComponent(documentText(state.lastDocument));
+    window.open(phone?`https://wa.me/${phone}?text=${text}`:`https://wa.me/?text=${text}`,"_blank");
+  };
+
+  $("loginForm").addEventListener("submit",async e=>{
+    e.preventDefault();$("loginError").classList.add("hidden");
+    try{await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}
+    catch(err){$("loginError").textContent="Login gagal: "+(err.code?.includes("invalid-credential")?"Email atau password salah.":err.message);$("loginError").classList.remove("hidden")}
+  });
+  $("logoutBtn").onclick=()=>signOut(auth);
+  $("mobileMenu").onclick=()=>$("sidebar").classList.toggle("open");
+
+  onAuthStateChanged(auth,async user=>{
+    state.unsubs.forEach(u=>u());state.unsubs=[];
+    try{
+      if(!user){
+        state.user=null;state.profile=null;
+        $("loginPage").classList.remove("hidden");$("app").classList.add("hidden");
+        return;
+      }
+      state.user=user;
+      const p=await getDoc(doc(db,"users",user.uid));
+      state.profile=p.exists()?p.data():{name:user.email,role:"staff"};
+      $("userName").textContent=state.profile.name||user.email;
+      $("userRole").textContent=state.profile.role||"staff";
+      $("shiftStaff").textContent=state.profile.name||user.email;
+      $("loginPage").classList.add("hidden");$("app").classList.remove("hidden");
+      subscribeAll();
+    }catch(err){
+      console.error("Auth initialization failed:",err);
+      $("loginPage").classList.remove("hidden");$("app").classList.add("hidden");
+      $("loginError").textContent="Sistem gagal dimuatkan: "+(err.message||"Unknown error");
+      $("loginError").classList.remove("hidden");
+    }finally{
+      hidePosSplash();
+    }
+  });
+
+  function sub(name,sort="createdAt"){
+    const u=onSnapshot(query(collection(db,name),orderBy(sort,"desc")),snap=>{state[name]=snap.docs.map(d=>({id:d.id,...d.data()}));refresh()},err=>console.warn(name,err));
+    state.unsubs.push(u)
+  }
+  function subscribeAll(){
+    const up=onSnapshot(query(collection(db,"products"),orderBy("name")),snap=>{state.products=snap.docs.map(d=>({id:d.id,...d.data()}));refresh()},err=>toast("Products: "+err.message));
+    state.unsubs.push(up);["inventoryUnits","sales","buys","trades","repairs","shifts","cashMoves"].forEach(n=>sub(n))
+  }
+
+  const pages={
+    overview:["Overview","Ringkasan operasi Meney."],pos:["POS / Sales","Sell flow lengkap."],buy:["Buy From Customer","QC, offer dan stock in."],
+    trade:["Trade-In","Tolak nilai dan kira baki."],repairs:["Repairs","Repair ticket dan status."],inventory:["Inventory","Serial number tracking."],receipts:["Transactions & Receipts","Semua bill dan kawalan pembatalan."],
+    customers:["Customers","Database customer."],reports:["Reports","Profit & analytics."],shift:["Current Shift","Cash register."],settings:["Settings","Application settings."]
+  };
+  document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>showPage(b.dataset.go));
+  function showPage(n){
+    document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+n).classList.remove("hidden");
+    document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===n));
+    $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
+  }
+
+  function refresh(){populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts()}
+  function populateCategories(){
+    const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort();
+    ["posCategory","inventoryCategory"].forEach(id=>{const old=$(id).value;$(id).innerHTML='<option value="">All Category</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");$(id).value=old})
+  }
+
+  $("posSearch").oninput=renderProducts;$("posCategory").onchange=renderProducts;
+  function renderProducts(){
+    const t=$("posSearch").value.toLowerCase(),c=$("posCategory").value;
+    const arr=state.products.filter(p=>(!t||`${p.name} ${p.sku} ${p.serial}`.toLowerCase().includes(t))&&(!c||p.category===c)&&Number(p.stock)>0);
+    $("productList").innerHTML=arr.length?arr.map(p=>`<div class="product-row"><div><h4>${esc(p.name)}</h4><p>${esc(p.sku)}${p.category?` · ${esc(p.category)}`:""}</p><div class="product-meta"><span class="product-chip ${(p.itemType||"Used").toLowerCase()}">${esc(p.itemType||"Used")}</span><span class="product-chip stock">Stock ${Number(p.stock||0)}</span></div></div><div style="display:flex;align-items:center;gap:10px"><span class="price">${money(p.price)}</span><button class="add-mini" onclick="window.addCart('${p.id}')">Add</button></div></div>`).join(""):'<div class="muted" style="padding:25px;text-align:center">Tiada produk.</div>' 
+  }
+
+  window.addCart=id=>{
+    const p=state.products.find(x=>x.id===id);if(!p)return;const item=state.cart.find(x=>x.productId===id);
+    if(item){if(item.qty>=Number(p.stock))return toast("Stok tak cukup.");item.qty++}else state.cart.push({productId:id,name:p.name,sku:p.sku,price:Number(p.price),cost:Number(p.cost||0),qty:1,stock:Number(p.stock),warranty:""});
+    renderCart()
+  };
+  window.cartQty=(id,d)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;const n=i.qty+d;if(n<1)state.cart=state.cart.filter(x=>x.productId!==id);else if(n<=i.stock)i.qty=n;renderCart()};
+  window.removeCart=id=>{state.cart=state.cart.filter(x=>x.productId!==id);renderCart()};
+  window.cartWarranty=(id,value)=>{const i=state.cart.find(x=>x.productId===id);if(i)i.warranty=String(value||"").trimStart()};
+  $("clearCart").onclick=()=>{state.cart=[];renderCart()};
+  $("saleDiscount").oninput=()=>{renderCart();renderSplitPaymentSummary()};
+
+  const paymentMethods=["Cash","QR / DuitNow","Bank Transfer","Card"];
+  let splitPayments=[];
+  function addSplitPaymentRow(method="Cash",amount=0){
+    splitPayments.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),method,amount:Number(amount||0)});
+    renderSplitPaymentRows();
+  }
+  function resetSplitPayments(){splitPayments=[];addSplitPaymentRow("Cash",0);addSplitPaymentRow("QR / DuitNow",0)}
+  function renderSplitPaymentRows(){
+    $("splitPaymentRows").innerHTML=splitPayments.map((p,index)=>`<div class="split-payment-row">
+      <div class="field"><label>Method ${index+1}</label><select data-split-method="${p.id}">${paymentMethods.map(m=>`<option ${m===p.method?"selected":""}>${m}</option>`).join("")}</select></div>
+      <div class="field"><label>Amount (RM)</label><input data-split-amount="${p.id}" type="number" min="0" step=".01" value="${Number(p.amount||0)}"></div>
+      <button type="button" class="split-payment-remove" data-remove-split="${p.id}" title="Remove payment">×</button>
+    </div>`).join("");
+    document.querySelectorAll("[data-split-method]").forEach(el=>el.onchange=()=>{const p=splitPayments.find(x=>x.id===el.dataset.splitMethod);if(p)p.method=el.value;renderSplitPaymentSummary()});
+    document.querySelectorAll("[data-split-amount]").forEach(el=>el.oninput=()=>{const p=splitPayments.find(x=>x.id===el.dataset.splitAmount);if(p)p.amount=Math.max(0,Number(el.value||0));renderSplitPaymentSummary()});
+    document.querySelectorAll("[data-remove-split]").forEach(el=>el.onclick=()=>{if(splitPayments.length<=2)return toast("Split payment perlukan sekurang-kurangnya 2 kaedah.");splitPayments=splitPayments.filter(x=>x.id!==el.dataset.removeSplit);renderSplitPaymentRows()});
+    renderSplitPaymentSummary();
+  }
+  function splitPaymentData(){return splitPayments.filter(p=>Number(p.amount)>0).map(p=>({method:p.method,amount:Number(Number(p.amount).toFixed(2))}))}
+  function renderSplitPaymentSummary(){
+    if(!$("splitPaymentBox"))return;
+    const total=totals().total,paid=splitPaymentData().reduce((sum,p)=>sum+p.amount,0),difference=Number((paid-total).toFixed(2));
+    $("splitTotalPaid").textContent=money(paid);$("splitBalance").textContent=money(Math.abs(difference));
+    const box=$("splitPaymentStatus");
+    if(Math.abs(difference)<0.01&&total>0){box.className="payment-status ok";box.textContent="✓ Payment complete. Amount matches sale total."}
+    else if(difference<0){box.className="payment-status bad";box.textContent=`Remaining ${money(Math.abs(difference))}` }
+    else{box.className="payment-status warn";box.textContent=`Overpaid ${money(difference)} — adjust the amount before confirming.`}
+  }
+  $("salePayment").onchange=()=>{const split=$("salePayment").value==="Split Payment";$("splitPaymentBox").classList.toggle("hidden",!split);if(split&&!splitPayments.length)resetSplitPayments();renderSplitPaymentSummary()};
+  $("addSplitPayment").onclick=()=>addSplitPaymentRow("Cash",0);
+
+  function totals(){const sub=state.cart.reduce((s,i)=>s+i.price*i.qty,0),disc=Math.min(Math.max(Number($("saleDiscount").value||0),0),sub);return{sub,disc,total:sub-disc}}
+  function renderCart(){
+    $("cartCount").textContent=state.cart.reduce((s,i)=>s+i.qty,0)+" item";
+    $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div><div class="field" style="margin-top:10px">
+  <label>Warranty for this item <span class="muted">(optional)</span></label>
+  <input class="cart-warranty-input" data-product-id="${esc(i.productId)}" value="${esc(i.warranty||"")}" oninput="window.cartWarranty('${i.productId}',this.value)" onchange="window.cartWarranty('${i.productId}',this.value)" placeholder="Leave blank / No Warranty / e.g. 30 Days Shop Warranty">
+  <span class="field-help">Warranty ini khusus untuk item ini dan akan tertera pada receipt.</span>
+</div></div>`).join(""):'<div class="muted" style="padding:28px;text-align:center">Cart kosong.</div>';
+    const t=totals();$("saleSubtotal").textContent=money(t.sub);$("saleDiscountText").textContent=money(t.disc);$("saleTotal").textContent=money(t.total);renderSplitPaymentSummary()
+  }
+
+  $("completeSale").onclick=async()=>{
+    // Force-sync every visible warranty field before saving or generating receipt.
+    document.querySelectorAll(".cart-warranty-input").forEach(input=>{
+      const item=state.cart.find(x=>x.productId===input.dataset.productId);
+      if(item)item.warranty=String(input.value||"").trim();
+    });
+    if(!state.cart.length)return toast("Cart kosong.");
+    const t=totals(),isSplit=$("salePayment").value==="Split Payment",payments=isSplit?splitPaymentData():[{method:$("salePayment").value,amount:Number(t.total.toFixed(2))}],totalPaid=payments.reduce((sum,p)=>sum+Number(p.amount||0),0);
+    if(t.total<=0)return toast("Jumlah jualan mesti lebih daripada RM0.");
+    if(isSplit){
+      if(payments.length<2)return toast("Masukkan sekurang-kurangnya 2 pecahan bayaran.");
+      if(Math.abs(totalPaid-t.total)>=0.01)return toast(totalPaid<t.total?`Bayaran belum cukup: ${money(t.total-totalPaid)}`:`Bayaran terlebih: ${money(totalPaid-t.total)}`);
+    }
+    const btn=$("completeSale");btn.disabled=true;btn.textContent="Processing...";
+    const saleRef=doc(collection(db,"sales"));let receipt="";
+    try{
+      await runTransaction(db,async tx=>{
+        // Firestore requires every read to happen before the first write.
+        // Read and validate all product stocks first.
+        const refs=state.cart.map(i=>doc(db,"products",i.productId)),snaps=[];
+        for(const r of refs)snaps.push(await tx.get(r));
+        snaps.forEach((s,k)=>{if(!s.exists()||Number(s.data().stock)<state.cart[k].qty)throw new Error("Stok tidak mencukupi")});
+
+        // Generate the invoice number inside the same atomic transaction.
+        // If stock validation or sale saving fails, the counter is rolled back too.
+        receipt=await nextDocumentNumber(tx,"invoice","INV");
+
+        refs.forEach((r,k)=>{const newStock=Number(snaps[k].data().stock)-state.cart[k].qty;tx.update(r,{stock:newStock,status:newStock>0?"Available":"No Stock",updatedAt:serverTimestamp()})});
+        tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,warranty:String(i.warranty||"").trim(),lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
+          paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:nowDate(),shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})
+      });
+      const completedItems=state.cart.map(i=>({
+        name:i.name,
+        detail:i.sku,
+        warranty:String(i.warranty||"").trim(),
+        qty:i.qty,
+        unitPrice:i.price,
+        total:i.price*i.qty
+      }));
+      const customer=$("saleCustomer").value.trim(),phone=$("salePhone").value.trim(),payment=payments.map(p=>`${p.method}: ${money(p.amount)}`).join(" · ");
+      state.cart=[];$("saleDiscount").value=0;$("saleCustomer").value="";$("salePhone").value="";$("salePayment").value="Cash";$("splitPaymentBox").classList.add("hidden");resetSplitPayments();renderCart();toast("Payment successful · "+receipt);
+      showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:""})
+    }catch(err){toast("Sale gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Payment"}
+  };
+
+  const QC_TEMPLATES={
+    Console:["Power On","HDMI Output","Disc Drive","USB Port","LAN Port","Wi-Fi","Bluetooth","Controller Pairing","Fan Noise","Overheating","Storage Capacity","Cosmetic Condition","Warranty Sticker","Factory Reset Done"],
+    Controller:["Left Analog","Right Analog","L1 / R1","L2 / R2","D-Pad","Face Buttons","Touchpad / Home Button","Vibration","Charging","Wireless Connection","Stick Drift","Cosmetic Condition"],
+    Games:["Original Disc / Cartridge","Surface Condition","Read Successfully","Game Launch Test","Cover Included","Manual Included"],
+    Accessories:["Physical Condition","Function Test","Cable Complete","Charger Included","Connection Test","Cosmetic Condition"],
+    "Repair Parts":["Correct Part","Physical Condition","Continuity / Function Test","Connector Condition"],
+    Others:["Physical Condition","Function Test","Accessories Complete"]
+  };
+  const buyUid=()=>crypto.randomUUID?crypto.randomUUID():`buy-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  function defaultQc(category){return Object.fromEntries((QC_TEMPLATES[category]||QC_TEMPLATES.Others).map(name=>[name,{status:"pass",remark:""}]))}
+  function newBuyItem(){return{id:buyUid(),productId:"",name:"",category:"Console",itemType:"Used",serial:"",buyPrice:0,notes:"",qc:defaultQc("Console"),showSuggestions:false}}
+  function buyTotal(){return state.buyItems.reduce((sum,i)=>sum+Number(i.buyPrice||0),0)}
+  function productSearchResults(item){
+    const q=normalizeText(item.name);if(!q)return [];
+    return state.products.filter(p=>normalizeText(`${p.name} ${p.sku} ${p.category}`).includes(q)).slice(0,7)
+  }
+  function serialOwner(serial){
+    const key=normalizeSerial(serial);if(!key)return null;
+    return state.inventoryUnits.find(u=>normalizeSerial(u.serialNumber||u.serial)===key&&u.status!=="cancelled")||duplicateSerial(serial)
+  }
+  function renderBuyItems(){
+    const holder=$("buyItemList");if(!holder)return;
+    holder.innerHTML=state.buyItems.length?state.buyItems.map((item,index)=>{
+      const selected=state.products.find(p=>p.id===item.productId),results=productSearchResults(item);
+      const qcs=Object.entries(item.qc||{}).map(([name,result])=>`<div class="qc-row"><label>${esc(name)}</label><select data-buy-qc-status="${item.id}" data-qc-name="${esc(name)}"><option value="pass" ${result.status==="pass"?"selected":""}>✅ Pass</option><option value="fail" ${result.status==="fail"?"selected":""}>❌ Fail</option><option value="na" ${result.status==="na"?"selected":""}>➖ N/A</option></select><input data-buy-qc-remark="${item.id}" data-qc-name="${esc(name)}" value="${esc(result.remark||"")}" placeholder="Remark${result.status==="fail"?" wajib jika fail":" (optional)"}"></div>`).join("");
+      return `<div class="buy-item-card" data-buy-card="${item.id}">
+        <div class="buy-item-head"><div><h4>Item ${index+1}</h4><p>${selected?`Existing SKU · ${esc(selected.sku||"")}`:"New product if no existing product is selected"}</p></div>${state.buyItems.length>1?`<button class="btn btn-danger" type="button" data-remove-buy="${item.id}">Remove</button>`:""}</div>
+        <div class="two">
+          <div class="field buy-product-search"><label>Search Product / SKU</label><input data-buy-name="${item.id}" value="${esc(item.name)}" autocomplete="off" placeholder="Contoh: PS4 Slim 1TB"><div class="buy-suggestions ${item.showSuggestions&&item.name?"":"hidden"}">${results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")}${results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${item.id}"><strong>＋ Create New Product</strong><span>Tiada produk sepadan ditemui</span></button>`}</div></div>
+          <div class="field"><label>Category</label><select data-buy-category="${item.id}" ${selected?"disabled":""}>${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===item.category?"selected":""}>${c}</option>`).join("")}</select></div>
+        </div>
+        ${selected?`<div class="selected-product"><div><strong>${esc(selected.name)}</strong><span>Using existing product · ${esc(selected.sku||"")}</span></div><button type="button" class="btn btn-light" data-clear-buy-product="${item.id}">Change</button></div>`:`<div class="new-product-note">Produk baru akan dicipta hanya jika tiada produk sedia ada dipilih. Sistem akan jana SKU automatik.</div>`}
+        <div class="three" style="margin-top:12px">
+          <div class="field"><label>Item Type</label><select data-buy-type="${item.id}"><option value="Used" ${item.itemType==="Used"?"selected":""}>Used</option><option value="New" ${item.itemType==="New"?"selected":""}>New</option></select></div>
+          <div class="field"><label>Serial Number</label><input data-buy-serial="${item.id}" value="${esc(item.serial)}" placeholder="Kosongkan jika tiada"></div>
+          <div class="field"><label>Buying Price (RM)</label><input data-buy-price="${item.id}" type="number" min="0" step=".01" value="${Number(item.buyPrice||0)}"></div>
+        </div>
+        <div class="field"><label>Item Notes</label><input data-buy-notes="${item.id}" value="${esc(item.notes||"")}" placeholder="Aksesori termasuk, keadaan kosmetik atau catatan lain"></div>
+        <div class="qc-panel"><div class="qc-panel-head"><strong>Smart QC · ${esc(item.category)}</strong><span>Pass / Fail / N/A</span></div><div class="qc-grid">${qcs}</div></div>
+      </div>`
+    }).join(""):'<div class="buy-empty">Belum ada item.</div>';
+    bindBuyItemEvents();renderBuySummary();
+  }
+  function bindBuyItemEvents(){
+    document.querySelectorAll("[data-buy-name]").forEach(el=>{
+      const refreshSuggestions=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyName);if(!i)return;i.name=el.value;i.productId="";i.showSuggestions=true;const box=el.parentElement.querySelector(".buy-suggestions"),results=productSearchResults(i);if(!box)return;box.classList.toggle("hidden",!i.name);box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")+(results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${i.id}"><strong>＋ Create New Product</strong><span>Tiada produk sepadan ditemui</span></button>`);box.querySelectorAll("[data-select-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.selectBuyProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!item||!product)return;item.productId=product.id;item.name=product.name;item.category=product.category||"Others";item.itemType=product.itemType||"Used";item.qc=defaultQc(item.category);item.showSuggestions=false;renderBuyItems()});box.querySelectorAll("[data-create-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.createBuyProduct);if(item){item.productId="";item.showSuggestions=false;renderBuyItems()}})};
+      el.oninput=refreshSuggestions;el.onfocus=refreshSuggestions;
+    });
+    document.querySelectorAll("[data-select-buy-product]").forEach(el=>el.onclick=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.selectBuyProduct),p=state.products.find(x=>x.id===el.dataset.productId);if(!i||!p)return;i.productId=p.id;i.name=p.name;i.category=p.category||"Others";i.itemType=p.itemType||"Used";i.qc=defaultQc(i.category);i.showSuggestions=false;renderBuyItems()});
+    document.querySelectorAll("[data-create-buy-product]").forEach(el=>el.onclick=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.createBuyProduct);if(i){i.productId="";i.showSuggestions=false;renderBuyItems()}});
+    document.querySelectorAll("[data-clear-buy-product]").forEach(el=>el.onclick=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.clearBuyProduct);if(i){i.productId="";i.showSuggestions=false;renderBuyItems()}});
+    document.querySelectorAll("[data-remove-buy]").forEach(el=>el.onclick=()=>{state.buyItems=state.buyItems.filter(x=>x.id!==el.dataset.removeBuy);renderBuyItems()});
+    document.querySelectorAll("[data-buy-category]").forEach(el=>el.onchange=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyCategory);if(i){i.category=el.value;i.qc=defaultQc(el.value);renderBuyItems()}});
+    document.querySelectorAll("[data-buy-type]").forEach(el=>el.onchange=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyType);if(i)i.itemType=el.value});
+    document.querySelectorAll("[data-buy-serial]").forEach(el=>el.oninput=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buySerial);if(i)i.serial=el.value});
+    document.querySelectorAll("[data-buy-price]").forEach(el=>el.oninput=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyPrice);if(i){i.buyPrice=Math.max(0,Number(el.value||0));renderBuySummary()}});
+    document.querySelectorAll("[data-buy-notes]").forEach(el=>el.oninput=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyNotes);if(i)i.notes=el.value});
+    document.querySelectorAll("[data-buy-qc-status]").forEach(el=>el.onchange=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyQcStatus);if(i&&i.qc[el.dataset.qcName]){i.qc[el.dataset.qcName].status=el.value;renderBuyItems()}});
+    document.querySelectorAll("[data-buy-qc-remark]").forEach(el=>el.oninput=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyQcRemark);if(i&&i.qc[el.dataset.qcName])i.qc[el.dataset.qcName].remark=el.value});
+  }
+  function renderBuySummary(){
+    if(!$("buySummaryItems"))return;
+    $("buyItemCount").textContent=`${state.buyItems.length} item`;
+    $("buySummaryItems").innerHTML=state.buyItems.length?state.buyItems.map((i,k)=>`<div class="buy-summary-line"><strong>${k+1}. ${esc(i.name||"Unnamed item")}</strong><span>${money(i.buyPrice)}</span></div>`).join(""):'<div class="muted" style="font-size:11px">Belum ada item.</div>';
+    $("buyGrandTotal").textContent=money(buyTotal());
+  }
+  function resetBuyDraft(){state.buyItems=[newBuyItem()];$("buyCustomer").value="";$("buyPhone").value="";$("buyPayment").value="Cash";renderBuyItems()}
+  $("addBuyItem").onclick=()=>{state.buyItems.push(newBuyItem());renderBuyItems()};
+  $("clearBuyDraft").onclick=()=>{if(confirm("Clear semua item dalam draft Buy From Customer?"))resetBuyDraft()};
+  resetBuyDraft();
+
+  $("buyForm").onsubmit=async e=>{
+    e.preventDefault();
+    const customer=$("buyCustomer").value.trim(),phone=$("buyPhone").value.trim(),paymentMethod=$("buyPayment").value;
+    if(!customer)return toast("Masukkan nama customer.");
+    if(!state.buyItems.length)return toast("Tambah sekurang-kurangnya satu item.");
+    const items=state.buyItems.map(i=>({...i,name:i.name.trim(),serial:i.serial.trim(),notes:i.notes.trim(),buyPrice:Number(i.buyPrice||0)}));
+    for(const i of items){
+      if(!i.name)return toast("Setiap item mesti mempunyai nama produk.");
+      if(i.buyPrice<=0)return toast(`Masukkan Buying Price untuk ${i.name}.`);
+      const dup=serialOwner(i.serial);if(dup)return toast(`Serial ${i.serial} sudah wujud dalam inventory.`);
+      const duplicateInDraft=i.serial&&items.filter(x=>normalizeSerial(x.serial)===normalizeSerial(i.serial)).length>1;if(duplicateInDraft)return toast(`Serial ${i.serial} berulang dalam transaksi ini.`);
+      const failedWithoutRemark=Object.entries(i.qc||{}).find(([,r])=>r.status==="fail"&&!String(r.remark||"").trim());if(failedWithoutRemark)return toast(`Remark wajib untuk QC gagal: ${failedWithoutRemark[0]} (${i.name}).`);
+      if(!i.productId){const exact=state.products.find(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category&&(p.itemType||"Used")===i.itemType);if(exact)return toast(`${i.name} sudah wujud. Sila pilih SKU sedia ada daripada dropdown.`)}
+    }
+    const btn=$("completeBuy");btn.disabled=true;btn.textContent="Processing...";
+    const buyRef=doc(collection(db,"buys")),prepared=[];let buyNo="";
+    try{
+      buyNo=await reserveDocumentNumber("buy","BUY");
+      for(const i of items){
+        const sku=i.productId?(state.products.find(p=>p.id===i.productId)?.sku||""):await reserveSku(i.category);
+        const productRef=i.productId?doc(db,"products",i.productId):doc(collection(db,"products"));
+        const unitRef=doc(collection(db,"inventoryUnits"));
+        prepared.push({...i,sku,productId:productRef.id,productRef,unitRef,inventoryUnitId:unitRef.id,inventoryAction:i.productId?"merged":"created"});
+      }
+      await runTransaction(db,async tx=>{
+        const uniqueExisting=[...new Map(prepared.filter(i=>i.inventoryAction==="merged").map(i=>[i.productId,i.productRef])).values()],snaps=new Map();
+        for(const ref of uniqueExisting){const snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk sedia ada tidak ditemui");snaps.set(ref.id,snap)}
+        const groups=new Map();prepared.forEach(i=>{if(i.inventoryAction==="merged"){if(!groups.has(i.productId))groups.set(i.productId,[]);groups.get(i.productId).push(i)}});
+        for(const [productId,group] of groups){
+          const snap=snaps.get(productId),data=snap.data(),oldQty=Number(data.stock||0),incomingQty=group.length,incomingTotal=group.reduce((a,i)=>a+i.buyPrice,0),incomingAvg=incomingTotal/incomingQty,averageCost=weightedAverageCost(oldQty,data.cost,incomingQty,incomingAvg);
+          tx.update(group[0].productRef,{stock:oldQty+incomingQty,status:"Available",cost:averageCost,lastIncomingCost:incomingAvg,lastIncomingQty:incomingQty,previousCost:Number(data.cost||0),intakeHistory:[...(data.intakeHistory||[]),...group.map(i=>({source:"buy",buyNo,itemType:i.itemType,qty:1,cost:i.buyPrice,serial:i.serial||"",recordedAt:new Date().toISOString()}))],updatedAt:serverTimestamp()});
+        }
+        prepared.filter(i=>i.inventoryAction==="created").forEach(i=>tx.set(i.productRef,{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,status:"Pricing Required",cost:i.buyPrice,price:0,stock:1,lowStock:1,serial:"",intakeHistory:[{source:"buy",buyNo,itemType:i.itemType,qty:1,cost:i.buyPrice,serial:i.serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid}));
+        prepared.forEach(i=>tx.set(i.unitRef,{unitId:i.inventoryUnitId,productId:i.productId,sku:i.sku,productName:i.name,category:i.category,itemType:i.itemType,serialNumber:i.serial||"",costPrice:i.buyPrice,sourceType:"customer_purchase",sourceTransactionId:buyRef.id,buyNo,status:i.inventoryAction==="created"?"pricing_required":"available",qcResults:i.qc,notes:i.notes||"",createdAt:serverTimestamp(),createdBy:state.user.uid}));
+        const totalAmount=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
+        tx.set(buyRef,{buyNo,customer,phone,paymentMethod,totalAmount,itemCount:prepared.length,items:prepared.map(i=>({productId:i.productId,inventoryUnitId:i.inventoryUnitId,name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,serial:i.serial,buyPrice:i.buyPrice,inventoryAction:i.inventoryAction,qcResults:i.qc,notes:i.notes||""})),status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",createdAt:serverTimestamp()});
+      });
+      const total=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
+      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer,phone,staff:state.profile.name||state.user.email,items:prepared.map(i=>({name:i.name,detail:`${i.itemType} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:i.buyPrice,total:i.buyPrice})),totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:paymentMethod,note:""});
+      resetBuyDraft();toast(`${buyNo} complete · ${prepared.length} item stock in`)
+    }catch(err){console.error(err);toast("Buy gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Complete Purchase & Stock In"}
+  };
+
+  function populateTradeProducts(){
+    const select=$("tradeNewProduct"),old=select.value;
+    select.innerHTML='<option value="">Select product</option>'+state.products
+      .filter(p=>Number(p.stock||0)>0)
+      .map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.itemType||"Used")}) — ${money(p.price)} · Stock ${Number(p.stock||0)}</option>`).join("");
+    if(state.products.some(p=>p.id===old&&Number(p.stock||0)>0))select.value=old;
+    updateTradeOutSelection();
+    calcTrade();
+  }
+
+  function updateTradeOutSelection(){
+    const p=state.products.find(x=>x.id===$("tradeNewProduct").value);
+    if(p){
+      $("tradeOutPrice").value=Number(p.price||0).toFixed(2);
+      $("tradeNewInfo").innerHTML=`<span>Available stock: ${Number(p.stock||0)} · ${esc(p.sku||"")}</span><strong>${money(p.price||0)}</strong>`;
+    }else{
+      $("tradeOutPrice").value="";
+      $("tradeNewInfo").innerHTML='<span>Select a product</span><strong>RM0.00</strong>';
+    }
+  }
+  $("tradeNewProduct").addEventListener("change",updateTradeOutSelection);
+
+  function tradeTotals(){
+    const stockIn=state.tradeInItems.reduce((s,i)=>s+Number(i.tradeValue||0),0);
+    const stockOut=state.tradeOutItems.reduce((s,i)=>s+(Number(i.price||0)*Number(i.qty||0)),0);
+    return {stockIn,stockOut,balance:stockOut-stockIn};
+  }
+
+  function calcTrade(){
+    const {stockIn,stockOut,balance}=tradeTotals();
+    $("tradeNewPrice").textContent=money(stockOut);
+    $("tradeValueText").textContent=money(stockIn);
+    $("tradeBalance").textContent=money(Math.abs(balance));
+    $("tradeBalanceLabel").textContent=balance>0?"Customer Pays":balance<0?"Meney Pays Customer":"Even Trade";
+    if(balance===0)$("tradePayment").value="No Payment / Even Trade";
+    $("tradeInCount").textContent=`${state.tradeInItems.reduce((s,i)=>s+Number(i.qty||0),0)} unit · ${state.tradeInItems.length} line item`;
+    $("tradeOutCount").textContent=`${state.tradeOutItems.reduce((s,i)=>s+Number(i.qty||0),0)} unit · ${state.tradeOutItems.length} line item`;
+    renderTradeItems();
+  }
+
+  function renderTradeItems(){
+    $("tradeInBody").innerHTML=state.tradeInItems.length?state.tradeInItems.map((i,k)=>`<tr>
+      <td><strong>${esc(i.name)}</strong><br><span class="muted">${esc(i.category)} · ${esc(i.itemType||"Used")}${i.serial?" · S/N "+esc(i.serial):""}<br>Expected sell: ${money(i.sellPrice)} / unit</span></td>
+      <td>${i.qty}</td><td>${money(i.tradeValue)}</td>
+      <td><button type="button" class="btn btn-light" style="padding:6px 8px" onclick="window.editTradeIn(${k})">Edit</button> <button type="button" class="btn btn-danger" style="padding:6px 8px" onclick="window.removeTradeIn(${k})">Delete</button></td></tr>`).join(""):'<tr><td colspan="4" class="muted">Belum ada item Stock In.</td></tr>';
+    $("tradeOutBody").innerHTML=state.tradeOutItems.length?state.tradeOutItems.map((i,k)=>`<tr>
+      <td><strong>${esc(i.name)}</strong><br><span class="muted">${esc(i.sku||"")}${i.serial?" · S/N "+esc(i.serial):""}<br>${money(i.price)} / unit</span></td>
+      <td>${i.qty}</td><td>${money(Number(i.price)*Number(i.qty))}</td>
+      <td><button type="button" class="btn btn-light" style="padding:6px 8px" onclick="window.editTradeOut(${k})">Edit</button> <button type="button" class="btn btn-danger" style="padding:6px 8px" onclick="window.removeTradeOut(${k})">Delete</button></td></tr>`).join(""):'<tr><td colspan="4" class="muted">Belum ada item Stock Out.</td></tr>';
+  }
+
+  function resetTradeInInputs(){
+    $("tradeItem").value="";$("tradeSerial").value="";$("tradeInQty").value=1;$("tradeValue").value="";$("tradeSellPrice").value="";$("tradeCategory").value="Console";$("tradeItemType").value="Used";
+    delete $("addTradeInItem").dataset.editIndex;$("addTradeInItem").textContent="＋ Add to Stock In List";
+  }
+  function resetTradeOutInputs(){
+    $("tradeNewProduct").value="";$("tradeOutQty").value=1;$("tradeOutPrice").value="";updateTradeOutSelection();
+    delete $("addTradeOutItem").dataset.editIndex;$("addTradeOutItem").textContent="＋ Add to Stock Out List";
+  }
+  function clearTradeDraft(confirmFirst=true){
+    if(confirmFirst&&(state.tradeInItems.length||state.tradeOutItems.length)&&!confirm("Clear semua item dalam draft Trade-In?"))return;
+    state.tradeInItems=[];state.tradeOutItems=[];resetTradeInInputs();resetTradeOutInputs();calcTrade();
+  }
+  $("clearTradeDraft").addEventListener("click",()=>clearTradeDraft(true));
+
+  window.removeTradeIn=k=>{state.tradeInItems.splice(k,1);calcTrade()};
+  window.removeTradeOut=k=>{state.tradeOutItems.splice(k,1);calcTrade()};
+  window.editTradeIn=k=>{
+    const i=state.tradeInItems[k];if(!i)return;
+    $("tradeItem").value=i.name;$("tradeCategory").value=i.category;$("tradeItemType").value=i.itemType||"Used";$("tradeSerial").value=i.serial||"";$("tradeInQty").value=i.qty;$("tradeValue").value=i.tradeValue;$("tradeSellPrice").value=i.sellPrice;
+    $("addTradeInItem").dataset.editIndex=String(k);$("addTradeInItem").textContent="Save Stock In Changes";
+  };
+  window.editTradeOut=k=>{
+    const i=state.tradeOutItems[k];if(!i)return;
+    $("tradeNewProduct").value=i.productId;$("tradeOutQty").value=i.qty;$("tradeOutPrice").value=i.price;updateTradeOutSelection();$("tradeOutPrice").value=i.price;
+    $("addTradeOutItem").dataset.editIndex=String(k);$("addTradeOutItem").textContent="Save Stock Out Changes";
+  };
+
+  $("addTradeInItem").addEventListener("click",()=>{
+    const name=$("tradeItem").value.trim(),category=$("tradeCategory").value,itemType=$("tradeItemType").value,serial=$("tradeSerial").value.trim();
+    const qty=Number($("tradeInQty").value),tradeValue=Number($("tradeValue").value),sellPrice=Number($("tradeSellPrice").value);
+    if(!name)return toast("Masukkan nama item Stock In.");
+    if(!Number.isInteger(qty)||qty<1)return toast("Quantity Stock In mesti nombor bulat sekurang-kurangnya 1.");
+    if($("tradeValue").value===""||!Number.isFinite(tradeValue)||tradeValue<0)return toast("Masukkan Total Trade Value yang sah.");
+    if($("tradeSellPrice").value===""||!Number.isFinite(sellPrice)||sellPrice<0)return toast("Masukkan Expected Sell Price yang sah.");
+    if(serial&&qty!==1)return toast("Item dengan serial number mesti quantity 1.");
+    const editIndex=$("addTradeInItem").dataset.editIndex;
+    const duplicate=duplicateSerial(serial);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
+    if(serial&&state.tradeInItems.some((i,k)=>String(k)!==String(editIndex)&&normalizeSerial(i.serial)===normalizeSerial(serial)))return toast("Serial number duplicate dalam draft ini.");
+    const row={name,category,itemType,serial,qty,tradeValue:Number(tradeValue.toFixed(2)),sellPrice:Number(sellPrice.toFixed(2))};
+    if(editIndex!==undefined)state.tradeInItems[Number(editIndex)]=row;else state.tradeInItems.push(row);
+    resetTradeInInputs();calcTrade();toast("Item ditambah ke Stock In list.");
+  });
+
+  $("addTradeOutItem").addEventListener("click",()=>{
+    const p=state.products.find(x=>x.id===$("tradeNewProduct").value),qty=Number($("tradeOutQty").value),price=Number($("tradeOutPrice").value);
+    if(!p)return toast("Pilih item Meney untuk Stock Out.");
+    if(!Number.isInteger(qty)||qty<1)return toast("Quantity Stock Out mesti nombor bulat sekurang-kurangnya 1.");
+    if($("tradeOutPrice").value===""||!Number.isFinite(price)||price<0)return toast("Masukkan harga Stock Out yang sah.");
+    const editIndex=$("addTradeOutItem").dataset.editIndex;
+    const reserved=state.tradeOutItems.reduce((s,i,k)=>s+(i.productId===p.id&&String(k)!==String(editIndex)?Number(i.qty):0),0);
+    if(reserved+qty>Number(p.stock||0))return toast(`Stok ${p.name} tidak cukup. Available: ${Number(p.stock||0)}, sudah dalam draft: ${reserved}.`);
+    const row={productId:p.id,name:p.name,sku:p.sku||"",serial:p.serial||"",price:Number(price.toFixed(2)),qty};
+    if(editIndex!==undefined)state.tradeOutItems[Number(editIndex)]=row;
+    else{
+      const existingIndex=state.tradeOutItems.findIndex(i=>i.productId===p.id&&Number(i.price)===Number(row.price));
+      if(existingIndex>=0)state.tradeOutItems[existingIndex].qty+=qty;else state.tradeOutItems.push(row);
+    }
+    resetTradeOutInputs();calcTrade();toast("Item ditambah ke Stock Out list.");
+  });
+
+  function buildTradeInventoryPlan(items){
+    const plan=[];
+    for(const raw of items){
+      const item={...raw};
+      const existing=mergeCandidate({name:item.name,category:item.category,itemType:item.itemType||"Used",serial:item.serial});
+      const key=existing?`existing:${existing.id}`:`new:${normalizeText(item.name)}|${item.category}|${item.itemType||"Used"}|${normalizeSerial(item.serial)}`;
+      const row=plan.find(x=>x.key===key);
+      if(row&&!item.serial){
+        const combinedQty=Number(row.qty)+Number(item.qty),combinedValue=Number(row.tradeValue)+Number(item.tradeValue);
+        row.qty=combinedQty;row.tradeValue=Number(combinedValue.toFixed(2));row.sellPrice=item.sellPrice;
+      }else plan.push({...item,key,existingId:existing?.id||null,sku:existing?.sku||null,inventoryAction:existing?"merged":"created"});
+    }
+    return plan;
+  }
+
+  $("tradeForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const completeBtn=$("completeTradeBtn");
+    if(!state.tradeInItems.length)return toast("Tambah sekurang-kurangnya satu item Stock In.");
+    if(!state.tradeOutItems.length)return toast("Tambah sekurang-kurangnya satu item Stock Out.");
+    const customer=$("tradeCustomer").value.trim();if(!customer)return toast("Masukkan nama customer.");
+    const phone=$("tradePhone").value.trim(),paymentMethod=$("tradePayment").value;
+    const rawIn=state.tradeInItems.map(i=>({...i})),outItems=state.tradeOutItems.map(i=>({...i}));
+    const inItems=buildTradeInventoryPlan(rawIn),{stockIn:inTotal,stockOut:outTotal,balance:netBalance}=tradeTotals();
+    const trRef=doc(collection(db,"trades"));let tradeNo="";
+    completeBtn.disabled=true;completeBtn.textContent="Processing Trade-In...";
+    try{
+      tradeNo=await reserveDocumentNumber("trade","TRD");
+      for(const item of inItems){
+        item.productId=item.existingId||doc(collection(db,"products")).id;
+        if(!item.sku)item.sku=await reserveSku(item.category);
+      }
+      await runTransaction(db,async tx=>{
+        const outRefs=outItems.map(i=>doc(db,"products",i.productId));
+        const mergeItems=inItems.filter(i=>i.inventoryAction==="merged");
+        const mergeRefs=mergeItems.map(i=>doc(db,"products",i.productId));
+        const outSnaps=[];for(const ref of outRefs)outSnaps.push(await tx.get(ref));
+        const mergeSnaps=[];for(const ref of mergeRefs)mergeSnaps.push(await tx.get(ref));
+        outItems.forEach((i,k)=>{const snap=outSnaps[k];if(!snap.exists())throw new Error(`Produk ${i.name} tidak ditemui.`);if(Number(snap.data().stock||0)<Number(i.qty))throw new Error(`Stok ${i.name} tidak cukup.`)});
+        mergeItems.forEach((i,k)=>{if(!mergeSnaps[k].exists())throw new Error(`Produk Stock In ${i.name} tidak ditemui.`)});
+        outItems.forEach((i,k)=>{const newStock=Number(outSnaps[k].data().stock||0)-Number(i.qty);tx.update(outRefs[k],{stock:newStock,status:newStock>0?"Available":"No Stock",updatedAt:serverTimestamp()})});
+        let mergeIndex=0;
+        for(const item of inItems){
+          const unitCost=Number(item.tradeValue)/Number(item.qty);
+          if(item.inventoryAction==="merged"){
+            const snap=mergeSnaps[mergeIndex],ref=mergeRefs[mergeIndex++],oldQty=Number(snap.data().stock||0),oldCost=Number(snap.data().cost||0);
+            const averageCost=weightedAverageCost(oldQty,oldCost,item.qty,unitCost);
+            tx.update(ref,{itemType:item.itemType||"Used",stock:oldQty+Number(item.qty),status:"Available",cost:averageCost,lastIncomingCost:unitCost,lastIncomingQty:Number(item.qty),previousCost:oldCost,price:Number(item.sellPrice),intakeHistory:[...(snap.data().intakeHistory||[]),{source:"trade",itemType:item.itemType||"Used",qty:Number(item.qty),cost:unitCost,serial:item.serial||"",recordedAt:new Date().toISOString()}],updatedAt:serverTimestamp()});
+          }else{
+            tx.set(doc(db,"products",item.productId),{name:item.name,sku:item.sku,category:item.category,itemType:item.itemType||"Used",status:"Available",cost:unitCost,price:Number(item.sellPrice),stock:Number(item.qty),lowStock:1,serial:item.serial||"",intakeHistory:[{source:"trade",itemType:item.itemType||"Used",qty:Number(item.qty),cost:unitCost,serial:item.serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid});
+          }
+        }
+        tx.set(trRef,{tradeNo,customer,phone,stockInItems:inItems.map(({key,existingId,...i})=>i),stockOutItems:outItems,totalTradeValue:inTotal,totalStockOut:outTotal,balance:Math.abs(netBalance),netBalance,paymentDirection:netBalance>0?"customer_pays":netBalance<0?"meney_pays":"even_trade",paymentMethod,status:"completed",transactionStatus:"active",staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
+      });
+      const receiptItems=[
+        ...outItems.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:i.price,total:i.price*i.qty})),
+        ...inItems.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:-(i.tradeValue/i.qty),total:-i.tradeValue}))
+      ];
+      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer,phone,staff:state.profile.name||state.user.email,items:receiptItems,totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:netBalance>0?"Amount Paid by Customer":netBalance<0?"Amount Paid by Meney":"Even Trade Balance",value:Math.abs(netBalance),grand:true}],payment:paymentMethod,note:""});
+      state.tradeInItems=[];state.tradeOutItems=[];e.target.reset();resetTradeInInputs();resetTradeOutInputs();calcTrade();toast(`${tradeNo} completed dan receipt dijana.`);
+    }catch(err){console.error("Trade-in error",err);toast("Trade-in gagal: "+err.message)}
+    finally{completeBtn.disabled=false;completeBtn.textContent="Complete Trade-In & Generate Receipt"}
+  });
+
+  $("inventorySearch").oninput=renderInventory;$("inventoryCategory").onchange=renderInventory;
+  function renderInventory(){
+    const t=$("inventorySearch").value.toLowerCase(),c=$("inventoryCategory").value;
+    const arr=state.products.filter(p=>(!t||`${p.name} ${p.sku} ${p.serial}`.toLowerCase().includes(t))&&(!c||p.category===c));
+    $("inventoryBody").innerHTML=arr.length?arr.map(p=>`<tr><td><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.sku)} · ${esc(p.category||"—")}</span></td><td><span class="badge ${(p.itemType||"Used")==="New"?"blue":"orange"}">${esc(p.itemType||"Used")}</span></td><td>${esc(p.serial||"—")}</td><td>${isOwner()?money(p.cost):"Restricted"}</td><td><strong>${money(p.price)}</strong></td><td><span class="badge ${Number(p.stock||0)>0?"green":"gray"}">${Number(p.stock||0)>0?"Available":"No Stock"}</span></td><td>${Number(p.stock||0)}</td><td>${isOwner()?`<button class="btn btn-light" style="padding:7px 9px" onclick="window.editProduct('${p.id}')">Edit</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="window.deleteProduct('${p.id}')">Delete</button>`:"—"}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Belum ada produk.</td></tr>'
+  }
+
+  $("addProductBtn").onclick=()=>openProduct();
+  $("cancelProduct").onclick=()=>closeModal("productModal");
+  $("productModal").onclick=e=>{if(e.target===$("productModal"))closeModal("productModal")};
+  function skuPreview(){return `${skuPrefix($("productCategory").value)}-AUTO`;}
+  function lockSku(value=""){$("productSku").readOnly=true;$("productSku").classList.add("auto-field");$("productSku").value=value||skuPreview();$("unlockSkuBtn").textContent="Unlock";}
+  function openProduct(p=null){
+    state.editingProduct=p?.id||null;$("productModalTitle").textContent=p?"Edit Product":"Add Product";
+    $("productName").value=p?.name||"";$("productCategory").value=p?.category||"Console";$("productItemType").value=p?.itemType||"Used";
+    $("productCost").value=p?.cost??"";$("productPrice").value=p?.price??"";$("productStock").value=p?.stock??1;
+    $("productSerial").value=p?.serial||"";$("productLowStock").value=p?.lowStock??1;lockSku(p?.sku||"");$("productModal").classList.remove("hidden")
+  }
+  $("productCategory").onchange=()=>{if(!state.editingProduct&&$("productSku").readOnly)lockSku()};
+  $("unlockSkuBtn").onclick=()=>{
+    if(!isOwner())return toast("Owner sahaja boleh override SKU.");
+    const unlock=$("productSku").readOnly;$("productSku").readOnly=!unlock;$("productSku").classList.toggle("auto-field",!unlock);$("unlockSkuBtn").textContent=unlock?"Lock":"Unlock";
+    if(unlock&&$("productSku").value.endsWith("-AUTO"))$("productSku").value="";
+    if(unlock)$("productSku").focus();
+  };
+  function closeModal(id){$(id).classList.add("hidden")}
+  window.editProduct=id=>openProduct(state.products.find(p=>p.id===id));
+  window.deleteProduct=async id=>{if(!confirm("Delete product?"))return;try{await deleteDoc(doc(db,"products",id));toast("Product deleted")}catch(e){toast(e.message)}};
+  $("productForm").onsubmit=async e=>{
+    e.preventDefault();
+    const name=$("productName").value.trim(),category=$("productCategory").value,itemType=$("productItemType").value,serial=$("productSerial").value.trim(),stock=Number($("productStock").value);
+    const duplicate=duplicateSerial(serial,state.editingProduct);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
+    const manualSku=!$("productSku").readOnly?$("productSku").value.trim().toUpperCase():"";
+    if(!$("productSku").readOnly&&!manualSku)return toast("Masukkan SKU atau lock semula untuk auto-generate.");
+    const merge=!state.editingProduct?mergeCandidate({name,category,itemType,serial}):null;let finalSku="";
+    try{
+      if(!state.editingProduct&&!merge&&!manualSku)finalSku=await reserveSku(category);
+      await runTransaction(db,async tx=>{
+        if(state.editingProduct){
+          const ref=doc(db,"products",state.editingProduct),snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk tidak ditemui");
+          finalSku=manualSku||snap.data().sku;
+          tx.update(ref,{name,sku:finalSku,category,itemType,status:stock>0?"Available":"No Stock",cost:Number($("productCost").value),price:Number($("productPrice").value),stock,serial,lowStock:Number($("productLowStock").value||1),updatedAt:serverTimestamp(),updatedBy:state.user.uid});
+        }else if(merge){
+          const ref=doc(db,"products",merge.id),snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk sedia ada tidak ditemui");
+          finalSku=snap.data().sku;
+          const oldQty=Number(snap.data().stock||0),incomingCost=Number($("productCost").value),averageCost=weightedAverageCost(oldQty,snap.data().cost,stock,incomingCost);
+          const mergedQty=oldQty+stock;
+          tx.update(ref,{itemType,stock:mergedQty,cost:averageCost,lastIncomingCost:incomingCost,lastIncomingQty:stock,previousCost:Number(snap.data().cost||0),price:Number($("productPrice").value),status:mergedQty>0?"Available":"No Stock",lowStock:Number($("productLowStock").value||1),updatedAt:serverTimestamp(),updatedBy:state.user.uid});
+        }else{
+          finalSku=manualSku||finalSku;
+          const ref=doc(collection(db,"products"));
+          tx.set(ref,{name,sku:finalSku,category,itemType,status:stock>0?"Available":"No Stock",cost:Number($("productCost").value),price:Number($("productPrice").value),stock,serial,lowStock:Number($("productLowStock").value||1),createdAt:serverTimestamp(),createdBy:state.user.uid,updatedAt:serverTimestamp()});
+        }
+      });
+      closeModal("productModal");e.target.reset();toast(state.editingProduct?`Product updated · ${finalSku}`:merge?`Stock merged · ${finalSku}`:`Product created · ${finalSku}`);state.editingProduct=null
+    }catch(err){toast("Save gagal: "+err.message)}
+  };
+
+  $("newRepairBtn").onclick=()=>$("repairModal").classList.remove("hidden");$("cancelRepair").onclick=()=>closeModal("repairModal");
+  $("repairForm").onsubmit=async e=>{
+    e.preventDefault();
+    const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),depositAmount=Number($("repairDeposit").value||0),depositPaymentMethod=$("repairDepositMethod").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
+    if(depositAmount<0)return toast("Deposit tidak boleh negatif.");
+    if(estimate>0&&depositAmount>estimate)return toast("Deposit tidak boleh melebihi anggaran harga repair.");
+    try{
+      const repairRef=doc(collection(db,"repairs"));ticketNo=await reserveDocumentNumber("repair","RPR");
+      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status:"Received",warranty,depositAmount,depositPaymentMethod:depositAmount>0?depositPaymentMethod:"",depositStatus:depositAmount>0?"paid":"none",paymentStatus:depositAmount>0?"deposit_paid":"no_deposit",isSale:false,staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp(),depositPaidAt:depositAmount>0?serverTimestamp():null})});
+      closeModal("repairModal");
+      const totals=[{label:"Estimated Repair Cost",value:estimate}];
+      if(depositAmount>0){totals.push({label:"Deposit Paid",value:depositAmount},{label:"Estimated Balance",value:Math.max(0,estimate-depositAmount),grand:true})}else totals[0].grand=true;
+      showTransactionDocument({title:"REPAIR INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals,payment:depositAmount>0?`Deposit · ${depositPaymentMethod}`:"No deposit received",note:"Please keep this receipt for item collection."});
+      e.target.reset();$("repairDeposit").value=0;toast("Repair intake created · "+ticketNo)
+    }catch(err){toast(err.message)}
+  };
+  function renderRepairs(){
+    $("repairBody").innerHTML=state.repairs.length?state.repairs.map(r=>`<tr><td><strong>${esc(r.ticketNo)}</strong></td><td>${esc(r.customer)}<br><span class="muted">${esc(r.phone||"")}</span></td><td>${esc(r.device)}</td><td>${esc(r.issue)}</td><td><span class="badge ${r.status==="Completed"?"green":r.status==="Ready"?"blue":"orange"}">${esc(r.status)}</span><br><span class="muted">${Number(r.depositAmount||0)>0?`Deposit ${money(r.depositAmount)}`:"No deposit"}</span></td><td>${money(r.status==="Completed"?Number(r.finalPrice||r.estimate||0):Number(r.estimate||0))}</td><td><select ${r.status==="Completed"?"disabled":""} onchange="window.repairStatus('${r.id}',this.value,this)"><option ${r.status==="Received"?"selected":""}>Received</option><option ${r.status==="Diagnosing"?"selected":""}>Diagnosing</option><option ${r.status==="Waiting Approval"?"selected":""}>Waiting Approval</option><option ${r.status==="Waiting Parts"?"selected":""}>Waiting Parts</option><option ${r.status==="In Progress"?"selected":""}>In Progress</option><option ${r.status==="Ready"?"selected":""}>Ready</option><option ${r.status==="Completed"?"selected":""}>Completed</option><option ${r.status==="Cancelled"?"selected":""}>Cancelled</option></select></td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Belum ada repair.</td></tr>'
+  }
+  const repairById=id=>state.repairs.find(r=>r.id===id);
+  function updateCompleteRepairMath(){
+    const price=Number($("completeFinalPrice").value||0),deposit=Number($("completeDeposit").dataset.value||0),spare=Number($("completeSpareCost").value||0),outsource=Number($("completeOutsourceCost").value||0),additional=Number($("completeAdditionalCost").value||0),cost=spare+outsource+additional,profit=price-cost;
+    $("completeBalance").value=money(Math.max(0,price-deposit));$("completeTotalCost").textContent=money(cost);$("completeNetProfit").textContent=money(profit);$("completeMargin").textContent=price>0?`${((profit/price)*100).toFixed(1)}%`:"0%";
+  }
+  function syncRepairCostFields(){
+    const method=$("completeRepairMethod").value;
+    $("spareCostField").classList.toggle("hidden",method==="outsource");$("outsourceCostField").classList.toggle("hidden",method==="internal");
+    if(method==="outsource")$("completeSpareCost").value=0;if(method==="internal")$("completeOutsourceCost").value=0;updateCompleteRepairMath();
+  }
+  ["completeFinalPrice","completeSpareCost","completeOutsourceCost","completeAdditionalCost"].forEach(id=>$(id).addEventListener("input",updateCompleteRepairMath));$("completeRepairMethod").onchange=syncRepairCostFields;
+  $("cancelCompleteRepair").onclick=()=>closeModal("completeRepairModal");
+  window.repairStatus=async(id,status,select)=>{
+    const r=repairById(id);if(!r)return;
+    if(status==="Completed"){
+      if(select)select.value=r.status||"Received";
+      $("completeRepairId").value=id;$("completeFinalPrice").value=Number(r.finalPrice||r.estimate||0);$("completeDeposit").dataset.value=Number(r.depositAmount||0);$("completeDeposit").value=money(Number(r.depositAmount||0));$("completeWarranty").value=r.warranty||"";$("completeRepairMethod").value=r.repairMethod||"internal";$("completeSpareCost").value=Number(r.sparePartCost||0);$("completeOutsourceCost").value=Number(r.outsourceCost||0);$("completeAdditionalCost").value=Number(r.additionalCost||0);syncRepairCostFields();$("completeRepairModal").classList.remove("hidden");return;
+    }
+    try{await updateDoc(doc(db,"repairs",id),{status,updatedAt:serverTimestamp()});toast("Repair updated")}catch(e){toast(e.message)}
+  };
+  $("completeRepairForm").onsubmit=async e=>{
+    e.preventDefault();const id=$("completeRepairId").value,r=repairById(id);if(!r)return toast("Repair record tidak ditemui.");
+    const finalPrice=Number($("completeFinalPrice").value||0),depositAmount=Number(r.depositAmount||0),balanceDue=Math.max(0,finalPrice-depositAmount),paymentMethod=$("completePaymentMethod").value,repairMethod=$("completeRepairMethod").value,warranty=$("completeWarranty").value.trim(),sparePartCost=repairMethod==="outsource"?0:Number($("completeSpareCost").value||0),outsourceCost=repairMethod==="internal"?0:Number($("completeOutsourceCost").value||0),additionalCost=Number($("completeAdditionalCost").value||0),totalCost=sparePartCost+outsourceCost+additionalCost,netProfit=finalPrice-totalCost,profitMargin=finalPrice>0?(netProfit/finalPrice)*100:0;
+    if(finalPrice<depositAmount)return toast("Harga akhir tidak boleh lebih rendah daripada deposit. Buat proses refund dahulu.");
+    try{
+      await updateDoc(doc(db,"repairs",id),{status:"Completed",isSale:true,finalPrice,balanceDue,balancePaid:balanceDue,finalPaymentMethod:balanceDue>0?paymentMethod:"Covered by deposit",paymentStatus:"paid_in_full",repairMethod,sparePartCost,outsourceCost,additionalCost,totalCost,netProfit,profitMargin,warranty,completedAt:serverTimestamp(),completedBy:state.user.uid,completedByName:state.profile.name||state.user.email,updatedAt:serverTimestamp()});
+      closeModal("completeRepairModal");
+      showTransactionDocument({title:"REPAIR PAYMENT RECEIPT",number:r.ticketNo,customer:r.customer,phone:r.phone,staff:state.profile.name||state.user.email,items:[{name:r.device,detail:`Repair completed · ${r.issue||""}${r.serial?" · S/N "+r.serial:""}`,warranty,qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-depositAmount},{label:"Balance Paid Today",value:balanceDue},{label:"Total Paid",value:finalPrice,grand:true}],payment:balanceDue>0?`${paymentMethod} · Balance ${money(balanceDue)}`:`Fully covered by deposit`,note:""});toast("Repair completed · receipt generated")
+    }catch(err){toast(err.message)}
+  };
+
+  function allTransactions(){
+    const repairTransactions=state.repairs.flatMap(x=>{
+      const rows=[];
+      if(Number(x.depositAmount||0)>0)rows.push({kind:"repairDeposit",filterKind:"repair",number:`${x.ticketNo}-DEP`,total:Number(x.depositAmount||0),payment:x.depositPaymentMethod||"—",customer:x.customer||"—",createdAt:x.depositPaidAt||x.createdAt,data:x,status:x.transactionStatus==="cancelled"?"cancelled":"active"});
+      if(x.status==="Completed"||x.isSale)rows.push({kind:"repair",filterKind:"repair",number:x.ticketNo,total:Number(x.finalPrice||x.estimate||0),payment:x.finalPaymentMethod||"Paid",customer:x.customer||"—",createdAt:x.completedAt||x.updatedAt||x.createdAt,data:x,status:x.transactionStatus==="cancelled"?"cancelled":"active"});
+      return rows;
+    });
+    return [
+      ...state.sales.map(x=>({kind:"sale",filterKind:"sale",number:x.receiptNo,total:Number(x.total||0),payment:x.paymentMethod||"—",customer:x.customer||"Walk-in",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.buys.map(x=>({kind:"buy",filterKind:"buy",number:x.buyNo,total:Number(x.totalAmount??x.offer??0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.trades.map(x=>({kind:"trade",filterKind:"trade",number:x.tradeNo,total:Number(x.balance||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...repairTransactions
+    ].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  }
+
+  function transactionDocument(t){
+    const x=t.data,staff=x.staffName||"",cancelNote=x.status==="cancelled"||x.transactionStatus==="cancelled"?`CANCELLED: ${x.cancelReason||"No reason recorded"}`:"";
+    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warranty||"",qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote};
+    if(t.kind==="buy"){const items=(x.items||[{name:x.item,itemType:x.itemType,sku:x.sku,serial:x.serial,buyPrice:x.offer}]).map(i=>({name:i.name,detail:`${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:Number(i.buyPrice||0),total:Number(i.buyPrice||0)}));const total=Number(x.totalAmount??x.offer??0);return {title:"PURCHASE RECEIPT",number:x.buyNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items,totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:x.paymentMethod,note:cancelNote}};
+    if(t.kind==="trade"){
+      const outs=x.stockOutItems||[{name:x.newProductName,sku:"",qty:1,price:Number(x.newProductPrice||0)}],ins=x.stockInItems||[{name:x.tradeItem,sku:x.tradeItemSku||"",itemType:x.itemType||"Used",qty:1,tradeValue:Number(x.tradeValue||0)}];
+      const net=Number(x.netBalance ?? (Number(x.newProductPrice||0)-Number(x.tradeValue||0))),outTotal=Number(x.totalStockOut ?? (x.newProductPrice||0)),inTotal=Number(x.totalTradeValue ?? (x.tradeValue||0));
+      return {title:"TRADE-IN RECEIPT",number:x.tradeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[...outs.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:Number(i.price||0),total:Number(i.price||0)*Number(i.qty||1)})),...ins.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:-(Number(i.tradeValue||0)/Number(i.qty||1)),total:-Number(i.tradeValue||0)}))],totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:net>=0?"Amount Paid by Customer":"Amount Paid by Meney",value:Math.abs(net),grand:true}],payment:x.paymentMethod,note:cancelNote};
+    }
+    if(t.kind==="repairDeposit")return {title:"REPAIR DEPOSIT RECEIPT",number:`${x.ticketNo}-DEP`,date:timestampText(x.depositPaidAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair intake · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,unitPrice:Number(x.depositAmount||0),total:Number(x.depositAmount||0)}],totals:[{label:"Deposit Paid",value:Number(x.depositAmount||0),grand:true}],payment:x.depositPaymentMethod||"—",note:cancelNote};
+    const finalPrice=Number(x.finalPrice||x.estimate||0),deposit=Number(x.depositAmount||0),balance=Math.max(0,finalPrice-deposit);
+    return {title:"REPAIR PAYMENT RECEIPT",number:x.ticketNo,date:timestampText(x.completedAt||x.updatedAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair completed · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,warranty:x.warranty||"",qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-deposit},{label:"Balance Paid",value:balance},{label:"Total Paid",value:finalPrice,grand:true}],payment:x.finalPaymentMethod||"Paid",note:cancelNote};
+  }
+  window.openReceipt=(kind,id)=>{const t=allTransactions().find(x=>x.kind===kind&&x.data.id===id);if(t)showTransactionDocument(transactionDocument(t))};
+  function renderReceipts(){
+    if(!$("receiptBody"))return;
+    const q=normalizeText($("receiptSearch").value),type=$("receiptType").value,status=$("receiptStatus").value;
+    const rows=allTransactions().filter(t=>(!type||t.filterKind===type)&&(!status||(status==="cancelled"?t.status==="cancelled":t.status!=="cancelled"))&&(!q||normalizeText(`${t.number} ${t.customer} ${JSON.stringify(t.data)}`).includes(q)));
+    const labels={sale:"Sales",buy:"Buy",trade:"Trade-In",repair:"Repair",repairDeposit:"Repair Deposit"};
+    $("receiptBody").innerHTML=rows.length?rows.map(t=>`<tr><td><strong>${esc(t.number||"—")}</strong></td><td>${timestampText(t.createdAt)}</td><td>${esc(t.customer)}</td><td><span class="badge ${t.kind==="sale"?"green":t.kind==="buy"?"orange":t.kind==="trade"?"purple":"blue"}">${labels[t.kind]}</span></td><td>${esc(t.payment)}</td><td><strong>${money(t.total)}</strong></td><td><span class="badge ${t.status==="cancelled"?"gray":"green"}">${t.status==="cancelled"?"Cancelled":"Active"}</span></td><td><button class="btn btn-light" style="padding:7px 9px" onclick="window.openReceipt('${t.kind}','${t.data.id}')">View</button> ${isOwner()&&t.status!=="cancelled"&&t.kind!=="repairDeposit"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="window.cancelBill('${t.kind}','${t.data.id}')">Cancel</button>`:""}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Tiada transaksi ditemui.</td></tr>';
+  }
+  $("receiptSearch").oninput=renderReceipts;$("receiptType").onchange=renderReceipts;$("receiptStatus").onchange=renderReceipts;
+  window.cancelBill=async(kind,id)=>{
+    if(!isOwner())return toast("Owner sahaja boleh cancel bill.");
+    const reason=prompt("Masukkan sebab pembatalan bill:");if(!reason?.trim())return;
+    if(!confirm("Teruskan pembatalan? Rekod asal akan kekal dan inventory akan direverse."))return;
+    try{
+      await runTransaction(db,async tx=>{
+        const ref=doc(db,kind==="sale"?"sales":kind==="buy"?"buys":kind==="trade"?"trades":"repairs",id),snap=await tx.get(ref);
+        if(!snap.exists())throw new Error("Transaksi tidak ditemui");const x=snap.data();
+        if(x.status==="cancelled"||x.transactionStatus==="cancelled")throw new Error("Bill sudah dibatalkan");
+        if(kind==="sale"){
+          const refs=(x.items||[]).map(i=>doc(db,"products",i.productId)),snaps=[];for(const r of refs)snaps.push(await tx.get(r));
+          refs.forEach((r,k)=>{if(snaps[k].exists())tx.update(r,{stock:Number(snaps[k].data().stock||0)+Number(x.items[k].qty||1),status:"Available",updatedAt:serverTimestamp()})});
+          tx.update(ref,{status:"cancelled",cancelReason:reason.trim(),cancelledAt:serverTimestamp(),cancelledBy:state.user.uid,cancelledByName:state.profile.name||state.user.email});
+        }else if(kind==="buy"){
+          const items=x.items||[{productId:x.productId,inventoryUnitId:null,buyPrice:Number(x.offer||0),inventoryAction:x.inventoryAction}],groups=new Map();items.forEach(i=>{if(!groups.has(i.productId))groups.set(i.productId,[]);groups.get(i.productId).push(i)});
+          const productRefs=[...groups.keys()].map(pid=>doc(db,"products",pid)),productSnaps=[];for(const r of productRefs)productSnaps.push(await tx.get(r));
+          productRefs.forEach((pr,k)=>{const ps=productSnaps[k],group=groups.get(pr.id);if(!ps.exists())return;const qty=Number(ps.data().stock||0),removeQty=group.length,newQty=Math.max(0,qty-removeQty),currentCost=Number(ps.data().cost||0),removedCost=group.reduce((sum,i)=>sum+Number(i.buyPrice||0),0),reversedCost=newQty>0?Number((((qty*currentCost)-removedCost)/newQty).toFixed(2)):0;if(group.every(i=>i.inventoryAction==="created")&&qty<=removeQty)tx.delete(pr);else tx.update(pr,{stock:newQty,status:newQty>0?"Available":"No Stock",cost:Math.max(0,reversedCost),updatedAt:serverTimestamp()})});
+          items.filter(i=>i.inventoryUnitId).forEach(i=>tx.update(doc(db,"inventoryUnits",i.inventoryUnitId),{status:"cancelled",cancelledAt:serverTimestamp(),cancelledBy:state.user.uid}));
+          tx.update(ref,{status:"cancelled",cancelReason:reason.trim(),cancelledAt:serverTimestamp(),cancelledBy:state.user.uid,cancelledByName:state.profile.name||state.user.email});
+        }else if(kind==="trade"){
+          const outs=x.stockOutItems||[{productId:x.newProductId,qty:1}],ins=x.stockInItems||[{productId:x.tradeProductId,qty:1,tradeValue:Number(x.tradeValue||0),inventoryAction:x.inventoryAction}];
+          const outRefs=outs.map(i=>doc(db,"products",i.productId)),inRefs=ins.map(i=>doc(db,"products",i.productId)),outSnaps=[],inSnaps=[];for(const r of outRefs)outSnaps.push(await tx.get(r));for(const r of inRefs)inSnaps.push(await tx.get(r));
+          outs.forEach((i,k)=>{if(outSnaps[k].exists())tx.update(outRefs[k],{stock:Number(outSnaps[k].data().stock||0)+Number(i.qty||1),status:"Available",updatedAt:serverTimestamp()})});
+          ins.forEach((i,k)=>{const ps=inSnaps[k];if(!ps.exists())return;const qty=Number(ps.data().stock||0),removeQty=Number(i.qty||1);if(i.inventoryAction==="created"&&qty<=removeQty)tx.delete(inRefs[k]);else{const newQty=Math.max(0,qty-removeQty),currentCost=Number(ps.data().cost||0),removedCost=Number(i.tradeValue||0),reversedCost=newQty>0?Number((((qty*currentCost)-removedCost)/newQty).toFixed(2)):0;tx.update(inRefs[k],{stock:newQty,status:newQty>0?"Available":"No Stock",cost:Math.max(0,reversedCost),updatedAt:serverTimestamp()})}});
+          tx.update(ref,{status:"cancelled",cancelReason:reason.trim(),cancelledAt:serverTimestamp(),cancelledBy:state.user.uid,cancelledByName:state.profile.name||state.user.email});
+        }else tx.update(ref,{transactionStatus:"cancelled",status:"Cancelled",cancelReason:reason.trim(),cancelledAt:serverTimestamp(),cancelledBy:state.user.uid,cancelledByName:state.profile.name||state.user.email});
+      });toast("Bill cancelled dan reversal selesai.");
+    }catch(e){toast("Cancel gagal: "+e.message)}
+  };
+
+  function renderOverview(){
+    const sell=state.sales.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.total||0),0),buy=state.buys.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.totalAmount??x.offer??0),0),trade=state.trades.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.balance||0),0);
+    $("ovRevenue").textContent=money(sell+trade);$("ovBuy").textContent=money(buy);$("ovSell").textContent=money(sell);$("ovTrade").textContent=money(trade);
+    $("sumItems").textContent=state.products.reduce((s,p)=>s+Number(p.stock||0),0);$("sumAvailable").textContent=state.products.filter(p=>Number(p.stock||0)>0).length;$("sumReserved").textContent=0;$("sumRepair").textContent=state.repairs.filter(r=>r.status!=="Completed").length;
+    $("overviewSales").innerHTML=state.sales.filter(x=>x.status!=="cancelled").slice(0,7).map(s=>`<tr><td>${esc(s.receiptNo)}</td><td>${esc(s.customer||"Walk-in")}</td><td>${s.itemCount||0}</td><td><span class="badge green">Sell</span></td><td><strong>${money(s.total)}</strong></td></tr>`).join("")||'<tr><td colspan="5" class="muted" style="text-align:center;padding:25px">Belum ada transaksi.</td></tr>'
+  }
+
+  function renderCustomers(){
+    const rows=[];
+    state.sales.filter(x=>x.customer).forEach(x=>rows.push({name:x.customer,source:"Sale",date:x.createdAt,total:x.total}));
+    state.buys.forEach(x=>rows.push({name:`${x.customer} ${x.phone||""}`,source:"Buy",date:x.createdAt,total:Number(x.totalAmount??x.offer??0)}));
+    state.trades.forEach(x=>rows.push({name:`${x.customer} ${x.phone||""}`,source:"Trade-In",date:x.createdAt,total:x.balance}));
+    $("customerBody").innerHTML=rows.length?rows.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td><span class="badge ${r.source==="Sale"?"green":r.source==="Buy"?"orange":"purple"}">${r.source}</span></td><td>${r.date?.toDate?r.date.toDate().toLocaleString("ms-MY"):"—"}</td><td>${money(r.total)}</td></tr>`).join(""):'<tr><td colspan="4" class="muted" style="text-align:center;padding:30px">Belum ada customer.</td></tr>'
+  }
+
+  function renderReports(){
+    const profit=state.sales.reduce((s,x)=>s+Number(x.total||0)-Number(x.items?.reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)||0),0);
+    $("reportProfit").textContent=money(profit);$("reportTxn").textContent=state.sales.length+state.buys.length+state.trades.length;$("inventoryValue").textContent=money(state.products.reduce((s,p)=>s+Number(p.cost||0)*Number(p.stock||0),0));
+    const counts={};state.sales.forEach(s=>s.items?.forEach(i=>counts[i.name]=(counts[i.name]||0)+Number(i.qty||0)));$("bestSelling").textContent=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
+    $("profitDonut").style.setProperty("--profit",profit);$("profitDonut").innerHTML=""
+  }
+
+
+  const exportCollections={products:"Inventory_Products",sales:"Sales",buys:"Buy_From_Customer",trades:"Trade_In",repairs:"Repairs",shifts:"Shifts",cashMoves:"Cash_Movements"};
+  const safeDate=()=>new Date().toISOString().replace(/[:.]/g,"-").slice(0,19);
+  function exportValue(v){
+    if(v===null||v===undefined)return "";
+    if(v?.toDate instanceof Function)return v.toDate().toISOString();
+    if(v instanceof Date)return v.toISOString();
+    if(Array.isArray(v)||typeof v==="object")return JSON.stringify(v,(k,x)=>x?.toDate instanceof Function?x.toDate().toISOString():x);
+    return v;
+  }
+  function normalizedRows(arr){
+    return arr.map(row=>{const out={documentId:row.id||""};Object.entries(row).forEach(([k,v])=>{if(k!=="id")out[k]=exportValue(v)});return out});
+  }
+  function jsonReady(arr){
+    return arr.map(row=>JSON.parse(JSON.stringify({documentId:row.id||"",...row},(k,v)=>v?.toDate instanceof Function?v.toDate().toISOString():v)));
+  }
+  function toCsv(rows){
+    if(!rows.length)return "documentId\n";
+    const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];
+    const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+    return [keys.map(q).join(","),...rows.map(r=>keys.map(k=>q(r[k])).join(","))].join("\r\n");
+  }
+  function downloadBlob(content,name,type){
+    const blob=content instanceof Blob?content:new Blob([content],{type});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
+  }
+  async function exportOne(key,format){
+    const label=exportCollections[key]||key,rows=normalizedRows(state[key]||[]),stamp=safeDate();
+    if(format==="csv")downloadBlob("\ufeff"+toCsv(rows),`${label}_${stamp}.csv`,"text/csv;charset=utf-8");
+    else if(format==="json")downloadBlob(JSON.stringify(jsonReady(state[key]||[]),null,2),`${label}_${stamp}.json`,"application/json");
+    else{
+      if(!window.XLSX)throw new Error("Excel library belum dimuatkan. Pastikan internet aktif.");
+      const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,label.slice(0,31));XLSX.writeFile(wb,`${label}_${stamp}.xlsx`);
+    }
+  }
+  async function fullBackup(format){
+    const stamp=safeDate(),payload={meta:{application:"Meney POS Enterprise",version:"2.9.1",exportedAt:new Date().toISOString(),firebaseProject:"meney-daily-mission"},collections:{}};
+    Object.keys(exportCollections).forEach(k=>payload.collections[k]=jsonReady(state[k]||[]));
+    if(format==="json")return downloadBlob(JSON.stringify(payload,null,2),`Meney_POS_Full_Backup_${stamp}.json`,"application/json");
+    if(format==="xlsx"){
+      if(!window.XLSX)throw new Error("Excel library belum dimuatkan. Pastikan internet aktif.");
+      const wb=XLSX.utils.book_new();
+      Object.entries(exportCollections).forEach(([k,label])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(normalizedRows(state[k]||[])),label.slice(0,31)));
+      const meta=XLSX.utils.json_to_sheet([payload.meta]);XLSX.utils.book_append_sheet(wb,meta,"Backup_Info");XLSX.writeFile(wb,`Meney_POS_Full_Backup_${stamp}.xlsx`);return;
+    }
+    if(!window.JSZip)throw new Error("ZIP library belum dimuatkan. Pastikan internet aktif.");
+    const zip=new JSZip();zip.file("backup-info.json",JSON.stringify(payload.meta,null,2));zip.file("full-backup.json",JSON.stringify(payload,null,2));
+    Object.entries(exportCollections).forEach(([k,label])=>{zip.file(`${label}.csv`,"\ufeff"+toCsv(normalizedRows(state[k]||[])));zip.file(`${label}.json`,JSON.stringify(payload.collections[k],null,2))});
+    const blob=await zip.generateAsync({type:"blob"});downloadBlob(blob,`Meney_POS_Full_Backup_${stamp}.zip`,"application/zip");
+  }
+  $("exportCollectionBtn").onclick=async()=>{try{await exportOne($("exportCollection").value,$("exportFormat").value);toast("Export siap")}catch(e){toast(e.message)}};
+  $("fullBackupBtn").onclick=async()=>{if(!isOwner())return toast("Owner sahaja boleh export full backup.");try{$("fullBackupBtn").disabled=true;$("fullBackupBtn").textContent="Preparing backup...";await fullBackup($("backupFormat").value);toast("Full backup siap")}catch(e){toast(e.message)}finally{$("fullBackupBtn").disabled=false;$("fullBackupBtn").textContent="⬇ Export Full Backup"}};
+
+  $("openShiftBtn").onclick=async()=>{if(currentShift())return toast("Masih ada shift yang terbuka.");try{let shiftNo=await reserveDocumentNumber("shift","SHF");const ref=doc(collection(db,"shifts"));await runTransaction(db,async tx=>{tx.set(ref,{shiftNo,status:"open",openingCash:Number($("shiftOpening").value||0),staffId:state.user.uid,staffName:state.profile.name||state.user.email,openedAt:serverTimestamp(),createdAt:serverTimestamp()})});$("shiftActual").value="";$("shiftVarianceNote").value="";toast("Shift opened · "+shiftNo)}catch(e){toast(e.message)}};
+  $("shiftActual").oninput=renderShiftVariance;
+  $("closeShiftBtn").onclick=async()=>{
+    const s=currentShift();if(!s)return toast("Tiada shift terbuka.");
+    if($("shiftActual").value==="")return toast("Masukkan actual cash dahulu.");
+    const actual=Number($("shiftActual").value||0),expected=getShiftCashSummary(s).expected,variance=Number((actual-expected).toFixed(2)),status=Math.abs(variance)<0.01?"balanced":variance<0?"shortage":"excess",note=$("shiftVarianceNote").value.trim();
+    if(status!=="balanced"&&!note)return toast("Variance reason wajib diisi jika cash tidak seimbang.");
+    const message=status==="shortage"?`Cash shortage ${money(Math.abs(variance))} dikesan. Pastikan cash drawer telah dikira semula. Teruskan close shift?`:status==="excess"?`Cash excess ${money(variance)} dikesan. Pastikan cash drawer telah dikira semula. Teruskan close shift?`:"Cash drawer balanced. Close shift sekarang?";
+    if(!confirm(message))return;
+    try{await updateDoc(doc(db,"shifts",s.id),{status:"closed",expectedCash:Number(expected.toFixed(2)),actualCash:Number(actual.toFixed(2)),cashVariance:variance,varianceStatus:status,varianceNote:note,closedAt:serverTimestamp(),closedBy:state.user.uid});$("shiftActual").value="";$("shiftVarianceNote").value="";toast(status==="balanced"?"Shift closed · Cash balanced":`Shift closed · ${status} ${money(Math.abs(variance))}`)}catch(e){toast(e.message)}
+  };
+  $("saveCashMove").onclick=async()=>{const s=currentShift();if(!s)return toast("Open shift dahulu.");const amount=Number($("cashMoveAmount").value||0);if(amount<=0)return toast("Masukkan amount yang sah.");try{let cashMoveNo=await reserveDocumentNumber("cashMove","CSH");const ref=doc(collection(db,"cashMoves"));await runTransaction(db,async tx=>{tx.set(ref,{cashMoveNo,shiftId:s.id,shiftNo:s.shiftNo||null,type:$("cashMoveType").value,amount,note:$("cashMoveNote").value.trim(),createdAt:serverTimestamp(),staffId:state.user.uid,staffName:state.profile.name||state.user.email})});$("cashMoveAmount").value="";$("cashMoveNote").value="";toast("Cash movement saved · "+cashMoveNo)}catch(e){toast(e.message)}};
+  function currentShift(){return state.shifts.find(s=>s.status==="open")}
+  function saleCashAmount(sale){
+    if(Array.isArray(sale.payments))return sale.payments.filter(p=>p.method==="Cash").reduce((sum,p)=>sum+Number(p.amount||0),0);
+    return sale.paymentMethod==="Cash"?Number(sale.total||0):0;
+  }
+  function getShiftCashSummary(s=currentShift()){
+    const moves=s?state.cashMoves.filter(m=>m.shiftId===s.id):[],cin=moves.filter(m=>m.type==="in").reduce((a,m)=>a+Number(m.amount||0),0),cout=moves.filter(m=>m.type==="out").reduce((a,m)=>a+Number(m.amount||0),0);
+    const relevantSales=s?state.sales.filter(x=>x.status!=="cancelled"&&(x.shiftId?x.shiftId===s.id:x.saleDate===nowDate())):[];
+    const cashSales=relevantSales.reduce((a,x)=>a+saleCashAmount(x),0),opening=Number(s?.openingCash||0);
+    return{opening,cashSales,cin,cout,expected:opening+cashSales+cin-cout};
+  }
+  function renderShiftVariance(){
+    const s=currentShift(),box=$("shiftVarianceBox"),noteField=$("varianceNoteField");
+    if(!s||$("shiftActual").value===""){box.className="variance-box";box.innerHTML="<strong>Masukkan actual cash</strong><span>Sistem akan membandingkan dengan expected cash.</span>";noteField.classList.add("hidden");return}
+    const expected=getShiftCashSummary(s).expected,actual=Number($("shiftActual").value||0),variance=Number((actual-expected).toFixed(2));
+    if(Math.abs(variance)<0.01){box.className="variance-box balanced";box.innerHTML=`<strong>✓ Cash Drawer Balanced</strong><span>Expected ${money(expected)} · Actual ${money(actual)} · Variance ${money(0)}</span>`;noteField.classList.add("hidden")}
+    else if(variance<0){box.className="variance-box shortage";box.innerHTML=`<strong>⚠ Cash Shortage: -${money(Math.abs(variance))}</strong><span>Expected ${money(expected)} tetapi actual cash hanya ${money(actual)}. Sila kira semula dan beri sebab.</span>`;noteField.classList.remove("hidden")}
+    else{box.className="variance-box excess";box.innerHTML=`<strong>⚠ Cash Excess: +${money(variance)}</strong><span>Expected ${money(expected)} tetapi actual cash ialah ${money(actual)}. Sila kira semula dan beri sebab.</span>`;noteField.classList.remove("hidden")}
+  }
+  function renderShift(){
+    const s=currentShift(),x=getShiftCashSummary(s);
+    $("shiftChip").textContent=s?"● SHIFT OPEN":"○ SHIFT CLOSED";$("shiftStatus").textContent=s?"OPEN":"CLOSED";$("openingCashText").textContent=money(x.opening);$("cashSalesText").textContent=money(x.cashSales);$("cashInText").textContent=money(x.cin);$("cashOutText").textContent="-"+money(x.cout);$("expectedCashText").textContent=money(x.expected);renderShiftVariance()
+  }
+  resetSplitPayments();
+
+  // PWA installation and connectivity
+  let deferredInstallPrompt=null;
+  const installBtn=$("installAppBtn"), installHelp=$("installHelp");
+  function updateConnection(){
+    const online=navigator.onLine;
+    const text=$("connectionText"); if(text) text.textContent=online?"Online":"Offline";
+    document.querySelectorAll(".status-dot").forEach(d=>d.classList.toggle("offline",!online));
+  }
+  function isStandalone(){return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true}
+  function updateAppMode(){
+    const t=$("appModeText"); if(t)t.textContent=isStandalone()?"Installed App":"Browser";
+    if(installBtn && isStandalone()){installBtn.textContent="App Installed";installBtn.disabled=true}
+  }
+  window.addEventListener("online",updateConnection);window.addEventListener("offline",updateConnection);
+  window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;if(installBtn){installBtn.disabled=false;installBtn.textContent="Install Meney POS"}});
+  window.addEventListener("appinstalled",()=>{deferredInstallPrompt=null;updateAppMode();toast("Meney POS berjaya dipasang")});
+  if(installBtn)installBtn.onclick=async()=>{
+    if(isStandalone())return;
+    if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;updateAppMode();return}
+    const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    toast(ios?"Safari → Share → Add to Home Screen":"Buka menu browser dan pilih Install App / Add to Home Screen");
+    if(installHelp)installHelp.scrollIntoView({behavior:"smooth",block:"center"});
+  };
+  updateConnection();updateAppMode();
+  if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw-pos.js").catch(err=>console.warn("SW",err)))}
+
+</script>
+</body>
+</html>
