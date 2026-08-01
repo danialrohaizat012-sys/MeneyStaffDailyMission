@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Stock Purchase V1.1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-STOCK-PURCHASE-V1.1-20260801" />
+  <title>Meney POS Enterprise · System Maintenance V1 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-SYSTEM-MAINTENANCE-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -358,6 +358,33 @@
     @media(max-width:1000px){.sp-layout{grid-template-columns:1fr}.sp-summary{position:static}}
     @media(max-width:700px){.receive-line{grid-template-columns:1fr 1fr}.sp-item-card{padding:12px}}
 
+
+    /* ===== Current / Backdated Entry Mode ===== */
+    .entry-mode-panel{margin-bottom:16px;padding:16px 18px;border:1px solid #dfe6e1;border-radius:16px;background:#fff;box-shadow:var(--shadow-sm)}
+    .entry-mode-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .entry-mode-head h3{margin:0;font-size:15px}.entry-mode-head p{margin:4px 0 0;font-size:10px;color:var(--muted)}
+    .entry-mode-options{display:flex;gap:9px;flex-wrap:wrap}
+    .entry-mode-option{display:flex;align-items:center;gap:8px;margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#f8faf9;font-size:11px;font-weight:850;cursor:pointer}
+    .entry-mode-option input{width:auto;min-height:auto;margin:0}
+    .entry-mode-option.selected{border-color:#86efac;background:#f0fdf4;color:#166534}
+    .entry-backdated-fields{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:10px;margin-top:13px;padding-top:13px;border-top:1px dashed #f0b45d}
+    .entry-backdated-banner{display:flex;align-items:center;gap:10px;margin-top:13px;padding:11px 12px;border-radius:11px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:11px;font-weight:850}
+    .backdated-badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 7px;background:#fff7ed;color:#9a3412;font-size:9px;font-weight:950;margin-left:5px}
+    @media(max-width:760px){.entry-backdated-fields{grid-template-columns:1fr}.entry-mode-head{display:block}.entry-mode-options{margin-top:10px}}
+
+    /* ===== System Maintenance & Go Live ===== */
+    .maintenance-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+    .maintenance-card{border:1px solid #fecaca;background:linear-gradient(145deg,#fff,#fff7f7);border-radius:18px;padding:20px}
+    .maintenance-card.safe{border-color:#bbf7d0;background:linear-gradient(145deg,#fff,#f0fdf4)}
+    .maintenance-list{display:grid;gap:6px;margin:12px 0 16px;font-size:11px;color:#475467}
+    .maintenance-list div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed #e5e7eb}
+    .danger-input{border-color:#fca5a5!important;background:#fffafa!important}
+    .danger-zone-title{color:#b91c1c}
+    .mode-badge{display:inline-flex;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:950;text-transform:uppercase;letter-spacing:.04em}
+    .mode-badge.setup{background:#fff7ed;color:#9a3412}.mode-badge.operational{background:#ecfdf3;color:#166534}
+    .reset-progress{margin-top:12px;padding:11px;border-radius:11px;background:#f8fafc;border:1px solid var(--line);font-size:11px;line-height:1.5}
+    @media(max-width:850px){.maintenance-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -480,6 +507,21 @@
       </header>
 
       <div class="page-wrap">
+        <section id="entryModePanel" class="entry-mode-panel hidden">
+          <div class="entry-mode-head">
+            <div><h3>Transaction Information</h3><p>Pilih jenis entry sebelum merekod transaksi. Owner sahaja boleh menggunakan backdated transaction.</p></div>
+            <div class="entry-mode-options">
+              <label id="entryModeCurrentLabel" class="entry-mode-option selected"><input type="radio" name="entryMode" value="live" checked> Current Transaction</label>
+              <label id="entryModeBackdatedLabel" class="entry-mode-option"><input type="radio" name="entryMode" value="historical"> Backdated Transaction</label>
+            </div>
+          </div>
+          <div id="entryBackdatedFields" class="entry-backdated-fields hidden">
+            <div class="field" style="margin:0"><label>Transaction Date</label><input id="backdatedDate" type="date"></div>
+            <div class="field" style="margin:0"><label>Transaction Time</label><input id="backdatedTime" type="time"></div>
+            <div class="field" style="margin:0"><label>Reason</label><input id="backdatedReason" placeholder="Contoh: Migration transaksi Julai"></div>
+          </div>
+          <div id="entryBackdatedBanner" class="entry-backdated-banner hidden">⚠ BACKDATED ENTRY — transaksi ini tidak akan dikaitkan dengan cash drawer shift hari ini.</div>
+        </section>
         <section id="page-overview" class="page">
           <div class="grid stats">
             <div class="card stat-card"><div class="label">Total Revenue</div><div id="ovRevenue" class="value">RM0.00</div><div class="trend">Live from Firebase</div></div>
@@ -889,6 +931,35 @@
             </div>
           </div>
 
+          <div id="ownerMaintenanceSection" class="hidden">
+            <div class="maintenance-grid">
+              <div class="maintenance-card safe">
+                <div class="section-head"><div><h3>Company Setup & Go Live</h3><p>Kawal status rasmi Meney POS.</p></div><span id="companyModeBadge" class="mode-badge setup">Setup Mode</span></div>
+                <div class="summary-mini"><span>Go Live Date</span><strong id="companyGoLiveText">Not set</strong></div>
+                <div class="field" style="margin-top:12px"><label>Company Go Live Date</label><input id="companyGoLiveDate" type="date"></div>
+                <div class="field"><label>Owner Password</label><input id="goLivePassword" type="password" placeholder="Masukkan password owner"></div>
+                <button id="goLiveBtn" class="btn btn-green btn-block" type="button">Go Live & Lock Reset</button>
+                <p class="muted" style="margin:10px 0 0;line-height:1.5">Selepas Go Live, Reset System akan dikunci secara kekal. Pastikan migrasi dan semakan data telah selesai.</p>
+              </div>
+
+              <div id="resetSystemCard" class="maintenance-card">
+                <div class="section-head"><div><h3 class="danger-zone-title">Go Live Reset</h3><p>Owner sahaja. Padam data testing sebelum operasi rasmi.</p></div></div>
+                <div class="maintenance-list">
+                  <div><span>Delete transaction data</span><strong>Sales, Buy, Trade, Repair, After-Sales</strong></div>
+                  <div><span>Delete operational data</span><strong>Shift, Cash, Inventory Units, PO & GRN</strong></div>
+                  <div><span>Reset Product Master</span><strong>Stock & Cost → 0</strong></div>
+                  <div><span>Reset Counters</span><strong>Document numbering restart</strong></div>
+                  <div><span>Keep</span><strong>Users, Products, Suppliers, Missions</strong></div>
+                </div>
+                <div class="field"><label>Reason</label><input id="resetReason" placeholder="Contoh: Go Live Meney POS"></div>
+                <div class="field"><label>Current Owner Password</label><input id="resetPassword" type="password" placeholder="Masukkan password owner"></div>
+                <div class="field"><label>Type RESET MENEY POS</label><input id="resetConfirmation" class="danger-input" autocomplete="off" placeholder="RESET MENEY POS"></div>
+                <button id="resetSystemBtn" class="btn btn-danger btn-block" type="button" disabled>Reset System Permanently</button>
+                <div id="resetProgress" class="reset-progress hidden"></div>
+              </div>
+            </div>
+          </div>
+
           <div class="card section" style="margin-top:16px">
             <div class="section-head"><div><h3>Migration Notes</h3><p>Maklumat untuk diberikan kepada developer sistem baru.</p></div></div>
             <div class="document-note" style="margin:0">
@@ -1013,10 +1084,10 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, collection, addDoc, updateDoc, deleteDoc,
-    onSnapshot, query, orderBy, serverTimestamp, runTransaction
+    onSnapshot, query, orderBy, serverTimestamp, runTransaction, getDocs, writeBatch, setDoc
   } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1034,7 +1105,10 @@
   function hidePosSplash(){
     if(typeof window.__hideMeneySplash==="function")window.__hideMeneySplash();
   }
-  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],refunds:[],exchanges:[],warrantyClaims:[],suppliers:[],stockPurchases:[],stockReceipts:[],stockPurchaseItems:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,unsubs:[]};
+
+  document.querySelectorAll('input[name="entryMode"]').forEach(el=>el.addEventListener("change",syncEntryModePanel));
+
+  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],refunds:[],exchanges:[],warrantyClaims:[],suppliers:[],stockPurchases:[],stockReceipts:[],stockPurchaseItems:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,companySettings:{mode:"setup",goLiveDate:""},unsubs:[]};
   const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
   const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
   const warrantyPresets=[
@@ -1046,6 +1120,36 @@
   function warrantyLabel(days){const n=Number(days||0);if(n<=0)return "No Warranty";if(n===365)return "1 Year Warranty";return `${n} Days Warranty`}
   function warrantyDisplay(item){const days=Number(item?.warrantyDays||0),expiry=item?.warrantyExpiry||"";if(days<=0)return "No Warranty";return `${warrantyLabel(days)} · ${warrantyStatus(expiry,days)==="expired"?"Expired":"Active"}${expiry?` · Until ${expiry}`:""}`}
   const compactDate=()=>nowDate().replaceAll("-","");
+  const localDateTimeValue=(date=new Date())=>{const d=new Date(date);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
+  const effectiveTransactionValue=x=>x?.transactionDate||x?.saleDate||x?.createdAt||null;
+  const effectiveTransactionMs=x=>{const v=effectiveTransactionValue(x);if(!v)return 0;if(v?.toDate instanceof Function)return v.toDate().getTime();if(v?.seconds)return Number(v.seconds)*1000;const n=new Date(v).getTime();return Number.isFinite(n)?n:0};
+  const transactionDateText=x=>timestampText(effectiveTransactionValue(x));
+  function selectedEntryMode(){return document.querySelector('input[name="entryMode"]:checked')?.value||"live"}
+  function entryContext(){
+    const historical=selectedEntryMode()==="historical";
+    if(historical&&!isOwner())throw new Error("Owner sahaja boleh menggunakan Backdated Transaction.");
+    let date=new Date(),reason="";
+    if(historical){
+      const datePart=$("backdatedDate")?.value,timePart=$("backdatedTime")?.value;
+      reason=$("backdatedReason")?.value.trim()||"";
+      if(!datePart||!timePart)throw new Error("Pilih tarikh dan masa transaksi.");
+      if(!reason)throw new Error("Masukkan reason untuk backdated transaction.");
+      date=new Date(`${datePart}T${timePart}`);
+    }
+    if(Number.isNaN(date.getTime()))throw new Error("Tarikh transaksi tidak sah.");
+    if(date.getTime()>Date.now()+60000)throw new Error("Transaction date tidak boleh berada pada masa hadapan.");
+    return {transactionDate:date.toISOString(),transactionDateLocal:localDateTimeValue(date),transactionDateOnly:localDateTimeValue(date).slice(0,10),isBackdated:historical,entryMode:historical?"historical":"live",backdateReason:historical?reason:""};
+  }
+  function syncEntryModePanel(){
+    const panel=$("entryModePanel"),fields=$("entryBackdatedFields"),banner=$("entryBackdatedBanner");if(!panel)return;
+    panel.classList.toggle("hidden",!isOwner());
+    if(!isOwner()){const live=document.querySelector('input[name="entryMode"][value="live"]');if(live)live.checked=true}
+    const historical=isOwner()&&selectedEntryMode()==="historical";
+    fields?.classList.toggle("hidden",!historical);banner?.classList.toggle("hidden",!historical);
+    $("entryModeCurrentLabel")?.classList.toggle("selected",!historical);$("entryModeBackdatedLabel")?.classList.toggle("selected",historical);
+    const now=localDateTimeValue();if($("backdatedDate")){$("backdatedDate").max=now.slice(0,10);if(!$("backdatedDate").value)$("backdatedDate").value=now.slice(0,10)}
+    if($("backdatedTime")&&!$("backdatedTime").value)$("backdatedTime").value=now.slice(11,16);
+  }
   const normalizeText=v=>String(v||"").trim().toLowerCase().replace(/\s+/g," ");
   const normalizeSerial=v=>String(v||"").trim().toUpperCase().replace(/\s+/g,"");
   const skuPrefixes={Console:"CON",Controller:"CTR",Games:"GAM",Accessories:"ACC","Repair Parts":"RPT",Others:"OTH"};
@@ -1087,7 +1191,6 @@
   }
   const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
   const toast=m=>{$("toast").textContent=m;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2600)}
-  const isOwner=()=>state.profile?.role==="owner";
   const cleanPhone=phone=>{
     let n=String(phone||"").replace(/\D/g,"");
     if(n.startsWith("0"))n="60"+n.slice(1);
@@ -1164,6 +1267,106 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     window.open(phone?`https://wa.me/${phone}?text=${text}`:`https://wa.me/?text=${text}`,"_blank");
   };
 
+
+  const RESET_COLLECTIONS=["sales","buys","trades","repairs","refunds","exchanges","warrantyClaims","inventoryUnits","cashMoves","shifts","stockPurchases","stockReceipts"];
+  const settingsRef=()=>doc(db,"systemSettings","company");
+  const isOwner=()=>state.profile?.role==="owner";
+  async function loadCompanySettings(){
+    try{
+      const snap=await getDoc(settingsRef());
+      state.companySettings=snap.exists()?{mode:"setup",goLiveDate:"",...snap.data()}:{mode:"setup",goLiveDate:""};
+    }catch(err){
+      console.warn("Company settings unavailable until Firestore rules are updated",err);
+      state.companySettings={mode:"setup",goLiveDate:"",rulesPending:true};
+    }
+    renderMaintenance();
+  }
+  function renderMaintenance(){
+    const section=$("ownerMaintenanceSection");if(!section)return;
+    section.classList.toggle("hidden",!isOwner());
+    const mode=state.companySettings?.mode||"setup",operational=mode==="operational";
+    $("companyModeBadge").textContent=operational?"Operational Mode":"Setup Mode";
+    $("companyModeBadge").className=`mode-badge ${operational?"operational":"setup"}`;
+    $("companyGoLiveText").textContent=state.companySettings?.goLiveDate||"Not set";
+    $("companyGoLiveDate").value=state.companySettings?.goLiveDate||nowDate();
+    $("companyGoLiveDate").disabled=operational;
+    $("goLivePassword").disabled=operational;
+    $("goLiveBtn").disabled=operational;
+    $("goLiveBtn").textContent=operational?"System Is Live":"Go Live & Lock Reset";
+    $("resetSystemCard").classList.toggle("hidden",operational);
+  }
+  async function reauthenticateOwner(password){
+    if(!isOwner())throw new Error("Owner sahaja boleh menjalankan fungsi ini.");
+    if(!state.user?.email)throw new Error("Email owner tidak ditemui.");
+    if(!password)throw new Error("Masukkan password owner.");
+    const credential=EmailAuthProvider.credential(state.user.email,password);
+    await reauthenticateWithCredential(state.user,credential);
+  }
+  async function deleteCollectionInBatches(name,onProgress){
+    const snap=await getDocs(collection(db,name));
+    const docs=snap.docs;let done=0;
+    for(let i=0;i<docs.length;i+=400){
+      const batch=writeBatch(db);
+      docs.slice(i,i+400).forEach(d=>batch.delete(d.ref));
+      await batch.commit();done=Math.min(i+400,docs.length);onProgress?.(name,done,docs.length);
+    }
+    return docs.length;
+  }
+  async function resetProducts(onProgress){
+    const snap=await getDocs(collection(db,"products"));
+    for(let i=0;i<snap.docs.length;i+=350){
+      const batch=writeBatch(db);
+      snap.docs.slice(i,i+350).forEach(d=>batch.update(d.ref,{stock:0,cost:0,averageCost:0,lastIncomingCost:0,lastIncomingQty:0,reservedQty:0,availableQty:0,status:"No Stock",updatedAt:serverTimestamp(),resetBy:state.user.uid}));
+      await batch.commit();onProgress?.("products",Math.min(i+350,snap.docs.length),snap.docs.length);
+    }
+    return snap.docs.length;
+  }
+  function setResetProgress(text){$("resetProgress").textContent=text;$("resetProgress").classList.remove("hidden")}
+  $("resetConfirmation").addEventListener("input",()=>{$("resetSystemBtn").disabled=$("resetConfirmation").value.trim()!=="RESET MENEY POS"});
+  $("resetSystemBtn").onclick=async()=>{
+    if(!isOwner())return toast("Owner sahaja boleh reset sistem.");
+    if((state.companySettings?.mode||"setup")!=="setup")return toast("Reset dikunci selepas Go Live.");
+    const reason=$("resetReason").value.trim(),password=$("resetPassword").value;
+    if(!reason)return toast("Masukkan sebab reset.");
+    if($("resetConfirmation").value.trim()!=="RESET MENEY POS")return toast("Confirmation text tidak tepat.");
+    if(!confirm("AMARAN: Semua data operasi/testing akan dipadam secara kekal. Product Master, Supplier, User dan Mission akan dikekalkan. Teruskan?"))return;
+    const btn=$("resetSystemBtn");btn.disabled=true;btn.textContent="Resetting...";
+    const counts={};
+    try{
+      await reauthenticateOwner(password);
+      for(const name of RESET_COLLECTIONS){
+        setResetProgress(`Deleting ${name}...`);
+        counts[name]=await deleteCollectionInBatches(name,(n,d,t)=>setResetProgress(`Deleting ${n}: ${d}/${t}`));
+      }
+      setResetProgress("Resetting Product Master stock and cost...");
+      counts.productsReset=await resetProducts((n,d,t)=>setResetProgress(`Resetting products: ${d}/${t}`));
+      setResetProgress("Resetting document counters...");
+      counts.counters=await deleteCollectionInBatches("counters",(n,d,t)=>setResetProgress(`Deleting counters: ${d}/${t}`));
+      const logRef=doc(collection(db,"maintenanceLogs"));
+      await setDoc(logRef,{action:"GO_LIVE_RESET",reason,counts,performedBy:state.user.uid,performedByName:state.profile.name||state.user.email,performedByEmail:state.user.email,createdAt:serverTimestamp()});
+      await setDoc(settingsRef(),{mode:"setup",lastResetAt:serverTimestamp(),lastResetBy:state.user.uid,lastResetReason:reason},{merge:true});
+      setResetProgress("Reset complete. Product Master retained with stock and cost set to 0.");
+      $("resetPassword").value="";$("resetConfirmation").value="";$("resetReason").value="";
+      toast("System reset complete.");
+    }catch(err){console.error("System reset failed",err);setResetProgress("Reset failed: "+err.message);toast("Reset gagal: "+err.message)}
+    finally{btn.textContent="Reset System Permanently";btn.disabled=$("resetConfirmation").value.trim()!=="RESET MENEY POS"}
+  };
+  $("goLiveBtn").onclick=async()=>{
+    if(!isOwner())return toast("Owner sahaja boleh Go Live.");
+    if((state.companySettings?.mode||"setup")==="operational")return;
+    const date=$("companyGoLiveDate").value,password=$("goLivePassword").value;
+    if(!date)return toast("Pilih Company Go Live Date.");
+    if(!confirm(`Go Live pada ${date}? Reset System akan dikunci selepas ini.`))return;
+    const btn=$("goLiveBtn");btn.disabled=true;btn.textContent="Activating...";
+    try{
+      await reauthenticateOwner(password);
+      await setDoc(settingsRef(),{mode:"operational",goLiveDate:date,goLiveAt:serverTimestamp(),goLiveBy:state.user.uid,goLiveByName:state.profile.name||state.user.email},{merge:true});
+      await setDoc(doc(collection(db,"maintenanceLogs")),{action:"GO_LIVE",goLiveDate:date,performedBy:state.user.uid,performedByName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
+      state.companySettings={...state.companySettings,mode:"operational",goLiveDate:date};
+      $("goLivePassword").value="";renderMaintenance();toast("Meney POS is now Live.");
+    }catch(err){console.error("Go Live failed",err);toast("Go Live gagal: "+err.message);btn.disabled=false;btn.textContent="Go Live & Lock Reset"}
+  };
+
   $("loginForm").addEventListener("submit",async e=>{
     e.preventDefault();$("loginError").classList.add("hidden");
     try{await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}
@@ -1186,6 +1389,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       $("userName").textContent=state.profile.name||user.email;
       $("userRole").textContent=state.profile.role||"staff";
       $("shiftStaff").textContent=state.profile.name||user.email;
+      await loadCompanySettings();
+      syncEntryModePanel();
       $("loginPage").classList.add("hidden");$("app").classList.remove("hidden");
       subscribeAll();
     }catch(err){
@@ -1220,7 +1425,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
   }
 
-  function refresh(){populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales();renderStockPurchase()}
+  function refresh(){renderMaintenance();syncEntryModePanel();populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales();renderStockPurchase()}
   function populateCategories(){
     const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort();
     ["posCategory","inventoryCategory"].forEach(id=>{const old=$(id).value;$(id).innerHTML='<option value="">All Category</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");$(id).value=old})
@@ -1291,8 +1496,9 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
 
   $("completeSale").onclick=async()=>{
+    let entry;try{entry=entryContext()}catch(err){return toast(err.message)}
     // Finalize warranty automation before saving.
-    const saleDate=nowDate();
+    const saleDate=entry.transactionDateOnly;
     state.cart.forEach(item=>{
       const selected=Number(item.warrantyDays??0);
       const days=selected===-1?Math.max(1,Number(item.warrantyCustomDays||1)):Math.max(0,selected);
@@ -1325,7 +1531,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
         refs.forEach((r,k)=>{const newStock=Number(snaps[k].data().stock)-state.cart[k].qty;tx.update(r,{stock:newStock,status:newStock>0?"Available":"No Stock",updatedAt:serverTimestamp()})});
         tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,warranty:warrantyDisplay(i),lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
-          paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:nowDate(),shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})
+          paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:entry.transactionDateOnly,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,shiftId:entry.isBackdated?null:(currentShift()?.id||null),createdAt:serverTimestamp()})
       });
       const completedItems=state.cart.map(i=>({
         name:i.name,
@@ -1337,7 +1543,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       }));
       const customer=$("saleCustomer").value.trim(),phone=$("salePhone").value.trim(),payment=payments.map(p=>`${p.method}: ${money(p.amount)}`).join(" · ");
       state.cart=[];$("saleDiscount").value=0;$("saleCustomer").value="";$("salePhone").value="";$("salePayment").value="Cash";$("splitPaymentBox").classList.add("hidden");resetSplitPayments();renderCart();toast("Payment successful · "+receipt);
-      showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:""})
+      showTransactionDocument({title:"SALES RECEIPT / INVOICE",number:receipt,date:timestampText(entry.transactionDate),customer,phone,staff:state.profile.name||state.user.email,items:completedItems,totals:[{label:"Subtotal",value:t.sub},{label:"Discount",value:-t.disc},{label:"Total Paid",value:t.total,grand:true}],payment,note:""})
     }catch(err){toast("Sale gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Payment"}
   };
 
@@ -1414,6 +1620,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
   $("buyForm").onsubmit=async e=>{
     e.preventDefault();
+    let entry;try{entry=entryContext()}catch(err){return toast(err.message)}
     const customer=$("buyCustomer").value.trim(),phone=$("buyPhone").value.trim(),paymentMethod=$("buyPayment").value;
     if(!customer)return toast("Masukkan nama customer.");
     if(!state.buyItems.length)return toast("Tambah sekurang-kurangnya satu item.");
@@ -1447,10 +1654,10 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         prepared.filter(i=>i.inventoryAction==="created").forEach(i=>tx.set(i.productRef,{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,status:"Pricing Required",cost:i.buyPrice,price:0,stock:1,lowStock:1,serial:"",intakeHistory:[{source:"buy",buyNo,itemType:i.itemType,qty:1,cost:i.buyPrice,serial:i.serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid}));
         prepared.forEach(i=>tx.set(i.unitRef,{unitId:i.inventoryUnitId,productId:i.productId,sku:i.sku,productName:i.name,category:i.category,itemType:i.itemType,serialNumber:i.serial||"",costPrice:i.buyPrice,sourceType:"customer_purchase",sourceTransactionId:buyRef.id,buyNo,status:i.inventoryAction==="created"?"pricing_required":"available",qcResults:i.qc,notes:i.notes||"",createdAt:serverTimestamp(),createdBy:state.user.uid}));
         const totalAmount=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
-        tx.set(buyRef,{buyNo,customer,phone,paymentMethod,totalAmount,itemCount:prepared.length,items:prepared.map(i=>({productId:i.productId,inventoryUnitId:i.inventoryUnitId,name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,serial:i.serial,buyPrice:i.buyPrice,inventoryAction:i.inventoryAction,qcResults:i.qc,notes:i.notes||""})),status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",createdAt:serverTimestamp()});
+        tx.set(buyRef,{buyNo,customer,phone,paymentMethod,totalAmount,itemCount:prepared.length,items:prepared.map(i=>({productId:i.productId,inventoryUnitId:i.inventoryUnitId,name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,serial:i.serial,buyPrice:i.buyPrice,inventoryAction:i.inventoryAction,qcResults:i.qc,notes:i.notes||""})),status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp()});
       });
       const total=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
-      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer,phone,staff:state.profile.name||state.user.email,items:prepared.map(i=>({name:i.name,detail:`${i.itemType} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:i.buyPrice,total:i.buyPrice})),totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:paymentMethod,note:""});
+      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,date:timestampText(entry.transactionDate),customer,phone,staff:state.profile.name||state.user.email,items:prepared.map(i=>({name:i.name,detail:`${i.itemType} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:i.buyPrice,total:i.buyPrice})),totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:paymentMethod,note:""});
       resetBuyDraft();toast(`${buyNo} complete · ${prepared.length} item stock in`)
     }catch(err){console.error(err);toast("Buy gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Complete Purchase & Stock In"}
   };
@@ -1478,7 +1685,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const sale=state.sales.find(s=>s.id===afterSelectedSaleId);
     if(!sale){$("afterSalePreview").className="buy-empty";$("afterSalePreview").innerHTML="Cari dan pilih transaksi jualan asal.";afterSelectedItemIndex=-1;renderAfterSelected();return}
     $("afterSalePreview").className="after-sale-card";
-    $("afterSalePreview").innerHTML=`<div><strong>${esc(sale.receiptNo)}</strong> · ${esc(sale.customer||"Walk-in")} · ${esc(sale.phone||"—")}</div><div class="muted" style="font-size:10px;margin-top:4px">${timestampText(sale.createdAt)} · Total ${money(sale.total)}</div><div class="after-sale-items">${(sale.items||[]).map((i,k)=>{const used=afterUsage(sale.id,k),eligible=Math.max(0,Number(i.qty||1)-used);return `<label class="after-item"><input type="radio" name="afterItem" value="${k}" ${afterSelectedItemIndex===k?'checked':''} ${eligible<=0?'disabled':''}><div><strong>${esc(i.name)}</strong><div class="muted" style="font-size:10px">${esc(i.sku||"")} · Sold ${i.qty||1} · Eligible ${eligible}<br>${esc(i.warrantyDays!==undefined?warrantyDisplay(i):(i.warranty||"No warranty record"))}</div></div><strong>${money(i.price)}</strong></label>`}).join("")||'<div class="muted">No items</div>'}</div>`;
+    $("afterSalePreview").innerHTML=`<div><strong>${esc(sale.receiptNo)}</strong> · ${esc(sale.customer||"Walk-in")} · ${esc(sale.phone||"—")}</div><div class="muted" style="font-size:10px;margin-top:4px">${transactionDateText(sale)}${sale.isBackdated?' <span class="backdated-badge">BACKDATED</span>':''} · Total ${money(sale.total)}</div><div class="after-sale-items">${(sale.items||[]).map((i,k)=>{const used=afterUsage(sale.id,k),eligible=Math.max(0,Number(i.qty||1)-used);return `<label class="after-item"><input type="radio" name="afterItem" value="${k}" ${afterSelectedItemIndex===k?'checked':''} ${eligible<=0?'disabled':''}><div><strong>${esc(i.name)}</strong><div class="muted" style="font-size:10px">${esc(i.sku||"")} · Sold ${i.qty||1} · Eligible ${eligible}<br>${esc(i.warrantyDays!==undefined?warrantyDisplay(i):(i.warranty||"No warranty record"))}</div></div><strong>${money(i.price)}</strong></label>`}).join("")||'<div class="muted">No items</div>'}</div>`;
     document.querySelectorAll('input[name="afterItem"]').forEach(r=>r.onchange=()=>{afterSelectedItemIndex=Number(r.value);renderAfterSelected()});
     renderAfterSelected();
   }
@@ -1567,7 +1774,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     if(!$("afterHistoryBody"))return;const rows=[...state.refunds.map(x=>({type:"refund",no:x.refundNo,invoice:x.originalInvoiceNo,customer:x.customer,value:money(x.refundAmount),id:x.id,data:x})),...state.exchanges.map(x=>({type:"exchange",no:x.exchangeNo,invoice:x.originalInvoiceNo,customer:x.customer,value:x.balanceType==="even"?"Even":money(x.balanceAmount),id:x.id,data:x})),...state.warrantyClaims.map(x=>({type:"warranty",no:x.claimNo,invoice:x.originalInvoiceNo,customer:x.customer,value:`${x.claimStatus}${x.warrantyStatus?` · ${x.warrantyStatus}`:""}`,id:x.id,data:x}))].filter(x=>!afterFilter||x.type===afterFilter);
     $("afterHistoryBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.no||"—")}</strong></td><td><span class="badge ${x.type==="refund"?"red":x.type==="exchange"?"purple":"blue"}">${x.type}</span></td><td>${esc(x.invoice||"—")}</td><td>${esc(x.customer||"—")}</td><td><strong>${esc(x.value||"—")}</strong></td><td><button class="btn btn-light" type="button" onclick="window.openAfterRecord('${x.type}','${x.id}')">View</button></td></tr>`).join(""):'<tr><td colspan="6" class="muted" style="text-align:center;padding:25px">Tiada rekod.</td></tr>';
   }
-  window.openAfterRecord=(type,id)=>{const x=type==="refund"?state.refunds.find(r=>r.id===id):type==="exchange"?state.exchanges.find(r=>r.id===id):state.warrantyClaims.find(r=>r.id===id);if(!x)return;if(type==="refund")showTransactionDocument({title:"REFUND RECEIPT",number:x.refundNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.name,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reason}`,qty:1,unitPrice:-x.refundAmount,total:-x.refundAmount}],totals:[{label:"Refund Paid",value:x.refundAmount,grand:true}],payment:x.refundMethod,note:`Returned stock: ${returnedStatus(x.disposition)}`});else if(type==="exchange")showTransactionDocument({title:"EXCHANGE RECEIPT",number:x.exchangeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.returnedItem,detail:"RETURNED",qty:1,unitPrice:-x.returnedValue,total:-x.returnedValue},{name:x.replacementItem,detail:"REPLACEMENT",qty:1,unitPrice:x.replacementValue,total:x.replacementValue}],totals:[{label:x.balanceType==="customer_pay"?"Customer Paid":x.balanceType==="meney_refund"?"Meney Refunded":"Balance",value:x.balanceAmount,grand:true}],payment:x.paymentMethod,note:""});else showTransactionDocument({title:"WARRANTY CLAIM TICKET",number:x.claimNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.receivedByName,items:[{name:x.productName,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reportedIssue}`,warranty:x.warrantyText||warrantyDisplay(x),qty:1,unitPrice:0,total:0}],totals:[],payment:"No payment",note:x.intakeNotes||""})};
+  window.openAfterRecord=(type,id)=>{const x=type==="refund"?state.refunds.find(r=>r.id===id):type==="exchange"?state.exchanges.find(r=>r.id===id):state.warrantyClaims.find(r=>r.id===id);if(!x)return;if(type==="refund")showTransactionDocument({title:"REFUND RECEIPT",number:x.refundNo,date:transactionDateText(x),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.name,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reason}`,qty:1,unitPrice:-x.refundAmount,total:-x.refundAmount}],totals:[{label:"Refund Paid",value:x.refundAmount,grand:true}],payment:x.refundMethod,note:`Returned stock: ${returnedStatus(x.disposition)}`});else if(type==="exchange")showTransactionDocument({title:"EXCHANGE RECEIPT",number:x.exchangeNo,date:transactionDateText(x),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.returnedItem,detail:"RETURNED",qty:1,unitPrice:-x.returnedValue,total:-x.returnedValue},{name:x.replacementItem,detail:"REPLACEMENT",qty:1,unitPrice:x.replacementValue,total:x.replacementValue}],totals:[{label:x.balanceType==="customer_pay"?"Customer Paid":x.balanceType==="meney_refund"?"Meney Refunded":"Balance",value:x.balanceAmount,grand:true}],payment:x.paymentMethod,note:""});else showTransactionDocument({title:"WARRANTY CLAIM TICKET",number:x.claimNo,date:transactionDateText(x),customer:x.customer,phone:x.phone,staff:x.receivedByName,items:[{name:x.productName,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reportedIssue}`,warranty:x.warrantyText||warrantyDisplay(x),qty:1,unitPrice:0,total:0}],totals:[],payment:"No payment",note:x.intakeNotes||""})};
   function renderAfterSales(){if(!$("afterSaleSelect"))return;afterSaleOptions();renderAfterSalePreview();renderAfterHistory()}
   if($("afterSearch"))$("afterSearch").oninput=()=>{afterSaleOptions()};
   if($("afterSaleSelect"))$("afterSaleSelect").onchange=()=>{afterSelectedSaleId=$("afterSaleSelect").value;afterSelectedItemIndex=-1;renderAfterSalePreview()};
@@ -1704,6 +1911,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
   $("tradeForm").addEventListener("submit",async e=>{
     e.preventDefault();
+    let entry;try{entry=entryContext()}catch(err){return toast(err.message)}
     const completeBtn=$("completeTradeBtn");
     if(!state.tradeInItems.length)return toast("Tambah sekurang-kurangnya satu item Stock In.");
     if(!state.tradeOutItems.length)return toast("Tambah sekurang-kurangnya satu item Stock Out.");
@@ -1739,13 +1947,13 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
             tx.set(doc(db,"products",item.productId),{name:item.name,sku:item.sku,category:item.category,itemType:item.itemType||"Used",status:"Available",cost:unitCost,price:Number(item.sellPrice),stock:Number(item.qty),lowStock:1,serial:item.serial||"",intakeHistory:[{source:"trade",itemType:item.itemType||"Used",qty:Number(item.qty),cost:unitCost,serial:item.serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid});
           }
         }
-        tx.set(trRef,{tradeNo,customer,phone,stockInItems:inItems.map(({key,existingId,...i})=>i),stockOutItems:outItems,totalTradeValue:inTotal,totalStockOut:outTotal,balance:Math.abs(netBalance),netBalance,paymentDirection:netBalance>0?"customer_pays":netBalance<0?"meney_pays":"even_trade",paymentMethod,status:"completed",transactionStatus:"active",staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp()});
+        tx.set(trRef,{tradeNo,customer,phone,stockInItems:inItems.map(({key,existingId,...i})=>i),stockOutItems:outItems,totalTradeValue:inTotal,totalStockOut:outTotal,balance:Math.abs(netBalance),netBalance,paymentDirection:netBalance>0?"customer_pays":netBalance<0?"meney_pays":"even_trade",paymentMethod,status:"completed",transactionStatus:"active",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp()});
       });
       const receiptItems=[
         ...outItems.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:i.price,total:i.price*i.qty})),
         ...inItems.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:-(i.tradeValue/i.qty),total:-i.tradeValue}))
       ];
-      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,customer,phone,staff:state.profile.name||state.user.email,items:receiptItems,totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:netBalance>0?"Amount Paid by Customer":netBalance<0?"Amount Paid by Meney":"Even Trade Balance",value:Math.abs(netBalance),grand:true}],payment:paymentMethod,note:""});
+      showTransactionDocument({title:"TRADE-IN RECEIPT",number:tradeNo,date:timestampText(entry.transactionDate),customer,phone,staff:state.profile.name||state.user.email,items:receiptItems,totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:netBalance>0?"Amount Paid by Customer":netBalance<0?"Amount Paid by Meney":"Even Trade Balance",value:Math.abs(netBalance),grand:true}],payment:paymentMethod,note:""});
       state.tradeInItems=[];state.tradeOutItems=[];e.target.reset();resetTradeInInputs();resetTradeOutInputs();calcTrade();toast(`${tradeNo} completed dan receipt dijana.`);
     }catch(err){console.error("Trade-in error",err);toast("Trade-in gagal: "+err.message)}
     finally{completeBtn.disabled=false;completeBtn.textContent="Complete Trade-In & Generate Receipt"}
@@ -1812,16 +2020,17 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   $("newRepairBtn").onclick=()=>$("repairModal").classList.remove("hidden");$("cancelRepair").onclick=()=>closeModal("repairModal");
   $("repairForm").onsubmit=async e=>{
     e.preventDefault();
+    let entry;try{entry=entryContext()}catch(err){return toast(err.message)}
     const customer=$("repairCustomer").value.trim(),phone=$("repairPhone").value.trim(),device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),depositAmount=Number($("repairDeposit").value||0),depositPaymentMethod=$("repairDepositMethod").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
     if(depositAmount<0)return toast("Deposit tidak boleh negatif.");
     if(estimate>0&&depositAmount>estimate)return toast("Deposit tidak boleh melebihi anggaran harga repair.");
     try{
       const repairRef=doc(collection(db,"repairs"));ticketNo=await reserveDocumentNumber("repair","RPR");
-      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status:"Received",warranty,depositAmount,depositPaymentMethod:depositAmount>0?depositPaymentMethod:"",depositStatus:depositAmount>0?"paid":"none",paymentStatus:depositAmount>0?"deposit_paid":"no_deposit",isSale:false,staffId:state.user.uid,staffName:state.profile.name||state.user.email,createdAt:serverTimestamp(),depositPaidAt:depositAmount>0?serverTimestamp():null})});
+      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,customer,phone,device,serial,issue,estimate,status:"Received",warranty,depositAmount,depositPaymentMethod:depositAmount>0?depositPaymentMethod:"",depositStatus:depositAmount>0?"paid":"none",paymentStatus:depositAmount>0?"deposit_paid":"no_deposit",isSale:false,staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),depositPaidAt:depositAmount>0?entry.transactionDate:null})});
       closeModal("repairModal");
       const totals=[{label:"Estimated Repair Cost",value:estimate}];
       if(depositAmount>0){totals.push({label:"Deposit Paid",value:depositAmount},{label:"Estimated Balance",value:Math.max(0,estimate-depositAmount),grand:true})}else totals[0].grand=true;
-      showTransactionDocument({title:"REPAIR INTAKE RECEIPT",number:ticketNo,customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals,payment:depositAmount>0?`Deposit · ${depositPaymentMethod}`:"No deposit received",note:"Please keep this receipt for item collection."});
+      showTransactionDocument({title:"REPAIR INTAKE RECEIPT",number:ticketNo,date:timestampText(entry.transactionDate),customer,phone,staff:state.profile.name||state.user.email,items:[{name:device,detail:`Issue: ${issue}${serial?" · S/N "+serial:""}`,warranty,qty:1,amount:estimate,total:estimate}],totals,payment:depositAmount>0?`Deposit · ${depositPaymentMethod}`:"No deposit received",note:"Please keep this receipt for item collection."});
       e.target.reset();$("repairDeposit").value=0;toast("Repair intake created · "+ticketNo)
     }catch(err){toast(err.message)}
   };
@@ -1867,28 +2076,28 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       return rows;
     });
     return [
-      ...state.sales.map(x=>({kind:"sale",filterKind:"sale",number:x.receiptNo,total:Number(x.total||0),payment:x.paymentMethod||"—",customer:x.customer||"Walk-in",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
-      ...state.buys.map(x=>({kind:"buy",filterKind:"buy",number:x.buyNo,total:Number(x.totalAmount??x.offer??0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
-      ...state.refunds.map(x=>({kind:"refund",filterKind:"refund",number:x.refundNo,total:Number(x.refundAmount||0),payment:x.refundMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
-      ...state.exchanges.map(x=>({kind:"exchange",filterKind:"exchange",number:x.exchangeNo,total:Number(x.balanceAmount||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
-      ...state.warrantyClaims.map(x=>({kind:"warranty",filterKind:"warranty",number:x.claimNo,total:0,payment:"No payment",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"active"})),
-      ...state.trades.map(x=>({kind:"trade",filterKind:"trade",number:x.tradeNo,total:Number(x.balance||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.sales.map(x=>({kind:"sale",filterKind:"sale",number:x.receiptNo,total:Number(x.total||0),payment:x.paymentMethod||"—",customer:x.customer||"Walk-in",createdAt:effectiveTransactionValue(x),data:x,status:x.status||"completed"})),
+      ...state.buys.map(x=>({kind:"buy",filterKind:"buy",number:x.buyNo,total:Number(x.totalAmount??x.offer??0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:effectiveTransactionValue(x),data:x,status:x.status||"completed"})),
+      ...state.refunds.map(x=>({kind:"refund",filterKind:"refund",number:x.refundNo,total:Number(x.refundAmount||0),payment:x.refundMethod||"—",customer:x.customer||"—",createdAt:effectiveTransactionValue(x),data:x,status:x.status||"completed"})),
+      ...state.exchanges.map(x=>({kind:"exchange",filterKind:"exchange",number:x.exchangeNo,total:Number(x.balanceAmount||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:effectiveTransactionValue(x),data:x,status:x.status||"completed"})),
+      ...state.warrantyClaims.map(x=>({kind:"warranty",filterKind:"warranty",number:x.claimNo,total:0,payment:"No payment",customer:x.customer||"—",createdAt:effectiveTransactionValue(x),data:x,status:x.status||"active"})),
+      ...state.trades.map(x=>({kind:"trade",filterKind:"trade",number:x.tradeNo,total:Number(x.balance||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:effectiveTransactionValue(x),data:x,status:x.status||"completed"})),
       ...repairTransactions
-    ].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    ].sort((a,b)=>effectiveTransactionMs(b.data)-effectiveTransactionMs(a.data));
   }
 
   function transactionDocument(t){
     const x=t.data,staff=x.staffName||"",cancelNote=x.status==="cancelled"||x.transactionStatus==="cancelled"?`CANCELLED: ${x.cancelReason||"No reason recorded"}`:"";
-    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warrantyDays!==undefined?warrantyDisplay(i):(i.warranty||""),qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote};
-    if(t.kind==="buy"){const items=(x.items||[{name:x.item,itemType:x.itemType,sku:x.sku,serial:x.serial,buyPrice:x.offer}]).map(i=>({name:i.name,detail:`${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:Number(i.buyPrice||0),total:Number(i.buyPrice||0)}));const total=Number(x.totalAmount??x.offer??0);return {title:"PURCHASE RECEIPT",number:x.buyNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items,totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:x.paymentMethod,note:cancelNote}};
+    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:transactionDateText(x),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warrantyDays!==undefined?warrantyDisplay(i):(i.warranty||""),qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote};
+    if(t.kind==="buy"){const items=(x.items||[{name:x.item,itemType:x.itemType,sku:x.sku,serial:x.serial,buyPrice:x.offer}]).map(i=>({name:i.name,detail:`${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:Number(i.buyPrice||0),total:Number(i.buyPrice||0)}));const total=Number(x.totalAmount??x.offer??0);return {title:"PURCHASE RECEIPT",number:x.buyNo,date:transactionDateText(x),customer:x.customer,phone:x.phone,staff,items,totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:x.paymentMethod,note:cancelNote}};
     if(t.kind==="trade"){
       const outs=x.stockOutItems||[{name:x.newProductName,sku:"",qty:1,price:Number(x.newProductPrice||0)}],ins=x.stockInItems||[{name:x.tradeItem,sku:x.tradeItemSku||"",itemType:x.itemType||"Used",qty:1,tradeValue:Number(x.tradeValue||0)}];
       const net=Number(x.netBalance ?? (Number(x.newProductPrice||0)-Number(x.tradeValue||0))),outTotal=Number(x.totalStockOut ?? (x.newProductPrice||0)),inTotal=Number(x.totalTradeValue ?? (x.tradeValue||0));
-      return {title:"TRADE-IN RECEIPT",number:x.tradeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[...outs.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:Number(i.price||0),total:Number(i.price||0)*Number(i.qty||1)})),...ins.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:-(Number(i.tradeValue||0)/Number(i.qty||1)),total:-Number(i.tradeValue||0)}))],totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:net>=0?"Amount Paid by Customer":"Amount Paid by Meney",value:Math.abs(net),grand:true}],payment:x.paymentMethod,note:cancelNote};
+      return {title:"TRADE-IN RECEIPT",number:x.tradeNo,date:transactionDateText(x),customer:x.customer,phone:x.phone,staff,items:[...outs.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:Number(i.price||0),total:Number(i.price||0)*Number(i.qty||1)})),...ins.map(i=>({name:i.name,detail:`STOCK IN · ${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty||1,unitPrice:-(Number(i.tradeValue||0)/Number(i.qty||1)),total:-Number(i.tradeValue||0)}))],totals:[{label:"Total Stock Out",value:outTotal},{label:"Total Stock In / Trade Value",value:-inTotal},{label:net>=0?"Amount Paid by Customer":"Amount Paid by Meney",value:Math.abs(net),grand:true}],payment:x.paymentMethod,note:cancelNote};
     }
-    if(t.kind==="repairDeposit")return {title:"REPAIR DEPOSIT RECEIPT",number:`${x.ticketNo}-DEP`,date:timestampText(x.depositPaidAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair intake · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,unitPrice:Number(x.depositAmount||0),total:Number(x.depositAmount||0)}],totals:[{label:"Deposit Paid",value:Number(x.depositAmount||0),grand:true}],payment:x.depositPaymentMethod||"—",note:cancelNote};
+    if(t.kind==="repairDeposit")return {title:"REPAIR DEPOSIT RECEIPT",number:`${x.ticketNo}-DEP`,date:timestampText(x.transactionDate||x.depositPaidAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair intake · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,unitPrice:Number(x.depositAmount||0),total:Number(x.depositAmount||0)}],totals:[{label:"Deposit Paid",value:Number(x.depositAmount||0),grand:true}],payment:x.depositPaymentMethod||"—",note:cancelNote};
     const finalPrice=Number(x.finalPrice||x.estimate||0),deposit=Number(x.depositAmount||0),balance=Math.max(0,finalPrice-deposit);
-    return {title:"REPAIR PAYMENT RECEIPT",number:x.ticketNo,date:timestampText(x.completedAt||x.updatedAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair completed · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,warranty:x.warranty||"",qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-deposit},{label:"Balance Paid",value:balance},{label:"Total Paid",value:finalPrice,grand:true}],payment:x.finalPaymentMethod||"Paid",note:cancelNote};
+    return {title:"REPAIR PAYMENT RECEIPT",number:x.ticketNo,date:timestampText(x.completedTransactionDate||x.transactionDate||x.completedAt||x.updatedAt||x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.device,detail:`Repair completed · ${x.issue||""}${x.serial?" · S/N "+x.serial:""}`,warranty:x.warranty||"",qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-deposit},{label:"Balance Paid",value:balance},{label:"Total Paid",value:finalPrice,grand:true}],payment:x.finalPaymentMethod||"Paid",note:cancelNote};
   }
   window.openReceipt=(kind,id)=>{const t=allTransactions().find(x=>x.kind===kind&&x.data.id===id);if(t)showTransactionDocument(transactionDocument(t))};
   function renderReceipts(){
@@ -1896,7 +2105,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const q=normalizeText($("receiptSearch").value),type=$("receiptType").value,status=$("receiptStatus").value;
     const rows=allTransactions().filter(t=>(!type||t.filterKind===type)&&(!status||(status==="cancelled"?t.status==="cancelled":t.status!=="cancelled"))&&(!q||normalizeText(`${t.number} ${t.customer} ${JSON.stringify(t.data)}`).includes(q)));
     const labels={sale:"Sales",buy:"Buy",trade:"Trade-In",repair:"Repair",repairDeposit:"Repair Deposit",refund:"Refund",exchange:"Exchange",warranty:"Warranty"};
-    $("receiptBody").innerHTML=rows.length?rows.map(t=>`<tr><td><strong>${esc(t.number||"—")}</strong></td><td>${timestampText(t.createdAt)}</td><td>${esc(t.customer)}</td><td><span class="badge ${t.kind==="sale"?"green":t.kind==="buy"?"orange":t.kind==="trade"||t.kind==="exchange"?"purple":t.kind==="refund"?"red":"blue"}">${labels[t.kind]}</span></td><td>${esc(t.payment)}</td><td><strong>${money(t.total)}</strong></td><td><span class="badge ${t.status==="cancelled"?"gray":"green"}">${t.status==="cancelled"?"Cancelled":"Active"}</span></td><td><button class="btn btn-light" style="padding:7px 9px" onclick="window.openReceipt('${t.kind}','${t.data.id}')">View</button> ${isOwner()&&t.status!=="cancelled"&&t.kind!=="repairDeposit"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="window.cancelBill('${t.kind}','${t.data.id}')">Cancel</button>`:""}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Tiada transaksi ditemui.</td></tr>';
+    $("receiptBody").innerHTML=rows.length?rows.map(t=>`<tr><td><strong>${esc(t.number||"—")}</strong></td><td>${transactionDateText(t.data)}${t.data?.isBackdated?'<span class="backdated-badge">BACKDATED</span>':''}</td><td>${esc(t.customer)}</td><td><span class="badge ${t.kind==="sale"?"green":t.kind==="buy"?"orange":t.kind==="trade"||t.kind==="exchange"?"purple":t.kind==="refund"?"red":"blue"}">${labels[t.kind]}</span></td><td>${esc(t.payment)}</td><td><strong>${money(t.total)}</strong></td><td><span class="badge ${t.status==="cancelled"?"gray":"green"}">${t.status==="cancelled"?"Cancelled":"Active"}</span></td><td><button class="btn btn-light" style="padding:7px 9px" onclick="window.openReceipt('${t.kind}','${t.data.id}')">View</button> ${isOwner()&&t.status!=="cancelled"&&t.kind!=="repairDeposit"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="window.cancelBill('${t.kind}','${t.data.id}')">Cancel</button>`:""}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Tiada transaksi ditemui.</td></tr>';
   }
   $("receiptSearch").oninput=renderReceipts;$("receiptType").onchange=renderReceipts;$("receiptStatus").onchange=renderReceipts;
   window.cancelBill=async(kind,id)=>{
@@ -2112,7 +2321,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   $("clearStockPurchase")?.addEventListener("click",()=>{if(confirm("Clear stock purchase draft?"))resetStockPurchaseDraft()});
   ["spShipping","spDiscount","spAmountPaid"].forEach(id=>$(id)?.addEventListener("input",renderStockPurchaseSummary));
   $("stockPurchaseForm")?.addEventListener("submit",async e=>{
-    e.preventDefault();const supplierChoice=$("spSupplier").value;if(!supplierChoice)return toast("Pilih supplier.");const newSupplierName=$("spNewSupplierName")?.value.trim()||"";if(supplierChoice==="__new__"&&!newSupplierName)return toast("Masukkan nama supplier baharu.");
+    e.preventDefault();
+    let entry;try{entry=entryContext()}catch(err){return toast(err.message)}const supplierChoice=$("spSupplier").value;if(!supplierChoice)return toast("Pilih supplier.");const newSupplierName=$("spNewSupplierName")?.value.trim()||"";if(supplierChoice==="__new__"&&!newSupplierName)return toast("Masukkan nama supplier baharu.");
     const items=state.stockPurchaseItems.map(i=>({...i,name:i.name.trim(),qty:Number(i.qty||0),unitCost:Number(i.unitCost||0)}));
     for(const i of items){if(i.mode!=="new"&&!i.productId)return toast("Pilih existing product atau Create New Item untuk setiap baris.");if(!i.name)return toast("Setiap product mesti ada nama.");if(i.mode==="new"&&state.products.some(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category))return toast(`${i.name} sudah wujud. Sila pilih SKU sedia ada.`);if(i.qty<1)return toast(`Quantity tidak sah: ${i.name}`);if(i.unitCost<0)return toast(`Unit cost tidak sah: ${i.name}`)}
     const btn=e.submitter;btn.disabled=true;btn.textContent="Creating...";
@@ -2121,7 +2331,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       let supplier,supplierName;if(supplierChoice==="__new__"){supplierName=newSupplierName;const duplicate=state.suppliers.find(x=>normalizeText(x.name||x.supplierName)===normalizeText(supplierName));if(duplicate)throw new Error("Supplier sudah wujud. Sila pilih daripada dropdown.");const ref=doc(collection(db,"suppliers"));await runTransaction(db,async tx=>tx.set(ref,{name:supplierName,active:true,createdAt:serverTimestamp(),createdBy:state.user.uid}));supplier={id:ref.id,name:supplierName}}else{supplier=state.suppliers.find(x=>x.id===supplierChoice);if(!supplier)throw new Error("Supplier tidak ditemui");supplierName=supplier.name||supplier.supplierName||"Unnamed supplier"}
       const prepared=[];for(const i of items){const existing=i.mode!=="new"?state.products.find(p=>p.id===i.productId):null;let productId=existing?.id||"",sku=existing?.sku||"";if(!productId){sku=await reserveSku(i.category);productId=doc(collection(db,"products")).id}prepared.push({...i,productId,sku,isNew:!existing})}
       const purchaseRef=doc(collection(db,"stockPurchases"));const subtotal=prepared.reduce((s,i)=>s+i.qty*i.unitCost,0),shipping=Number($("spShipping").value||0),discount=Number($("spDiscount").value||0),total=Math.max(0,subtotal+shipping-discount),amountPaid=Math.min(total,Number($("spAmountPaid").value||0));
-      await runTransaction(db,async tx=>{prepared.filter(i=>i.isNew).forEach(i=>tx.set(doc(db,"products",i.productId),{name:i.name,sku:i.sku,category:i.category,itemType:"New",status:"Awaiting Stock",cost:i.unitCost,price:0,stock:0,lowStock:1,createdAt:serverTimestamp(),createdBy:state.user.uid}));tx.set(purchaseRef,{purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,quantityOrdered:i.qty,quantityReceived:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,purchaseStatus:"ordered",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile.name||state.user.email})});
+      await runTransaction(db,async tx=>{prepared.filter(i=>i.isNew).forEach(i=>tx.set(doc(db,"products",i.productId),{name:i.name,sku:i.sku,category:i.category,itemType:"New",status:"Awaiting Stock",cost:i.unitCost,price:0,stock:0,lowStock:1,createdAt:serverTimestamp(),createdBy:state.user.uid}));tx.set(purchaseRef,{purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,quantityOrdered:i.qty,quantityReceived:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,purchaseStatus:"ordered",transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile.name||state.user.email})});
       toast(`${poNo} created`);resetStockPurchaseDraft();setStockPurchaseTab("history");
     }catch(err){console.error("Stock purchase",err);toast("Stock purchase gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Create Purchase Order"}
   });
@@ -2134,6 +2344,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   $("receivePurchaseSelect")?.addEventListener("change",renderStockReceiving);
   $("confirmStockReceive")?.addEventListener("click",async()=>{
+    let entry;try{entry=entryContext()}catch(err){return toast(err.message)}
     const purchase=state.stockPurchases.find(x=>x.id===$("receivePurchaseSelect").value);if(!purchase)return toast("Pilih purchase order.");
     const rows=(purchase.items||[]).map((i,k)=>({index:k,item:i,receiveQty:Math.max(0,Number(document.querySelector(`[data-receive-qty="${k}"]`)?.value||0)),damagedQty:Math.max(0,Number(document.querySelector(`[data-receive-damaged="${k}"]`)?.value||0))}));
     for(const r of rows){const remaining=Number(r.item.quantityOrdered||0)-Number(r.item.quantityReceived||0);if(r.receiveQty+r.damagedQty>remaining)return toast(`Received + damaged melebihi baki untuk ${r.item.name}`)}
@@ -2142,11 +2353,11 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     try{
       const grnNo=await reserveDocumentNumber("stockReceipt","GRN");const productRefs=rows.filter(r=>r.receiveQty>0).map(r=>doc(db,"products",r.item.productId)),receiptRef=doc(collection(db,"stockReceipts"));
       await runTransaction(db,async tx=>{const snaps=[];for(const ref of productRefs)snaps.push(await tx.get(ref));let snapIndex=0;for(const r of rows){if(r.receiveQty<=0)continue;const ref=productRefs[snapIndex],snap=snaps[snapIndex++];if(!snap.exists())throw new Error(`Product not found: ${r.item.name}`);const d=snap.data(),oldQty=Number(d.stock||0),newQty=oldQty+r.receiveQty,newCost=weightedAverageCost(oldQty,d.cost,r.receiveQty,r.item.unitCost);tx.update(ref,{stock:newQty,cost:newCost,lastIncomingCost:Number(r.item.unitCost||0),lastIncomingQty:r.receiveQty,status:"Available",updatedAt:serverTimestamp()});for(let n=0;n<r.receiveQty;n++){const unitRef=doc(collection(db,"inventoryUnits"));tx.set(unitRef,{unitId:unitRef.id,productId:r.item.productId,sku:r.item.sku,productName:r.item.name,category:r.item.category,itemType:"New",serialNumber:"",costPrice:Number(r.item.unitCost||0),sourceType:"supplier_purchase",sourceTransactionId:purchase.id,purchaseNo:purchase.purchaseNo,grnNo,status:"available",createdAt:serverTimestamp(),createdBy:state.user.uid})}}
-        const updatedItems=(purchase.items||[]).map((i,k)=>({...i,quantityReceived:Number(i.quantityReceived||0)+rows[k].receiveQty,quantityDamaged:Number(i.quantityDamaged||0)+rows[k].damagedQty}));const fully=updatedItems.every(i=>Number(i.quantityReceived||0)+Number(i.quantityDamaged||0)>=Number(i.quantityOrdered||0));tx.update(doc(db,"stockPurchases",purchase.id),{items:updatedItems,purchaseStatus:fully?"fully_received":"partially_received",lastReceivedAt:serverTimestamp(),updatedAt:serverTimestamp()});tx.set(receiptRef,{receiptNo:grnNo,stockPurchaseId:purchase.id,purchaseNo:purchase.purchaseNo,supplierId:purchase.supplierId,supplierName:purchase.supplierName,items:rows.filter(r=>r.receiveQty>0||r.damagedQty>0).map(r=>({productId:r.item.productId,sku:r.item.sku,name:r.item.name,quantityReceived:r.receiveQty,quantityDamaged:r.damagedQty,unitCost:r.item.unitCost})),notes:$("receiveNotes").value.trim(),receivedBy:state.user.uid,receivedByName:state.profile.name||state.user.email,receivedAt:serverTimestamp()})});
-      showTransactionDocument({title:"GOODS RECEIVED NOTE",number:grnNo,customer:purchase.supplierName,phone:"",staff:state.profile.name||state.user.email,items:rows.filter(r=>r.receiveQty>0).map(r=>({name:r.item.name,detail:`${r.item.sku} · PO ${purchase.purchaseNo}`,qty:r.receiveQty,unitPrice:r.item.unitCost,total:r.receiveQty*r.item.unitCost})),totals:[{label:"Received Stock Value",value:rows.reduce((s,r)=>s+r.receiveQty*Number(r.item.unitCost||0),0),grand:true}],payment:"Stock Receiving",note:$("receiveNotes").value.trim()});$("receiveNotes").value="";toast(`${grnNo} stock received`);
+        const updatedItems=(purchase.items||[]).map((i,k)=>({...i,quantityReceived:Number(i.quantityReceived||0)+rows[k].receiveQty,quantityDamaged:Number(i.quantityDamaged||0)+rows[k].damagedQty}));const fully=updatedItems.every(i=>Number(i.quantityReceived||0)+Number(i.quantityDamaged||0)>=Number(i.quantityOrdered||0));tx.update(doc(db,"stockPurchases",purchase.id),{items:updatedItems,purchaseStatus:fully?"fully_received":"partially_received",lastReceivedAt:serverTimestamp(),updatedAt:serverTimestamp()});tx.set(receiptRef,{receiptNo:grnNo,stockPurchaseId:purchase.id,purchaseNo:purchase.purchaseNo,supplierId:purchase.supplierId,supplierName:purchase.supplierName,items:rows.filter(r=>r.receiveQty>0||r.damagedQty>0).map(r=>({productId:r.item.productId,sku:r.item.sku,name:r.item.name,quantityReceived:r.receiveQty,quantityDamaged:r.damagedQty,unitCost:r.item.unitCost})),notes:$("receiveNotes").value.trim(),receivedBy:state.user.uid,receivedByName:state.profile.name||state.user.email,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,receivedAt:serverTimestamp()})});
+      showTransactionDocument({title:"GOODS RECEIVED NOTE",number:grnNo,date:timestampText(entry.transactionDate),customer:purchase.supplierName,phone:"",staff:state.profile.name||state.user.email,items:rows.filter(r=>r.receiveQty>0).map(r=>({name:r.item.name,detail:`${r.item.sku} · PO ${purchase.purchaseNo}`,qty:r.receiveQty,unitPrice:r.item.unitCost,total:r.receiveQty*r.item.unitCost})),totals:[{label:"Received Stock Value",value:rows.reduce((s,r)=>s+r.receiveQty*Number(r.item.unitCost||0),0),grand:true}],payment:"Stock Receiving",note:$("receiveNotes").value.trim()});$("receiveNotes").value="";toast(`${grnNo} stock received`);
     }catch(err){console.error("Stock receive",err);toast("Stock receiving gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Stock Received & Stock In"}
   });
-  function renderStockPurchaseHistory(){if(!$("stockPurchaseHistory"))return;const rows=[...state.stockPurchases].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));$("stockPurchaseHistory").innerHTML=rows.length?rows.map(p=>{const ordered=(p.items||[]).reduce((s,i)=>s+Number(i.quantityOrdered||0),0),received=(p.items||[]).reduce((s,i)=>s+Number(i.quantityReceived||0),0);return `<tr><td><strong>${esc(p.purchaseNo||"—")}</strong></td><td>${esc(p.supplierName||"—")}</td><td>${esc(p.supplierInvoiceNo||"—")}</td><td>${p.items?.length||0}</td><td>${received}/${ordered}</td><td><strong>${money(p.totalAmount)}</strong></td><td><span class="badge ${p.purchaseStatus==="fully_received"?"green":p.purchaseStatus==="partially_received"?"orange":"blue"}">${esc(p.purchaseStatus||"ordered")}</span></td><td>${esc(p.paymentStatus||"unpaid")}</td></tr>`}).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:28px">Tiada stock purchase lagi.</td></tr>'}
+  function renderStockPurchaseHistory(){if(!$("stockPurchaseHistory"))return;const rows=[...state.stockPurchases].sort((a,b)=>effectiveTransactionMs(b)-effectiveTransactionMs(a));$("stockPurchaseHistory").innerHTML=rows.length?rows.map(p=>{const ordered=(p.items||[]).reduce((s,i)=>s+Number(i.quantityOrdered||0),0),received=(p.items||[]).reduce((s,i)=>s+Number(i.quantityReceived||0),0);return `<tr><td><strong>${esc(p.purchaseNo||"—")}</strong></td><td>${esc(p.supplierName||"—")}</td><td>${esc(p.supplierInvoiceNo||"—")}</td><td>${p.items?.length||0}</td><td>${received}/${ordered}</td><td><strong>${money(p.totalAmount)}</strong></td><td><span class="badge ${p.purchaseStatus==="fully_received"?"green":p.purchaseStatus==="partially_received"?"orange":"blue"}">${esc(p.purchaseStatus||"ordered")}</span></td><td>${esc(p.paymentStatus||"unpaid")}</td></tr>`}).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:28px">Tiada stock purchase lagi.</td></tr>'}
   resetStockPurchaseDraft();
 
 </script>
