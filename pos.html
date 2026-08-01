@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <title>Meney POS Enterprise · System Maintenance V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-SYSTEM-MAINTENANCE-V1-20260801" />
+  <meta name="meney-build" content="POS-DASHBOARD-REPAIR-SUMMARY-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -524,10 +524,14 @@
         </section>
         <section id="page-overview" class="page">
           <div class="grid stats">
-            <div class="card stat-card"><div class="label">Total Revenue</div><div id="ovRevenue" class="value">RM0.00</div><div class="trend">Live from Firebase</div></div>
-            <div class="card stat-card"><div class="label">Total Buy</div><div id="ovBuy" class="value">RM0.00</div><div class="trend">Customer purchases</div></div>
-            <div class="card stat-card"><div class="label">Total Sell</div><div id="ovSell" class="value">RM0.00</div><div class="trend">Completed sales</div></div>
-            <div class="card stat-card"><div class="label">Trade Profit</div><div id="ovTrade" class="value">RM0.00</div><div class="trend">Trade-in margin</div></div>
+            <div class="card stat-card"><div class="label">Product Sales</div><div id="ovSell" class="value">RM0.00</div><div class="trend">Completed product sales</div></div>
+            <div class="card stat-card"><div class="label">Product Gross Profit</div><div id="ovProductProfit" class="value">RM0.00</div><div class="trend">Sales less product cost</div></div>
+            <div class="card stat-card"><div class="label">Repair Sales</div><div id="ovRepairRevenue" class="value">RM0.00</div><div class="trend">Completed repairs only</div></div>
+            <div class="card stat-card"><div class="label">Repair Profit</div><div id="ovRepairProfit" class="value">RM0.00</div><div class="trend">After spare, outsource & other cost</div></div>
+            <div class="card stat-card"><div class="label">Total Revenue</div><div id="ovRevenue" class="value">RM0.00</div><div class="trend">Product sales + repair sales</div></div>
+            <div class="card stat-card"><div class="label">Total Gross Profit</div><div id="ovTotalProfit" class="value">RM0.00</div><div class="trend">Product profit + repair profit</div></div>
+            <div class="card stat-card"><div class="label">Total Buy</div><div id="ovBuy" class="value">RM0.00</div><div class="trend">Buy from customer</div></div>
+            <div class="card stat-card"><div class="label">Trade Balance</div><div id="ovTrade" class="value">RM0.00</div><div class="trend">Net customer balance in trade-in</div></div>
           </div>
 
           <div class="grid overview-grid" style="margin-top:16px">
@@ -2139,10 +2143,22 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   };
 
   function renderOverview(){
-    const sell=state.sales.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.total||0),0),buy=state.buys.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.totalAmount??x.offer??0),0),trade=state.trades.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.balance||0),0);
-    $("ovRevenue").textContent=money(sell+trade);$("ovBuy").textContent=money(buy);$("ovSell").textContent=money(sell);$("ovTrade").textContent=money(trade);
-    $("sumItems").textContent=state.products.reduce((s,p)=>s+Number(p.stock||0),0);$("sumAvailable").textContent=state.products.filter(p=>Number(p.stock||0)>0).length;$("sumReserved").textContent=0;$("sumRepair").textContent=state.repairs.filter(r=>r.status!=="Completed").length;
-    $("overviewSales").innerHTML=state.sales.filter(x=>x.status!=="cancelled").slice(0,7).map(s=>`<tr><td>${esc(s.receiptNo)}</td><td>${esc(s.customer||"Walk-in")}</td><td>${s.itemCount||0}</td><td><span class="badge green">Sell</span></td><td><strong>${money(s.total)}</strong></td></tr>`).join("")||'<tr><td colspan="5" class="muted" style="text-align:center;padding:25px">Belum ada transaksi.</td></tr>'
+    const activeSales=state.sales.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled");
+    const completedRepairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled");
+    const sell=activeSales.reduce((sum,x)=>sum+Number(x.total||0),0);
+    const productProfit=activeSales.reduce((sum,x)=>sum+Number(x.total||0)-Number((x.items||[]).reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)),0);
+    const repairRevenue=completedRepairs.reduce((sum,x)=>sum+Number(x.finalPrice||x.estimate||0),0);
+    const repairProfit=completedRepairs.reduce((sum,x)=>sum+Number(x.netProfit??(Number(x.finalPrice||x.estimate||0)-Number(x.totalCost||0))),0);
+    const totalRevenue=sell+repairRevenue,totalProfit=productProfit+repairProfit;
+    const buy=state.buys.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled").reduce((sum,x)=>sum+Number(x.totalAmount??x.offer??0),0);
+    const trade=state.trades.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled").reduce((sum,x)=>sum+Number(x.balance||0),0);
+    $("ovSell").textContent=money(sell);$("ovProductProfit").textContent=money(productProfit);$("ovRepairRevenue").textContent=money(repairRevenue);$("ovRepairProfit").textContent=money(repairProfit);$("ovRevenue").textContent=money(totalRevenue);$("ovTotalProfit").textContent=money(totalProfit);$("ovBuy").textContent=money(buy);$("ovTrade").textContent=money(trade);
+    $("sumItems").textContent=state.products.reduce((sum,p)=>sum+Number(p.stock||0),0);$("sumAvailable").textContent=state.products.filter(p=>Number(p.stock||0)>0).length;$("sumReserved").textContent=0;$("sumRepair").textContent=state.repairs.filter(r=>!["Completed","Cancelled"].includes(r.status)).length;
+    const recent=[
+      ...activeSales.map(x=>({date:x.transactionDate||x.createdAt,number:x.receiptNo,customer:x.customer||"Walk-in",items:x.itemCount||x.items?.length||0,type:"Sell",badge:"green",total:Number(x.total||0)})),
+      ...completedRepairs.map(x=>({date:x.transactionDate||x.completedAt||x.createdAt,number:x.ticketNo,customer:x.customer||"—",items:1,type:"Repair",badge:"blue",total:Number(x.finalPrice||x.estimate||0)}))
+    ].sort((a,b)=>timestampMillis(b.date)-timestampMillis(a.date)).slice(0,7);
+    $("overviewSales").innerHTML=recent.length?recent.map(x=>`<tr><td>${esc(x.number||"—")}</td><td>${esc(x.customer)}</td><td>${x.items}</td><td><span class="badge ${x.badge}">${x.type}</span></td><td><strong>${money(x.total)}</strong></td></tr>`).join(""):'<tr><td colspan="5" class="muted" style="text-align:center;padding:25px">Belum ada transaksi.</td></tr>';
   }
 
   function renderCustomers(){
@@ -2154,9 +2170,13 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
 
   function renderReports(){
-    const profit=state.sales.reduce((s,x)=>s+Number(x.total||0)-Number(x.items?.reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)||0),0);
-    $("reportProfit").textContent=money(profit);$("reportTxn").textContent=state.sales.length+state.buys.length+state.trades.length;$("inventoryValue").textContent=money(state.products.reduce((s,p)=>s+Number(p.cost||0)*Number(p.stock||0),0));
-    const counts={};state.sales.forEach(s=>s.items?.forEach(i=>counts[i.name]=(counts[i.name]||0)+Number(i.qty||0)));$("bestSelling").textContent=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
+    const activeSales=state.sales.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled");
+    const completedRepairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled");
+    const productProfit=activeSales.reduce((sum,x)=>sum+Number(x.total||0)-Number((x.items||[]).reduce((a,i)=>a+Number(i.cost||0)*Number(i.qty||0),0)),0);
+    const repairProfit=completedRepairs.reduce((sum,x)=>sum+Number(x.netProfit??(Number(x.finalPrice||x.estimate||0)-Number(x.totalCost||0))),0);
+    const profit=productProfit+repairProfit;
+    $("reportProfit").textContent=money(profit);$("reportTxn").textContent=activeSales.length+state.buys.filter(x=>x.status!=="cancelled").length+state.trades.filter(x=>x.status!=="cancelled").length+completedRepairs.length;$("inventoryValue").textContent=money(state.products.reduce((sum,p)=>sum+Number(p.cost||0)*Number(p.stock||0),0));
+    const counts={};activeSales.forEach(s=>s.items?.forEach(i=>counts[i.name]=(counts[i.name]||0)+Number(i.qty||0)));$("bestSelling").textContent=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
     $("profitDonut").style.setProperty("--profit",profit);$("profitDonut").innerHTML=""
   }
 
