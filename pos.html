@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -11,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise v3.2 Premium UI · Splash Fix 2</title>
-  <meta name="meney-build" content="POS-SPLASH-FIX-2" />
+  <title>Meney POS Enterprise · Buy V2 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-BUY-V2-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -309,6 +308,31 @@
     @media(max-width:520px){.pos-splash-inner{width:calc(100vw - 40px);padding:20px}.pos-mark{width:70px;height:70px;border-radius:20px}.pos-splash-title{font-size:20px}.pos-splash-footer{bottom:18px}}
     @media(prefers-reduced-motion:reduce){.pos-mark,.pos-splash-title,.pos-splash-sub,.pos-splash-status,.pos-splash-loader,.pos-splash-loader::after,.pos-splash-footer,.meney-enter{animation:none}}
 
+
+
+    /* ===== Buy From Customer V2 ===== */
+    .buy-v2-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+    .buy-item-list{display:grid;gap:14px}
+    .buy-item-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:16px;box-shadow:0 5px 16px rgba(16,24,40,.04)}
+    .buy-item-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+    .buy-item-head h4{margin:0;font-size:14px}.buy-item-head p{margin:3px 0 0;font-size:10px;color:var(--muted)}
+    .buy-product-search{position:relative}
+    .buy-suggestions{position:absolute;z-index:15;left:0;right:0;top:calc(100% + 5px);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 45px rgba(16,24,40,.16);max-height:230px;overflow:auto}
+    .buy-suggestion{display:block;width:100%;border:0;border-bottom:1px solid var(--line2);background:#fff;text-align:left;padding:11px 12px}
+    .buy-suggestion:hover{background:#f0fdf4}.buy-suggestion:last-child{border-bottom:0}.buy-suggestion strong{display:block;font-size:12px}.buy-suggestion span{font-size:10px;color:var(--muted)}
+    .selected-product{margin-top:8px;padding:10px 11px;border-radius:11px;background:#edf9f1;border:1px solid #bfe4cb;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .selected-product strong{display:block;font-size:11px}.selected-product span{font-size:9px;color:#39734d}
+    .new-product-note{margin-top:8px;padding:9px 10px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:10px;font-weight:750}
+    .qc-panel{margin-top:13px;border-top:1px dashed var(--line);padding-top:13px}
+    .qc-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.qc-panel-head strong{font-size:12px}.qc-panel-head span{font-size:10px;color:var(--muted)}
+    .qc-grid{display:grid;gap:8px}.qc-row{display:grid;grid-template-columns:minmax(130px,1fr) 120px minmax(150px,1fr);gap:8px;align-items:center;padding:8px;border-radius:10px;background:#f8faf9;border:1px solid #edf1ee}
+    .qc-row label{margin:0;font-size:10px}.qc-row select,.qc-row input{min-height:36px;padding:7px 8px;font-size:11px}
+    .buy-summary{position:sticky;top:94px;padding:18px;border-top:4px solid var(--green)}
+    .buy-summary-items{display:grid;gap:8px;max-height:330px;overflow:auto;margin:12px 0}.buy-summary-line{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:11px}.buy-summary-line strong{max-width:190px}
+    .buy-empty{padding:30px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:11px}
+    @media(max-width:1000px){.buy-v2-layout{grid-template-columns:1fr}.buy-summary{position:static}}
+    @media(max-width:650px){.qc-row{grid-template-columns:1fr}.buy-item-card{padding:13px}}
+
 </style>
 </head>
 <body>
@@ -523,47 +547,33 @@
 
         <section id="page-buy" class="page hidden">
           <div class="flow-steps">
-            <div class="step active"><div class="step-no">1</div><strong>Customer & Item</strong><span>Basic details</span></div>
-            <div class="step active"><div class="step-no">2</div><strong>QC & Item Type</strong><span>Checklist</span></div>
-            <div class="step active"><div class="step-no">3</div><strong>Offer Price</strong><span>Confirm value</span></div>
-            <div class="step"><div class="step-no">4</div><strong>Payment</strong><span>Pay customer</span></div>
-            <div class="step"><div class="step-no">5</div><strong>Stock In</strong><span>Add inventory</span></div>
+            <div class="step active"><div class="step-no">1</div><strong>Customer</strong><span>Maklumat pelanggan</span></div>
+            <div class="step active"><div class="step-no">2</div><strong>Items</strong><span>Search / create product</span></div>
+            <div class="step active"><div class="step-no">3</div><strong>Smart QC</strong><span>Pass, Fail atau N/A</span></div>
+            <div class="step active"><div class="step-no">4</div><strong>Payment</strong><span>Jumlah bayaran</span></div>
+            <div class="step"><div class="step-no">5</div><strong>Stock In</strong><span>Receipt & inventory</span></div>
           </div>
-          <form id="buyForm" class="flow-form">
-            <div class="flow-col">
-              <h4>Customer & Item</h4>
-              <div class="field"><label>Customer Name</label><input id="buyCustomer" required></div>
-              <div class="field"><label>Phone</label><input id="buyPhone"></div>
-              <div class="field"><label>Item Category</label><select id="buyCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option></select></div>
-              <div class="field"><label>Item Name</label><input id="buyItem" required></div>
-              <div class="field"><label>Serial Number</label><input id="buySerial"></div>
-            </div>
-            <div class="flow-col">
-              <h4>QC Checklist</h4>
-              <div class="qc-list">
-                <label><input type="checkbox" checked> Power On</label>
-                <label><input type="checkbox" checked> HDMI Output</label>
-                <label><input type="checkbox" checked> Disc Drive</label>
-                <label><input type="checkbox" checked> Wi-Fi / Bluetooth</label>
-                <label><input type="checkbox" checked> USB Port</label>
-                <label><input type="checkbox" checked> Controller Test</label>
-                <label><input type="checkbox" checked> Body Condition</label>
-                <label><input type="checkbox" checked> Storage</label>
+          <form id="buyForm" novalidate>
+            <div class="card section" style="margin-bottom:16px">
+              <div class="section-head"><div><h3>Buy From Customer V2</h3><p>Satu customer boleh menjual banyak item dalam satu transaksi.</p></div><button id="clearBuyDraft" class="btn btn-light" type="button">Clear Draft</button></div>
+              <div class="two">
+                <div class="field"><label>Customer Name</label><input id="buyCustomer" required placeholder="Contoh: Ahmad"></div>
+                <div class="field"><label>Phone</label><input id="buyPhone" inputmode="tel" placeholder="01XXXXXXXX"></div>
               </div>
-              <div class="field" style="margin-top:12px"><label>Item Type</label><select id="buyItemType"><option value="Used" selected>Used</option><option value="New">New</option></select><span class="field-help">Pilih New untuk barang sealed/new dan Used untuk barang terpakai.</span></div>
             </div>
-            <div class="flow-col">
-              <h4>Offer Price</h4>
-              <div class="field"><label>Suggested Price (RM)</label><input id="buySuggested" type="number" min="0" step=".01"></div>
-              <div class="field"><label>Your Offer (RM)</label><input id="buyOffer" type="number" min="0" step=".01" required></div>
-              <div class="field"><label>Expected Sell Price (RM)</label><input id="buySellPrice" type="number" min="0" step=".01" required></div>
-            </div>
-            <div class="flow-col">
-              <h4>Payment & Stock In</h4>
-              <div class="field"><label>Payment Method</label><select id="buyPayment"><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option></select></div>
-              <div class="field"><label>SKU</label><input id="buySku" class="auto-field" readonly value="Auto-generated upon save"><span class="field-help">SKU dijana automatik mengikut kategori. Item sama tanpa serial akan ditambah ke stok sedia ada.</span></div>
-              <div class="field"><label>Low Stock Alert</label><input id="buyLowStock" type="number" min="0" value="1"></div>
-              <button class="btn btn-green btn-block" type="submit">Make Payment & Stock In</button>
+            <div class="buy-v2-layout">
+              <div>
+                <div id="buyItemList" class="buy-item-list"></div>
+                <button id="addBuyItem" class="btn btn-light btn-block" type="button" style="margin-top:12px">＋ Add Another Item</button>
+              </div>
+              <aside class="card buy-summary">
+                <div class="section-head"><div><h3>Purchase Summary</h3><p id="buyItemCount">0 item</p></div></div>
+                <div id="buySummaryItems" class="buy-summary-items"></div>
+                <div class="field"><label>Payment Method</label><select id="buyPayment"><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option></select></div>
+                <div class="total-line grand"><span>Total Payable</span><span id="buyGrandTotal">RM0.00</span></div>
+                <button id="completeBuy" class="btn btn-green btn-block" type="submit">Complete Purchase & Stock In</button>
+                <span class="field-help">Produk sedia ada akan menggunakan SKU yang sama. Produk baru akan dijana SKU secara automatik.</span>
+              </aside>
             </div>
           </form>
         </section>
@@ -892,7 +902,7 @@
   function hidePosSplash(){
     if(typeof window.__hideMeneySplash==="function")window.__hideMeneySplash();
   }
-  const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],cart:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,unsubs:[]};
+  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,unsubs:[]};
   const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
   const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
   const compactDate=()=>nowDate().replaceAll("-","");
@@ -1054,7 +1064,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   function subscribeAll(){
     const up=onSnapshot(query(collection(db,"products"),orderBy("name")),snap=>{state.products=snap.docs.map(d=>({id:d.id,...d.data()}));refresh()},err=>toast("Products: "+err.message));
-    state.unsubs.push(up);["sales","buys","trades","repairs","shifts","cashMoves"].forEach(n=>sub(n))
+    state.unsubs.push(up);["inventoryUnits","sales","buys","trades","repairs","shifts","cashMoves"].forEach(n=>sub(n))
   }
 
   const pages={
@@ -1124,8 +1134,6 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   $("salePayment").onchange=()=>{const split=$("salePayment").value==="Split Payment";$("splitPaymentBox").classList.toggle("hidden",!split);if(split&&!splitPayments.length)resetSplitPayments();renderSplitPaymentSummary()};
   $("addSplitPayment").onclick=()=>addSplitPaymentRow("Cash",0);
-  $("buyCategory").onchange=()=>$("buySku").value=`${skuPrefix($("buyCategory").value)}-AUTO`;
-  $("buySku").value=`${skuPrefix($("buyCategory").value)}-AUTO`;
 
   function totals(){const sub=state.cart.reduce((s,i)=>s+i.price*i.qty,0),disc=Math.min(Math.max(Number($("saleDiscount").value||0),0),sub);return{sub,disc,total:sub-disc}}
   function renderCart(){
@@ -1183,30 +1191,118 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     }catch(err){toast("Sale gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Payment"}
   };
 
+  const QC_TEMPLATES={
+    Console:["Power On","HDMI Output","Disc Drive","USB Port","LAN Port","Wi-Fi","Bluetooth","Controller Pairing","Fan Noise","Overheating","Storage Capacity","Cosmetic Condition","Warranty Sticker","Factory Reset Done"],
+    Controller:["Left Analog","Right Analog","L1 / R1","L2 / R2","D-Pad","Face Buttons","Touchpad / Home Button","Vibration","Charging","Wireless Connection","Stick Drift","Cosmetic Condition"],
+    Games:["Original Disc / Cartridge","Surface Condition","Read Successfully","Game Launch Test","Cover Included","Manual Included"],
+    Accessories:["Physical Condition","Function Test","Cable Complete","Charger Included","Connection Test","Cosmetic Condition"],
+    "Repair Parts":["Correct Part","Physical Condition","Continuity / Function Test","Connector Condition"],
+    Others:["Physical Condition","Function Test","Accessories Complete"]
+  };
+  const buyUid=()=>crypto.randomUUID?crypto.randomUUID():`buy-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  function defaultQc(category){return Object.fromEntries((QC_TEMPLATES[category]||QC_TEMPLATES.Others).map(name=>[name,{status:"pass",remark:""}]))}
+  function newBuyItem(){return{id:buyUid(),productId:"",name:"",category:"Console",itemType:"Used",serial:"",buyPrice:0,notes:"",qc:defaultQc("Console"),showSuggestions:false}}
+  function buyTotal(){return state.buyItems.reduce((sum,i)=>sum+Number(i.buyPrice||0),0)}
+  function productSearchResults(item){
+    const q=normalizeText(item.name);if(!q)return [];
+    return state.products.filter(p=>normalizeText(`${p.name} ${p.sku} ${p.category}`).includes(q)).slice(0,7)
+  }
+  function serialOwner(serial){
+    const key=normalizeSerial(serial);if(!key)return null;
+    return state.inventoryUnits.find(u=>normalizeSerial(u.serialNumber||u.serial)===key&&u.status!=="cancelled")||duplicateSerial(serial)
+  }
+  function renderBuyItems(){
+    const holder=$("buyItemList");if(!holder)return;
+    holder.innerHTML=state.buyItems.length?state.buyItems.map((item,index)=>{
+      const selected=state.products.find(p=>p.id===item.productId),results=productSearchResults(item);
+      const qcs=Object.entries(item.qc||{}).map(([name,result])=>`<div class="qc-row"><label>${esc(name)}</label><select data-buy-qc-status="${item.id}" data-qc-name="${esc(name)}"><option value="pass" ${result.status==="pass"?"selected":""}>✅ Pass</option><option value="fail" ${result.status==="fail"?"selected":""}>❌ Fail</option><option value="na" ${result.status==="na"?"selected":""}>➖ N/A</option></select><input data-buy-qc-remark="${item.id}" data-qc-name="${esc(name)}" value="${esc(result.remark||"")}" placeholder="Remark${result.status==="fail"?" wajib jika fail":" (optional)"}"></div>`).join("");
+      return `<div class="buy-item-card" data-buy-card="${item.id}">
+        <div class="buy-item-head"><div><h4>Item ${index+1}</h4><p>${selected?`Existing SKU · ${esc(selected.sku||"")}`:"New product if no existing product is selected"}</p></div>${state.buyItems.length>1?`<button class="btn btn-danger" type="button" data-remove-buy="${item.id}">Remove</button>`:""}</div>
+        <div class="two">
+          <div class="field buy-product-search"><label>Search Product / SKU</label><input data-buy-name="${item.id}" value="${esc(item.name)}" autocomplete="off" placeholder="Contoh: PS4 Slim 1TB"><div class="buy-suggestions ${item.showSuggestions&&item.name?"":"hidden"}">${results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")}${results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${item.id}"><strong>＋ Create New Product</strong><span>Tiada produk sepadan ditemui</span></button>`}</div></div>
+          <div class="field"><label>Category</label><select data-buy-category="${item.id}" ${selected?"disabled":""}>${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===item.category?"selected":""}>${c}</option>`).join("")}</select></div>
+        </div>
+        ${selected?`<div class="selected-product"><div><strong>${esc(selected.name)}</strong><span>Using existing product · ${esc(selected.sku||"")}</span></div><button type="button" class="btn btn-light" data-clear-buy-product="${item.id}">Change</button></div>`:`<div class="new-product-note">Produk baru akan dicipta hanya jika tiada produk sedia ada dipilih. Sistem akan jana SKU automatik.</div>`}
+        <div class="three" style="margin-top:12px">
+          <div class="field"><label>Item Type</label><select data-buy-type="${item.id}"><option value="Used" ${item.itemType==="Used"?"selected":""}>Used</option><option value="New" ${item.itemType==="New"?"selected":""}>New</option></select></div>
+          <div class="field"><label>Serial Number</label><input data-buy-serial="${item.id}" value="${esc(item.serial)}" placeholder="Kosongkan jika tiada"></div>
+          <div class="field"><label>Buying Price (RM)</label><input data-buy-price="${item.id}" type="number" min="0" step=".01" value="${Number(item.buyPrice||0)}"></div>
+        </div>
+        <div class="field"><label>Item Notes</label><input data-buy-notes="${item.id}" value="${esc(item.notes||"")}" placeholder="Aksesori termasuk, keadaan kosmetik atau catatan lain"></div>
+        <div class="qc-panel"><div class="qc-panel-head"><strong>Smart QC · ${esc(item.category)}</strong><span>Pass / Fail / N/A</span></div><div class="qc-grid">${qcs}</div></div>
+      </div>`
+    }).join(""):'<div class="buy-empty">Belum ada item.</div>';
+    bindBuyItemEvents();renderBuySummary();
+  }
+  function bindBuyItemEvents(){
+    document.querySelectorAll("[data-buy-name]").forEach(el=>{
+      const refreshSuggestions=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyName);if(!i)return;i.name=el.value;i.productId="";i.showSuggestions=true;const box=el.parentElement.querySelector(".buy-suggestions"),results=productSearchResults(i);if(!box)return;box.classList.toggle("hidden",!i.name);box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")+(results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${i.id}"><strong>＋ Create New Product</strong><span>Tiada produk sepadan ditemui</span></button>`);box.querySelectorAll("[data-select-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.selectBuyProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!item||!product)return;item.productId=product.id;item.name=product.name;item.category=product.category||"Others";item.itemType=product.itemType||"Used";item.qc=defaultQc(item.category);item.showSuggestions=false;renderBuyItems()});box.querySelectorAll("[data-create-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.createBuyProduct);if(item){item.productId="";item.showSuggestions=false;renderBuyItems()}})};
+      el.oninput=refreshSuggestions;el.onfocus=refreshSuggestions;
+    });
+    document.querySelectorAll("[data-select-buy-product]").forEach(el=>el.onclick=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.selectBuyProduct),p=state.products.find(x=>x.id===el.dataset.productId);if(!i||!p)return;i.productId=p.id;i.name=p.name;i.category=p.category||"Others";i.itemType=p.itemType||"Used";i.qc=defaultQc(i.category);i.showSuggestions=false;renderBuyItems()});
+    document.querySelectorAll("[data-create-buy-product]").forEach(el=>el.onclick=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.createBuyProduct);if(i){i.productId="";i.showSuggestions=false;renderBuyItems()}});
+    document.querySelectorAll("[data-clear-buy-product]").forEach(el=>el.onclick=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.clearBuyProduct);if(i){i.productId="";i.showSuggestions=false;renderBuyItems()}});
+    document.querySelectorAll("[data-remove-buy]").forEach(el=>el.onclick=()=>{state.buyItems=state.buyItems.filter(x=>x.id!==el.dataset.removeBuy);renderBuyItems()});
+    document.querySelectorAll("[data-buy-category]").forEach(el=>el.onchange=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyCategory);if(i){i.category=el.value;i.qc=defaultQc(el.value);renderBuyItems()}});
+    document.querySelectorAll("[data-buy-type]").forEach(el=>el.onchange=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyType);if(i)i.itemType=el.value});
+    document.querySelectorAll("[data-buy-serial]").forEach(el=>el.oninput=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buySerial);if(i)i.serial=el.value});
+    document.querySelectorAll("[data-buy-price]").forEach(el=>el.oninput=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyPrice);if(i){i.buyPrice=Math.max(0,Number(el.value||0));renderBuySummary()}});
+    document.querySelectorAll("[data-buy-notes]").forEach(el=>el.oninput=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyNotes);if(i)i.notes=el.value});
+    document.querySelectorAll("[data-buy-qc-status]").forEach(el=>el.onchange=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyQcStatus);if(i&&i.qc[el.dataset.qcName]){i.qc[el.dataset.qcName].status=el.value;renderBuyItems()}});
+    document.querySelectorAll("[data-buy-qc-remark]").forEach(el=>el.oninput=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyQcRemark);if(i&&i.qc[el.dataset.qcName])i.qc[el.dataset.qcName].remark=el.value});
+  }
+  function renderBuySummary(){
+    if(!$("buySummaryItems"))return;
+    $("buyItemCount").textContent=`${state.buyItems.length} item`;
+    $("buySummaryItems").innerHTML=state.buyItems.length?state.buyItems.map((i,k)=>`<div class="buy-summary-line"><strong>${k+1}. ${esc(i.name||"Unnamed item")}</strong><span>${money(i.buyPrice)}</span></div>`).join(""):'<div class="muted" style="font-size:11px">Belum ada item.</div>';
+    $("buyGrandTotal").textContent=money(buyTotal());
+  }
+  function resetBuyDraft(){state.buyItems=[newBuyItem()];$("buyCustomer").value="";$("buyPhone").value="";$("buyPayment").value="Cash";renderBuyItems()}
+  $("addBuyItem").onclick=()=>{state.buyItems.push(newBuyItem());renderBuyItems()};
+  $("clearBuyDraft").onclick=()=>{if(confirm("Clear semua item dalam draft Buy From Customer?"))resetBuyDraft()};
+  resetBuyDraft();
+
   $("buyForm").onsubmit=async e=>{
     e.preventDefault();
-    const name=$("buyItem").value.trim(),category=$("buyCategory").value,itemType=$("buyItemType").value,serial=$("buySerial").value.trim();
-    const duplicate=duplicateSerial(serial);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
-    const existing=mergeCandidate({name,category,itemType,serial});
-    const buyRef=doc(collection(db,"buys"));let buyNo="",sku="",productId="";
+    const customer=$("buyCustomer").value.trim(),phone=$("buyPhone").value.trim(),paymentMethod=$("buyPayment").value;
+    if(!customer)return toast("Masukkan nama customer.");
+    if(!state.buyItems.length)return toast("Tambah sekurang-kurangnya satu item.");
+    const items=state.buyItems.map(i=>({...i,name:i.name.trim(),serial:i.serial.trim(),notes:i.notes.trim(),buyPrice:Number(i.buyPrice||0)}));
+    for(const i of items){
+      if(!i.name)return toast("Setiap item mesti mempunyai nama produk.");
+      if(i.buyPrice<=0)return toast(`Masukkan Buying Price untuk ${i.name}.`);
+      const dup=serialOwner(i.serial);if(dup)return toast(`Serial ${i.serial} sudah wujud dalam inventory.`);
+      const duplicateInDraft=i.serial&&items.filter(x=>normalizeSerial(x.serial)===normalizeSerial(i.serial)).length>1;if(duplicateInDraft)return toast(`Serial ${i.serial} berulang dalam transaksi ini.`);
+      const failedWithoutRemark=Object.entries(i.qc||{}).find(([,r])=>r.status==="fail"&&!String(r.remark||"").trim());if(failedWithoutRemark)return toast(`Remark wajib untuk QC gagal: ${failedWithoutRemark[0]} (${i.name}).`);
+      if(!i.productId){const exact=state.products.find(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category&&(p.itemType||"Used")===i.itemType);if(exact)return toast(`${i.name} sudah wujud. Sila pilih SKU sedia ada daripada dropdown.`)}
+    }
+    const btn=$("completeBuy");btn.disabled=true;btn.textContent="Processing...";
+    const buyRef=doc(collection(db,"buys")),prepared=[];let buyNo="";
     try{
       buyNo=await reserveDocumentNumber("buy","BUY");
-      if(!existing)sku=await reserveSku(category);
+      for(const i of items){
+        const sku=i.productId?(state.products.find(p=>p.id===i.productId)?.sku||""):await reserveSku(i.category);
+        const productRef=i.productId?doc(db,"products",i.productId):doc(collection(db,"products"));
+        const unitRef=doc(collection(db,"inventoryUnits"));
+        prepared.push({...i,sku,productId:productRef.id,productRef,unitRef,inventoryUnitId:unitRef.id,inventoryAction:i.productId?"merged":"created"});
+      }
       await runTransaction(db,async tx=>{
-        if(existing){
-          const ref=doc(db,"products",existing.id),snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk sedia ada tidak ditemui");
-          sku=snap.data().sku;productId=existing.id;
-          const oldQty=Number(snap.data().stock||0),incomingCost=Number($("buyOffer").value),averageCost=weightedAverageCost(oldQty,snap.data().cost,1,incomingCost);
-          tx.update(ref,{itemType,stock:oldQty+1,status:"Available",cost:averageCost,lastIncomingCost:incomingCost,lastIncomingQty:1,previousCost:Number(snap.data().cost||0),price:Number($("buySellPrice").value),lowStock:Number($("buyLowStock").value||1),intakeHistory:[...(snap.data().intakeHistory||[]),{source:"buy",itemType,qty:1,cost:incomingCost,serial:serial||"",recordedAt:new Date().toISOString()}],updatedAt:serverTimestamp()});
-        }else{
-          const productRef=doc(collection(db,"products"));productId=productRef.id;
-          tx.set(productRef,{name,sku,category,itemType,status:"Available",cost:Number($("buyOffer").value),price:Number($("buySellPrice").value),stock:1,lowStock:Number($("buyLowStock").value||1),serial,intakeHistory:[{source:"buy",itemType,qty:1,cost:Number($("buyOffer").value),serial:serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid});
+        const uniqueExisting=[...new Map(prepared.filter(i=>i.inventoryAction==="merged").map(i=>[i.productId,i.productRef])).values()],snaps=new Map();
+        for(const ref of uniqueExisting){const snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk sedia ada tidak ditemui");snaps.set(ref.id,snap)}
+        const groups=new Map();prepared.forEach(i=>{if(i.inventoryAction==="merged"){if(!groups.has(i.productId))groups.set(i.productId,[]);groups.get(i.productId).push(i)}});
+        for(const [productId,group] of groups){
+          const snap=snaps.get(productId),data=snap.data(),oldQty=Number(data.stock||0),incomingQty=group.length,incomingTotal=group.reduce((a,i)=>a+i.buyPrice,0),incomingAvg=incomingTotal/incomingQty,averageCost=weightedAverageCost(oldQty,data.cost,incomingQty,incomingAvg);
+          tx.update(group[0].productRef,{stock:oldQty+incomingQty,status:"Available",cost:averageCost,lastIncomingCost:incomingAvg,lastIncomingQty:incomingQty,previousCost:Number(data.cost||0),intakeHistory:[...(data.intakeHistory||[]),...group.map(i=>({source:"buy",buyNo,itemType:i.itemType,qty:1,cost:i.buyPrice,serial:i.serial||"",recordedAt:new Date().toISOString()}))],updatedAt:serverTimestamp()});
         }
-        tx.set(buyRef,{buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),item:name,sku,serial,itemType,offer:Number($("buyOffer").value),expectedSellPrice:Number($("buySellPrice").value),paymentMethod:$("buyPayment").value,productId,inventoryAction:existing?"merged":"created",status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",createdAt:serverTimestamp()});
+        prepared.filter(i=>i.inventoryAction==="created").forEach(i=>tx.set(i.productRef,{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,status:"Pricing Required",cost:i.buyPrice,price:0,stock:1,lowStock:1,serial:"",intakeHistory:[{source:"buy",buyNo,itemType:i.itemType,qty:1,cost:i.buyPrice,serial:i.serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid}));
+        prepared.forEach(i=>tx.set(i.unitRef,{unitId:i.inventoryUnitId,productId:i.productId,sku:i.sku,productName:i.name,category:i.category,itemType:i.itemType,serialNumber:i.serial||"",costPrice:i.buyPrice,sourceType:"customer_purchase",sourceTransactionId:buyRef.id,buyNo,status:i.inventoryAction==="created"?"pricing_required":"available",qcResults:i.qc,notes:i.notes||"",createdAt:serverTimestamp(),createdBy:state.user.uid}));
+        const totalAmount=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
+        tx.set(buyRef,{buyNo,customer,phone,paymentMethod,totalAmount,itemCount:prepared.length,items:prepared.map(i=>({productId:i.productId,inventoryUnitId:i.inventoryUnitId,name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,serial:i.serial,buyPrice:i.buyPrice,inventoryAction:i.inventoryAction,qcResults:i.qc,notes:i.notes||""})),status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",createdAt:serverTimestamp()});
       });
-      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer:$("buyCustomer").value.trim(),phone:$("buyPhone").value.trim(),staff:state.profile.name||state.user.email,items:[{name,detail:`${itemType} · SKU ${sku}${serial?" · S/N "+serial:""}`,qty:1,amount:Number($("buyOffer").value),total:Number($("buyOffer").value)}],totals:[{label:"Amount Paid to Customer",value:Number($("buyOffer").value),grand:true}],payment:$("buyPayment").value,note:""});
-      e.target.reset();$("buySku").value="Auto-generated upon save";toast(`${buyNo} complete · ${existing?"stock updated":"new SKU "+sku}`)
-    }catch(err){toast("Buy gagal: "+err.message)}
+      const total=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
+      showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,customer,phone,staff:state.profile.name||state.user.email,items:prepared.map(i=>({name:i.name,detail:`${i.itemType} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:i.buyPrice,total:i.buyPrice})),totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:paymentMethod,note:""});
+      resetBuyDraft();toast(`${buyNo} complete · ${prepared.length} item stock in`)
+    }catch(err){console.error(err);toast("Buy gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Complete Purchase & Stock In"}
   };
 
   function populateTradeProducts(){
@@ -1501,7 +1597,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     });
     return [
       ...state.sales.map(x=>({kind:"sale",filterKind:"sale",number:x.receiptNo,total:Number(x.total||0),payment:x.paymentMethod||"—",customer:x.customer||"Walk-in",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
-      ...state.buys.map(x=>({kind:"buy",filterKind:"buy",number:x.buyNo,total:Number(x.offer||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
+      ...state.buys.map(x=>({kind:"buy",filterKind:"buy",number:x.buyNo,total:Number(x.totalAmount??x.offer??0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
       ...state.trades.map(x=>({kind:"trade",filterKind:"trade",number:x.tradeNo,total:Number(x.balance||0),payment:x.paymentMethod||"—",customer:x.customer||"—",createdAt:x.createdAt,data:x,status:x.status||"completed"})),
       ...repairTransactions
     ].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
@@ -1510,7 +1606,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function transactionDocument(t){
     const x=t.data,staff=x.staffName||"",cancelNote=x.status==="cancelled"||x.transactionStatus==="cancelled"?`CANCELLED: ${x.cancelReason||"No reason recorded"}`:"";
     if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warranty||"",qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote};
-    if(t.kind==="buy")return {title:"PURCHASE RECEIPT",number:x.buyNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items:[{name:x.item,detail:`${x.itemType||"Used"} · SKU ${x.sku||""}${x.serial?" · S/N "+x.serial:""}`,qty:1,amount:x.offer,total:x.offer}],totals:[{label:"Amount Paid to Customer",value:x.offer,grand:true}],payment:x.paymentMethod,note:cancelNote};
+    if(t.kind==="buy"){const items=(x.items||[{name:x.item,itemType:x.itemType,sku:x.sku,serial:x.serial,buyPrice:x.offer}]).map(i=>({name:i.name,detail:`${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:Number(i.buyPrice||0),total:Number(i.buyPrice||0)}));const total=Number(x.totalAmount??x.offer??0);return {title:"PURCHASE RECEIPT",number:x.buyNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items,totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:x.paymentMethod,note:cancelNote}};
     if(t.kind==="trade"){
       const outs=x.stockOutItems||[{name:x.newProductName,sku:"",qty:1,price:Number(x.newProductPrice||0)}],ins=x.stockInItems||[{name:x.tradeItem,sku:x.tradeItemSku||"",itemType:x.itemType||"Used",qty:1,tradeValue:Number(x.tradeValue||0)}];
       const net=Number(x.netBalance ?? (Number(x.newProductPrice||0)-Number(x.tradeValue||0))),outTotal=Number(x.totalStockOut ?? (x.newProductPrice||0)),inTotal=Number(x.totalTradeValue ?? (x.tradeValue||0));
@@ -1543,7 +1639,10 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
           refs.forEach((r,k)=>{if(snaps[k].exists())tx.update(r,{stock:Number(snaps[k].data().stock||0)+Number(x.items[k].qty||1),status:"Available",updatedAt:serverTimestamp()})});
           tx.update(ref,{status:"cancelled",cancelReason:reason.trim(),cancelledAt:serverTimestamp(),cancelledBy:state.user.uid,cancelledByName:state.profile.name||state.user.email});
         }else if(kind==="buy"){
-          const pr=doc(db,"products",x.productId),ps=await tx.get(pr);if(ps.exists()){const qty=Number(ps.data().stock||0);if(x.inventoryAction==="created"&&qty<=1)tx.delete(pr);else{const newQty=Math.max(0,qty-1),currentCost=Number(ps.data().cost||0),removedCost=Number(x.offer||0),reversedCost=newQty>0?Number((((qty*currentCost)-removedCost)/newQty).toFixed(2)):0;tx.update(pr,{stock:newQty,status:newQty>0?"Available":"No Stock",cost:Math.max(0,reversedCost),updatedAt:serverTimestamp()})}}
+          const items=x.items||[{productId:x.productId,inventoryUnitId:null,buyPrice:Number(x.offer||0),inventoryAction:x.inventoryAction}],groups=new Map();items.forEach(i=>{if(!groups.has(i.productId))groups.set(i.productId,[]);groups.get(i.productId).push(i)});
+          const productRefs=[...groups.keys()].map(pid=>doc(db,"products",pid)),productSnaps=[];for(const r of productRefs)productSnaps.push(await tx.get(r));
+          productRefs.forEach((pr,k)=>{const ps=productSnaps[k],group=groups.get(pr.id);if(!ps.exists())return;const qty=Number(ps.data().stock||0),removeQty=group.length,newQty=Math.max(0,qty-removeQty),currentCost=Number(ps.data().cost||0),removedCost=group.reduce((sum,i)=>sum+Number(i.buyPrice||0),0),reversedCost=newQty>0?Number((((qty*currentCost)-removedCost)/newQty).toFixed(2)):0;if(group.every(i=>i.inventoryAction==="created")&&qty<=removeQty)tx.delete(pr);else tx.update(pr,{stock:newQty,status:newQty>0?"Available":"No Stock",cost:Math.max(0,reversedCost),updatedAt:serverTimestamp()})});
+          items.filter(i=>i.inventoryUnitId).forEach(i=>tx.update(doc(db,"inventoryUnits",i.inventoryUnitId),{status:"cancelled",cancelledAt:serverTimestamp(),cancelledBy:state.user.uid}));
           tx.update(ref,{status:"cancelled",cancelReason:reason.trim(),cancelledAt:serverTimestamp(),cancelledBy:state.user.uid,cancelledByName:state.profile.name||state.user.email});
         }else if(kind==="trade"){
           const outs=x.stockOutItems||[{productId:x.newProductId,qty:1}],ins=x.stockInItems||[{productId:x.tradeProductId,qty:1,tradeValue:Number(x.tradeValue||0),inventoryAction:x.inventoryAction}];
@@ -1557,7 +1656,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   };
 
   function renderOverview(){
-    const sell=state.sales.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.total||0),0),buy=state.buys.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.offer||0),0),trade=state.trades.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.balance||0),0);
+    const sell=state.sales.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.total||0),0),buy=state.buys.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.totalAmount??x.offer??0),0),trade=state.trades.filter(x=>x.status!=="cancelled").reduce((s,x)=>s+Number(x.balance||0),0);
     $("ovRevenue").textContent=money(sell+trade);$("ovBuy").textContent=money(buy);$("ovSell").textContent=money(sell);$("ovTrade").textContent=money(trade);
     $("sumItems").textContent=state.products.reduce((s,p)=>s+Number(p.stock||0),0);$("sumAvailable").textContent=state.products.filter(p=>Number(p.stock||0)>0).length;$("sumReserved").textContent=0;$("sumRepair").textContent=state.repairs.filter(r=>r.status!=="Completed").length;
     $("overviewSales").innerHTML=state.sales.filter(x=>x.status!=="cancelled").slice(0,7).map(s=>`<tr><td>${esc(s.receiptNo)}</td><td>${esc(s.customer||"Walk-in")}</td><td>${s.itemCount||0}</td><td><span class="badge green">Sell</span></td><td><strong>${money(s.total)}</strong></td></tr>`).join("")||'<tr><td colspan="5" class="muted" style="text-align:center;padding:25px">Belum ada transaksi.</td></tr>'
@@ -1566,7 +1665,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function renderCustomers(){
     const rows=[];
     state.sales.filter(x=>x.customer).forEach(x=>rows.push({name:x.customer,source:"Sale",date:x.createdAt,total:x.total}));
-    state.buys.forEach(x=>rows.push({name:`${x.customer} ${x.phone||""}`,source:"Buy",date:x.createdAt,total:x.offer}));
+    state.buys.forEach(x=>rows.push({name:`${x.customer} ${x.phone||""}`,source:"Buy",date:x.createdAt,total:Number(x.totalAmount??x.offer??0)}));
     state.trades.forEach(x=>rows.push({name:`${x.customer} ${x.phone||""}`,source:"Trade-In",date:x.createdAt,total:x.balance}));
     $("customerBody").innerHTML=rows.length?rows.map(r=>`<tr><td><strong>${esc(r.name)}</strong></td><td><span class="badge ${r.source==="Sale"?"green":r.source==="Buy"?"orange":"purple"}">${r.source}</span></td><td>${r.date?.toDate?r.date.toDate().toLocaleString("ms-MY"):"—"}</td><td>${money(r.total)}</td></tr>`).join(""):'<tr><td colspan="4" class="muted" style="text-align:center;padding:30px">Belum ada customer.</td></tr>'
   }
