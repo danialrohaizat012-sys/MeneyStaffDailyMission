@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · After-Sales V1.2 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-AFTERSALES-V1.2-20260801" />
+  <title>Meney POS Enterprise · Warranty Automation V1 · 2026-08-01</title>
+  <meta name="meney-build" content="POS-WARRANTY-AUTOMATION-V1-20260801" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -958,6 +958,14 @@
   const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],refunds:[],exchanges:[],warrantyClaims:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,unsubs:[]};
   const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
   const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+  const warrantyPresets=[
+    {days:0,label:"No Warranty"},{days:7,label:"7 Days"},{days:14,label:"14 Days"},{days:30,label:"30 Days"},
+    {days:60,label:"60 Days"},{days:90,label:"90 Days"},{days:180,label:"180 Days"},{days:365,label:"1 Year"},{days:-1,label:"Custom Days"}
+  ];
+  function addDaysISO(dateString,days){const d=new Date(`${dateString}T00:00:00`);d.setDate(d.getDate()+Number(days||0));return d.toISOString().slice(0,10)}
+  function warrantyStatus(expiry,days){if(Number(days||0)<=0)return "none";return expiry&&expiry<nowDate()?"expired":"active"}
+  function warrantyLabel(days){const n=Number(days||0);if(n<=0)return "No Warranty";if(n===365)return "1 Year Warranty";return `${n} Days Warranty`}
+  function warrantyDisplay(item){const days=Number(item?.warrantyDays||0),expiry=item?.warrantyExpiry||"";if(days<=0)return "No Warranty";return `${warrantyLabel(days)} · ${warrantyStatus(expiry,days)==="expired"?"Expired":"Active"}${expiry?` · Until ${expiry}`:""}`}
   const compactDate=()=>nowDate().replaceAll("-","");
   const normalizeText=v=>String(v||"").trim().toLowerCase().replace(/\s+/g," ");
   const normalizeSerial=v=>String(v||"").trim().toUpperCase().replace(/\s+/g,"");
@@ -1148,12 +1156,13 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
   window.addCart=id=>{
     const p=state.products.find(x=>x.id===id);if(!p)return;const item=state.cart.find(x=>x.productId===id);
-    if(item){if(item.qty>=Number(p.stock))return toast("Stok tak cukup.");item.qty++}else state.cart.push({productId:id,name:p.name,sku:p.sku,price:Number(p.price),cost:Number(p.cost||0),qty:1,stock:Number(p.stock),warranty:""});
+    if(item){if(item.qty>=Number(p.stock))return toast("Stok tak cukup.");item.qty++}else state.cart.push({productId:id,name:p.name,sku:p.sku,price:Number(p.price),cost:Number(p.cost||0),qty:1,stock:Number(p.stock),warranty:"No Warranty",warrantyDays:0,warrantyCustomDays:30,warrantyStartDate:"",warrantyExpiry:"",warrantyStatus:"none"});
     renderCart()
   };
   window.cartQty=(id,d)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;const n=i.qty+d;if(n<1)state.cart=state.cart.filter(x=>x.productId!==id);else if(n<=i.stock)i.qty=n;renderCart()};
   window.removeCart=id=>{state.cart=state.cart.filter(x=>x.productId!==id);renderCart()};
-  window.cartWarranty=(id,value)=>{const i=state.cart.find(x=>x.productId===id);if(i)i.warranty=String(value||"").trimStart()};
+  window.cartWarrantyDays=(id,value)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;i.warrantyDays=Number(value);if(i.warrantyDays!==-1){i.warrantyCustomDays=i.warrantyDays;i.warranty=warrantyLabel(i.warrantyDays)}renderCart()};
+  window.cartWarrantyCustom=(id,value)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;i.warrantyCustomDays=Math.max(1,Number(value||1));i.warranty=warrantyLabel(i.warrantyCustomDays)};
   $("clearCart").onclick=()=>{state.cart=[];renderCart()};
   $("saleDiscount").oninput=()=>{renderCart();renderSplitPaymentSummary()};
 
@@ -1192,18 +1201,27 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function renderCart(){
     $("cartCount").textContent=state.cart.reduce((s,i)=>s+i.qty,0)+" item";
     $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div><div class="field" style="margin-top:10px">
-  <label>Warranty for this item <span class="muted">(optional)</span></label>
-  <input class="cart-warranty-input" data-product-id="${esc(i.productId)}" value="${esc(i.warranty||"")}" oninput="window.cartWarranty('${i.productId}',this.value)" onchange="window.cartWarranty('${i.productId}',this.value)" placeholder="Leave blank / No Warranty / e.g. 30 Days Shop Warranty">
-  <span class="field-help">Warranty ini khusus untuk item ini dan akan tertera pada receipt.</span>
+  <label>Warranty Period</label>
+  <select class="cart-warranty-select" data-product-id="${esc(i.productId)}" onchange="window.cartWarrantyDays('${i.productId}',this.value)">
+    ${warrantyPresets.map(w=>`<option value="${w.days}" ${Number(i.warrantyDays??0)===w.days?"selected":""}>${w.label}</option>`).join("")}
+  </select>
+  ${Number(i.warrantyDays)===-1?`<input class="cart-warranty-custom" data-product-id="${esc(i.productId)}" type="number" min="1" step="1" value="${Number(i.warrantyCustomDays||30)}" oninput="window.cartWarrantyCustom('${i.productId}',this.value)" placeholder="Custom warranty days" style="margin-top:8px">`:""}
+  <span class="field-help">Tarikh tamat warranty akan dikira automatik daripada tarikh jualan.</span>
 </div></div>`).join(""):'<div class="muted" style="padding:28px;text-align:center">Cart kosong.</div>';
     const t=totals();$("saleSubtotal").textContent=money(t.sub);$("saleDiscountText").textContent=money(t.disc);$("saleTotal").textContent=money(t.total);renderSplitPaymentSummary()
   }
 
   $("completeSale").onclick=async()=>{
-    // Force-sync every visible warranty field before saving or generating receipt.
-    document.querySelectorAll(".cart-warranty-input").forEach(input=>{
-      const item=state.cart.find(x=>x.productId===input.dataset.productId);
-      if(item)item.warranty=String(input.value||"").trim();
+    // Finalize warranty automation before saving.
+    const saleDate=nowDate();
+    state.cart.forEach(item=>{
+      const selected=Number(item.warrantyDays??0);
+      const days=selected===-1?Math.max(1,Number(item.warrantyCustomDays||1)):Math.max(0,selected);
+      item.warrantyDays=days;
+      item.warrantyStartDate=days>0?saleDate:"";
+      item.warrantyExpiry=days>0?addDaysISO(saleDate,days):"";
+      item.warrantyStatus=warrantyStatus(item.warrantyExpiry,days);
+      item.warranty=warrantyLabel(days);
     });
     if(!state.cart.length)return toast("Cart kosong.");
     const t=totals(),isSplit=$("salePayment").value==="Split Payment",payments=isSplit?splitPaymentData():[{method:$("salePayment").value,amount:Number(t.total.toFixed(2))}],totalPaid=payments.reduce((sum,p)=>sum+Number(p.amount||0),0);
@@ -1227,13 +1245,13 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         receipt=await nextDocumentNumber(tx,"invoice","INV");
 
         refs.forEach((r,k)=>{const newStock=Number(snaps[k].data().stock)-state.cart[k].qty;tx.update(r,{stock:newStock,status:newStock>0?"Available":"No Stock",updatedAt:serverTimestamp()})});
-        tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,warranty:String(i.warranty||"").trim(),lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
+        tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,warranty:warrantyDisplay(i),lineTotal:i.price*i.qty})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
           paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,customer:$("saleCustomer").value.trim(),phone:$("salePhone").value.trim(),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:nowDate(),shiftId:currentShift()?.id||null,createdAt:serverTimestamp()})
       });
       const completedItems=state.cart.map(i=>({
         name:i.name,
         detail:i.sku,
-        warranty:String(i.warranty||"").trim(),
+        warranty:warrantyDisplay(i),
         qty:i.qty,
         unitPrice:i.price,
         total:i.price*i.qty
@@ -1381,7 +1399,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const sale=state.sales.find(s=>s.id===afterSelectedSaleId);
     if(!sale){$("afterSalePreview").className="buy-empty";$("afterSalePreview").innerHTML="Cari dan pilih transaksi jualan asal.";afterSelectedItemIndex=-1;renderAfterSelected();return}
     $("afterSalePreview").className="after-sale-card";
-    $("afterSalePreview").innerHTML=`<div><strong>${esc(sale.receiptNo)}</strong> · ${esc(sale.customer||"Walk-in")} · ${esc(sale.phone||"—")}</div><div class="muted" style="font-size:10px;margin-top:4px">${timestampText(sale.createdAt)} · Total ${money(sale.total)}</div><div class="after-sale-items">${(sale.items||[]).map((i,k)=>{const used=afterUsage(sale.id,k),eligible=Math.max(0,Number(i.qty||1)-used);return `<label class="after-item"><input type="radio" name="afterItem" value="${k}" ${afterSelectedItemIndex===k?'checked':''} ${eligible<=0?'disabled':''}><div><strong>${esc(i.name)}</strong><div class="muted" style="font-size:10px">${esc(i.sku||"")} · Sold ${i.qty||1} · Eligible ${eligible}</div></div><strong>${money(i.price)}</strong></label>`}).join("")||'<div class="muted">No items</div>'}</div>`;
+    $("afterSalePreview").innerHTML=`<div><strong>${esc(sale.receiptNo)}</strong> · ${esc(sale.customer||"Walk-in")} · ${esc(sale.phone||"—")}</div><div class="muted" style="font-size:10px;margin-top:4px">${timestampText(sale.createdAt)} · Total ${money(sale.total)}</div><div class="after-sale-items">${(sale.items||[]).map((i,k)=>{const used=afterUsage(sale.id,k),eligible=Math.max(0,Number(i.qty||1)-used);return `<label class="after-item"><input type="radio" name="afterItem" value="${k}" ${afterSelectedItemIndex===k?'checked':''} ${eligible<=0?'disabled':''}><div><strong>${esc(i.name)}</strong><div class="muted" style="font-size:10px">${esc(i.sku||"")} · Sold ${i.qty||1} · Eligible ${eligible}<br>${esc(i.warrantyDays!==undefined?warrantyDisplay(i):(i.warranty||"No warranty record"))}</div></div><strong>${money(i.price)}</strong></label>`}).join("")||'<div class="muted">No items</div>'}</div>`;
     document.querySelectorAll('input[name="afterItem"]').forEach(r=>r.onchange=()=>{afterSelectedItemIndex=Number(r.value);renderAfterSelected()});
     renderAfterSelected();
   }
@@ -1394,7 +1412,11 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const {sale,item}=selectedAfter();if(!sale||!item)return toast("Pilih sale dan item dahulu.");
     if(type==="refund")$("afterActionForm").innerHTML=`<div class="field"><label>Refund Amount</label><input id="afterRefundAmount" type="number" min="0" max="${Number(item.price||0)}" step=".01" value="${Number(item.price||0)}"></div><div class="field"><label>Reason</label><select id="afterReason"><option>Barang rosak</option><option>Barang salah</option><option>Tidak sesuai</option><option>Goodwill</option><option>Lain-lain</option></select></div><div class="field"><label>Refund Method</label><select id="afterMethod"><option>Cash</option><option>Bank Transfer</option><option>DuitNow</option><option>Card Reversal</option></select></div><div class="field"><label>Returned Stock Status</label><select id="afterDisposition"><option value="qc">Send to QC</option><option value="available">Return to Available</option><option value="repair">Send to Repair</option><option value="write_off">Write-Off</option></select></div><button id="completeAfterRefund" type="button" class="btn btn-danger btn-block">Complete Refund</button>`;
     if(type==="exchange")$("afterActionForm").innerHTML=`<div class="field"><label>Replacement Product</label><select id="afterReplacement"><option value="">Select product</option>${state.products.filter(p=>Number(p.stock||0)>0).map(p=>`<option value="${p.id}">${esc(p.name)} · ${money(p.price)} · Stock ${p.stock}</option>`).join("")}</select></div><div class="field"><label>Returned Stock Status</label><select id="afterDisposition"><option value="qc">Send to QC</option><option value="available">Return to Available</option><option value="repair">Send to Repair</option><option value="write_off">Write-Off</option></select></div><div class="field"><label>Balance Method</label><select id="afterMethod"><option>Cash</option><option>QR / DuitNow</option><option>Bank Transfer</option><option>Card</option></select></div><div id="afterExchangeSummary" class="summary-mini"><span>Select replacement</span><strong>RM0.00</strong></div><button id="completeAfterExchange" type="button" class="btn btn-purple btn-block" style="margin-top:10px">Complete Exchange</button>`;
-    if(type==="warranty")$("afterActionForm").innerHTML=`<div class="field"><label>Reported Issue</label><textarea id="afterIssue" placeholder="Terangkan masalah customer"></textarea></div><div class="field"><label>Warranty Decision</label><select id="afterWarrantyDecision"><option value="pending">Pending Inspection</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="goodwill">Goodwill Approval</option></select></div><div class="field"><label>Intake Condition / Notes</label><textarea id="afterWarrantyNotes"></textarea></div><button id="completeAfterWarranty" type="button" class="btn btn-blue btn-block">Create Warranty Ticket</button>`;
+    if(type==="warranty"){
+      const days=Number(item.warrantyDays||0),status=warrantyStatus(item.warrantyExpiry,days),legacy=!Object.prototype.hasOwnProperty.call(item,"warrantyDays");
+      const label=legacy?(item.warranty||"Warranty information unavailable"):warrantyDisplay(item);
+      $("afterActionForm").innerHTML=`<div class="payment-status ${status==="active"?"ok":status==="expired"?"bad":"warn"}">${status==="active"?"✓ Warranty Active":status==="expired"?"Warranty Expired":"No Active Warranty"}<br><span style="font-weight:600">${esc(label)}</span></div><div class="field" style="margin-top:12px"><label>Reported Issue</label><textarea id="afterIssue" placeholder="Terangkan masalah customer"></textarea></div><div class="field"><label>Warranty Decision</label><select id="afterWarrantyDecision"><option value="pending">Pending Inspection</option>${status==="active"?'<option value="approved">Approved</option>':''}<option value="rejected">Rejected</option><option value="goodwill">Goodwill Approval</option></select></div><div class="field"><label>Intake Condition / Notes</label><textarea id="afterWarrantyNotes"></textarea></div><button id="completeAfterWarranty" type="button" class="btn btn-blue btn-block">Create Warranty Ticket</button>`;
+    }
     const rb=$("afterReplacement");if(rb)rb.onchange=()=>{const p=state.products.find(x=>x.id===rb.value),diff=p?Number(p.price||0)-Number(item.price||0):0;$("afterExchangeSummary").innerHTML=`<span>${diff>0?'Customer Pays':diff<0?'Meney Refunds':'Even Exchange'}</span><strong>${money(Math.abs(diff))}</strong>`};
     if($("completeAfterRefund"))$("completeAfterRefund").onclick=completeRefund;
     if($("completeAfterExchange"))$("completeAfterExchange").onclick=completeExchange;
@@ -1458,13 +1480,15 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   async function completeWarranty(){
     const {sale,item}=selectedAfter(),issue=$("afterIssue").value.trim(),decision=$("afterWarrantyDecision").value,notes=$("afterWarrantyNotes").value.trim();if(!issue)return toast("Masukkan reported issue.");
-    let no="";try{no=await reserveDocumentNumber("warranty","WAR");await addDoc(collection(db,"warrantyClaims"),{claimNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,productId:item.productId,productName:item.name,sku:item.sku||"",warrantyText:item.warranty||"",reportedIssue:issue,intakeNotes:notes,claimStatus:decision==="approved"?"approved":decision==="rejected"?"rejected":"received",decision,customer:sale.customer||"Walk-in",phone:sale.phone||"",receivedBy:state.user.uid,receivedByName:state.profile.name||state.user.email,status:"active",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});showTransactionDocument({title:"WARRANTY CLAIM TICKET",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`Original invoice ${sale.receiptNo} · ${issue}`,warranty:item.warranty||"",qty:1,unitPrice:0,total:0}],totals:[{label:"Claim Status",text:decision}],payment:"No payment",note:notes});toast(no+" created");renderAfterSales()}catch(e){toast("Warranty gagal: "+e.message)}
+    const currentWarrantyStatus=warrantyStatus(item.warrantyExpiry,Number(item.warrantyDays||0));
+    if(decision==="approved"&&currentWarrantyStatus!=="active")return toast("Warranty tidak aktif. Gunakan Goodwill Approval jika owner mahu teruskan.");
+    let no="";try{no=await reserveDocumentNumber("warranty","WAR");await addDoc(collection(db,"warrantyClaims"),{claimNo:no,originalSaleId:sale.id,originalInvoiceNo:sale.receiptNo,originalItemIndex:afterSelectedItemIndex,productId:item.productId,productName:item.name,sku:item.sku||"",warrantyText:warrantyDisplay(item),warrantyDays:Number(item.warrantyDays||0),warrantyStartDate:item.warrantyStartDate||sale.saleDate||"",warrantyExpiry:item.warrantyExpiry||"",warrantyStatus:warrantyStatus(item.warrantyExpiry,Number(item.warrantyDays||0)),reportedIssue:issue,intakeNotes:notes,claimStatus:decision==="approved"?"approved":decision==="rejected"?"rejected":"received",decision,customer:sale.customer||"Walk-in",phone:sale.phone||"",receivedBy:state.user.uid,receivedByName:state.profile.name||state.user.email,status:"active",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});showTransactionDocument({title:"WARRANTY CLAIM TICKET",number:no,customer:sale.customer||"Walk-in",phone:sale.phone||"",staff:state.profile.name||state.user.email,items:[{name:item.name,detail:`Original invoice ${sale.receiptNo} · ${issue}`,warranty:warrantyDisplay(item),qty:1,unitPrice:0,total:0}],totals:[{label:"Claim Status",text:decision}],payment:"No payment",note:notes});toast(no+" created");renderAfterSales()}catch(e){toast("Warranty gagal: "+e.message)}
   }
   function renderAfterHistory(){
-    if(!$("afterHistoryBody"))return;const rows=[...state.refunds.map(x=>({type:"refund",no:x.refundNo,invoice:x.originalInvoiceNo,customer:x.customer,value:money(x.refundAmount),id:x.id,data:x})),...state.exchanges.map(x=>({type:"exchange",no:x.exchangeNo,invoice:x.originalInvoiceNo,customer:x.customer,value:x.balanceType==="even"?"Even":money(x.balanceAmount),id:x.id,data:x})),...state.warrantyClaims.map(x=>({type:"warranty",no:x.claimNo,invoice:x.originalInvoiceNo,customer:x.customer,value:x.claimStatus,id:x.id,data:x}))].filter(x=>!afterFilter||x.type===afterFilter);
+    if(!$("afterHistoryBody"))return;const rows=[...state.refunds.map(x=>({type:"refund",no:x.refundNo,invoice:x.originalInvoiceNo,customer:x.customer,value:money(x.refundAmount),id:x.id,data:x})),...state.exchanges.map(x=>({type:"exchange",no:x.exchangeNo,invoice:x.originalInvoiceNo,customer:x.customer,value:x.balanceType==="even"?"Even":money(x.balanceAmount),id:x.id,data:x})),...state.warrantyClaims.map(x=>({type:"warranty",no:x.claimNo,invoice:x.originalInvoiceNo,customer:x.customer,value:`${x.claimStatus}${x.warrantyStatus?` · ${x.warrantyStatus}`:""}`,id:x.id,data:x}))].filter(x=>!afterFilter||x.type===afterFilter);
     $("afterHistoryBody").innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.no||"—")}</strong></td><td><span class="badge ${x.type==="refund"?"red":x.type==="exchange"?"purple":"blue"}">${x.type}</span></td><td>${esc(x.invoice||"—")}</td><td>${esc(x.customer||"—")}</td><td><strong>${esc(x.value||"—")}</strong></td><td><button class="btn btn-light" type="button" onclick="window.openAfterRecord('${x.type}','${x.id}')">View</button></td></tr>`).join(""):'<tr><td colspan="6" class="muted" style="text-align:center;padding:25px">Tiada rekod.</td></tr>';
   }
-  window.openAfterRecord=(type,id)=>{const x=type==="refund"?state.refunds.find(r=>r.id===id):type==="exchange"?state.exchanges.find(r=>r.id===id):state.warrantyClaims.find(r=>r.id===id);if(!x)return;if(type==="refund")showTransactionDocument({title:"REFUND RECEIPT",number:x.refundNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.name,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reason}`,qty:1,unitPrice:-x.refundAmount,total:-x.refundAmount}],totals:[{label:"Refund Paid",value:x.refundAmount,grand:true}],payment:x.refundMethod,note:`Returned stock: ${returnedStatus(x.disposition)}`});else if(type==="exchange")showTransactionDocument({title:"EXCHANGE RECEIPT",number:x.exchangeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.returnedItem,detail:"RETURNED",qty:1,unitPrice:-x.returnedValue,total:-x.returnedValue},{name:x.replacementItem,detail:"REPLACEMENT",qty:1,unitPrice:x.replacementValue,total:x.replacementValue}],totals:[{label:x.balanceType==="customer_pay"?"Customer Paid":x.balanceType==="meney_refund"?"Meney Refunded":"Balance",value:x.balanceAmount,grand:true}],payment:x.paymentMethod,note:""});else showTransactionDocument({title:"WARRANTY CLAIM TICKET",number:x.claimNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.receivedByName,items:[{name:x.productName,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reportedIssue}`,warranty:x.warrantyText||"",qty:1,unitPrice:0,total:0}],totals:[],payment:"No payment",note:x.intakeNotes||""})};
+  window.openAfterRecord=(type,id)=>{const x=type==="refund"?state.refunds.find(r=>r.id===id):type==="exchange"?state.exchanges.find(r=>r.id===id):state.warrantyClaims.find(r=>r.id===id);if(!x)return;if(type==="refund")showTransactionDocument({title:"REFUND RECEIPT",number:x.refundNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.name,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reason}`,qty:1,unitPrice:-x.refundAmount,total:-x.refundAmount}],totals:[{label:"Refund Paid",value:x.refundAmount,grand:true}],payment:x.refundMethod,note:`Returned stock: ${returnedStatus(x.disposition)}`});else if(type==="exchange")showTransactionDocument({title:"EXCHANGE RECEIPT",number:x.exchangeNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.processedByName,items:[{name:x.returnedItem,detail:"RETURNED",qty:1,unitPrice:-x.returnedValue,total:-x.returnedValue},{name:x.replacementItem,detail:"REPLACEMENT",qty:1,unitPrice:x.replacementValue,total:x.replacementValue}],totals:[{label:x.balanceType==="customer_pay"?"Customer Paid":x.balanceType==="meney_refund"?"Meney Refunded":"Balance",value:x.balanceAmount,grand:true}],payment:x.paymentMethod,note:""});else showTransactionDocument({title:"WARRANTY CLAIM TICKET",number:x.claimNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff:x.receivedByName,items:[{name:x.productName,detail:`Original invoice ${x.originalInvoiceNo} · ${x.reportedIssue}`,warranty:x.warrantyText||warrantyDisplay(x),qty:1,unitPrice:0,total:0}],totals:[],payment:"No payment",note:x.intakeNotes||""})};
   function renderAfterSales(){if(!$("afterSaleSelect"))return;afterSaleOptions();renderAfterSalePreview();renderAfterHistory()}
   if($("afterSearch"))$("afterSearch").oninput=()=>{afterSaleOptions()};
   if($("afterSaleSelect"))$("afterSaleSelect").onchange=()=>{afterSelectedSaleId=$("afterSaleSelect").value;afterSelectedItemIndex=-1;renderAfterSalePreview()};
@@ -1776,7 +1800,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
 
   function transactionDocument(t){
     const x=t.data,staff=x.staffName||"",cancelNote=x.status==="cancelled"||x.transactionStatus==="cancelled"?`CANCELLED: ${x.cancelReason||"No reason recorded"}`:"";
-    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warranty||"",qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote};
+    if(t.kind==="sale")return {title:"SALES RECEIPT / INVOICE",number:x.receiptNo,date:timestampText(x.createdAt),customer:x.customer||"Walk-in",phone:x.phone,staff,items:(x.items||[]).map(i=>({name:i.name,detail:i.sku,warranty:i.warrantyDays!==undefined?warrantyDisplay(i):(i.warranty||""),qty:i.qty,unitPrice:i.price,total:i.lineTotal??i.price*i.qty})),totals:[{label:"Subtotal",value:x.subtotal},{label:"Discount",value:-Number(x.discount||0)},{label:"Total Paid",value:x.total,grand:true}],payment:(x.payments||[{method:x.paymentMethod,amount:x.total}]).map(p=>`${p.method}: ${money(p.amount)}`).join(" · "),note:cancelNote};
     if(t.kind==="buy"){const items=(x.items||[{name:x.item,itemType:x.itemType,sku:x.sku,serial:x.serial,buyPrice:x.offer}]).map(i=>({name:i.name,detail:`${i.itemType||"Used"} · SKU ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:Number(i.buyPrice||0),total:Number(i.buyPrice||0)}));const total=Number(x.totalAmount??x.offer??0);return {title:"PURCHASE RECEIPT",number:x.buyNo,date:timestampText(x.createdAt),customer:x.customer,phone:x.phone,staff,items,totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:x.paymentMethod,note:cancelNote}};
     if(t.kind==="trade"){
       const outs=x.stockOutItems||[{name:x.newProductName,sku:"",qty:1,price:Number(x.newProductPrice||0)}],ins=x.stockInItems||[{name:x.tradeItem,sku:x.tradeItemSku||"",itemType:x.itemType||"Used",qty:1,tradeValue:Number(x.tradeValue||0)}];
