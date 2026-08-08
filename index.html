@@ -202,6 +202,18 @@
     transform:translateX(250%);
   }
 }
+
+    /* ===== MENEY DM v1.2 · Attendance / HR ===== */
+    .attendance-card{margin-top:16px;border:1px solid #35532d;background:linear-gradient(145deg,rgba(125,255,70,.10),rgba(18,21,18,.98));border-radius:22px;padding:17px}
+    .attendance-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.attendance-head h3{margin:0;font-size:16px}.attendance-head p{margin:4px 0 0;color:var(--muted);font-size:11px}
+    .attendance-status{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:900;border:1px solid var(--line)}
+    .attendance-status.working{color:var(--green);border-color:#7dff4655;background:#7dff4612}.attendance-status.off{color:var(--warning);border-color:#ffc85755;background:#ffc85712}.attendance-status.done{color:var(--info);border-color:#71b7ff55;background:#71b7ff12}
+    .attendance-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}.attendance-metric{padding:12px;border-radius:14px;background:#090b09;border:1px solid var(--line)}.attendance-metric span{display:block;font-size:10px;color:var(--muted)}.attendance-metric strong{display:block;margin-top:5px;font-size:16px}
+    .attendance-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.attendance-note{margin-top:10px;font-size:10px;color:var(--muted);line-height:1.5}
+    .attendance-owner{margin-top:16px}.attendance-owner .toolbar{margin-top:0}.attendance-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}.attendance-table{width:100%;border-collapse:collapse;min-width:680px}.attendance-table th,.attendance-table td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:11px}.attendance-table th{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em;background:#0b0d0b}.attendance-photo{width:42px;height:42px;border-radius:10px;object-fit:cover;border:1px solid var(--line);background:#000}
+    .setup-box{margin-top:12px;padding:13px;border:1px dashed #7dff4655;border-radius:14px;background:#7dff4608}.setup-box strong{display:block;font-size:12px}.setup-box p{margin:5px 0 10px;color:var(--muted);font-size:10px;line-height:1.5}.setup-row{display:grid;grid-template-columns:1fr 120px;gap:8px}
+    .selfie-preview{margin-top:10px}.selfie-preview img{width:100%;max-height:320px;object-fit:contain;border-radius:14px;border:1px solid var(--line);background:#000}
+    .verify-line{padding:10px 11px;border-radius:12px;background:#090b09;border:1px solid var(--line);font-size:11px;margin-top:9px}.verify-line.good{border-color:#7dff4655;color:var(--green)}.verify-line.bad{border-color:#ff767655;color:#ff9696}.verify-line.warn{border-color:#ffc85755;color:#ffd37b}
     @media(max-width:650px){
       .stats{grid-template-columns:1fr 1fr}.hero-line{display:block}.role-pill{display:inline-block;margin-top:12px}
       .grid2{grid-template-columns:1fr}.toolbar{align-items:flex-end}.top{align-items:flex-start}
@@ -230,7 +242,7 @@
 
   <div class="splash-footer">
     Powered by Meney Gaming<br>
-    Version 1.1
+    Version 1.2 · Attendance
   </div>
 </div>
   <main class="shell">
@@ -274,6 +286,34 @@
           <div class="stat"><b id="progressStat">0</b><span>In progress</span></div>
           <div class="stat"><b id="completedStat">0</b><span>Completed</span></div>
         </div>
+      </section>
+
+      <section id="attendanceCard" class="attendance-card">
+        <div class="attendance-head">
+          <div><h3>Attendance · Punch In</h3><p>GPS geofence + selfie verification + Firebase server time.</p></div>
+          <span id="attendanceStatus" class="attendance-status off">● NOT CLOCKED IN</span>
+        </div>
+        <div class="attendance-grid">
+          <div class="attendance-metric"><span>Punch In</span><strong id="attendanceIn">—</strong></div>
+          <div class="attendance-metric"><span>Punch Out</span><strong id="attendanceOut">—</strong></div>
+          <div class="attendance-metric"><span>Worked Today</span><strong id="attendanceWorked">0h 00m</strong></div>
+        </div>
+        <div class="attendance-actions">
+          <button id="punchInBtn" class="btn primary">📍 Punch In</button>
+          <button id="punchOutBtn" class="btn secondary" disabled>↪ Punch Out</button>
+        </div>
+        <div id="attendanceVerification" class="verify-line warn">Store geofence belum diperiksa.</div>
+        <div class="attendance-note">Punch In hanya diterima jika GPS berada dalam radius kedai dan selfie semasa dihantar. Cubaan gagal turut direkod untuk audit owner.</div>
+        <div id="attendanceSetup" class="setup-box hidden">
+          <strong>Owner Setup · Store Geofence</strong>
+          <p>Set lokasi kedai sekali menggunakan GPS device yang berada di Meney. Radius boleh dilaraskan kemudian.</p>
+          <div class="setup-row"><button id="setStoreLocationBtn" class="btn secondary small" type="button">Use My Current Location</button><input id="storeRadius" type="number" min="30" max="1000" step="10" value="150" aria-label="Store radius meters"></div>
+        </div>
+      </section>
+
+      <section id="attendanceOwnerPanel" class="card attendance-owner hidden">
+        <div class="toolbar"><div><h3>Team Attendance</h3><p>Rekod hari ini untuk semua staff.</p></div><button id="refreshAttendanceBtn" class="btn secondary small" type="button">Refresh</button></div>
+        <div class="attendance-table-wrap"><table class="attendance-table"><thead><tr><th>Staff</th><th>Status</th><th>Punch In</th><th>Punch Out</th><th>Worked</th><th>Distance</th><th>Selfie</th></tr></thead><tbody id="attendanceTeamBody"><tr><td colspan="7" class="muted">Belum ada rekod.</td></tr></tbody></table></div>
       </section>
 
       <div class="toolbar">
@@ -342,6 +382,18 @@
     </div>
   </div>
 
+  <div id="attendanceModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head"><h3>Verify Punch In</h3><button id="closeAttendanceModal" class="close">✕</button></div>
+      <p class="proof-note">Ambil selfie semasa. Sistem juga akan semak GPS device terhadap geofence kedai.</p>
+      <div id="attendanceGpsResult" class="verify-line warn">GPS belum diperiksa.</div>
+      <label for="attendanceSelfie">Selfie Punch In</label>
+      <input id="attendanceSelfie" type="file" accept="image/*" capture="user">
+      <div id="attendanceSelfiePreview" class="selfie-preview hidden"><img id="attendanceSelfieImage" alt="Selfie preview"></div>
+      <button id="confirmPunchInBtn" class="btn primary" style="width:100%;margin-top:15px" disabled>Confirm Punch In</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script type="module">
@@ -351,7 +403,7 @@
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
     import {
       getFirestore, doc, getDoc, collection, addDoc, onSnapshot,
-      query, where, updateDoc, deleteDoc, serverTimestamp, Timestamp, getDocs
+      query, where, updateDoc, deleteDoc, serverTimestamp, Timestamp, getDocs, setDoc
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -369,7 +421,7 @@
     const db = getFirestore(app);
 
     const $ = id => document.getElementById(id);
-    const state = { user:null, profile:null, missions:[], users:[], filter:"active", unsubscribe:null, editingMissionId:null, proofMissionId:null, proofFile:null };
+    const state = { user:null, profile:null, missions:[], users:[], filter:"active", unsubscribe:null, editingMissionId:null, proofMissionId:null, proofFile:null, attendanceToday:null, attendanceUnsub:null, attendanceTeamUnsub:null, attendanceSelfie:null, attendanceLocation:null, storeSettings:null, attendanceTimer:null };
     const isManagement = () => ["owner","admin","manager"].includes(String(state.profile?.role||"").toLowerCase());
 
     const todayISO = () => {
@@ -393,6 +445,50 @@
       if(code.includes("permission-denied")) return "Akses ditolak. Semak Firestore Rules.";
       return error?.message || "Ralat tidak diketahui.";
     }
+
+    const attendanceDocId = (uid,date=todayISO()) => `${date}_${uid}`;
+    const attendanceRef = (uid=state.user?.uid,date=todayISO()) => doc(db,"attendance",attendanceDocId(uid,date));
+    const storeRef = () => doc(db,"systemSettings","attendance");
+    const msTime = v => v?.toDate ? v.toDate().getTime() : (v?.seconds ? v.seconds*1000 : (v ? new Date(v).getTime() : 0));
+    const timeText = v => { const ms=msTime(v); return ms ? new Date(ms).toLocaleTimeString("ms-MY",{hour:"2-digit",minute:"2-digit"}) : "—"; };
+    const durationText = mins => { mins=Math.max(0,Math.floor(Number(mins||0))); return `${Math.floor(mins/60)}h ${String(mins%60).padStart(2,"0")}m`; };
+    function distanceMeters(a,b){
+      const R=6371000,toRad=x=>x*Math.PI/180,dLat=toRad(b.latitude-a.latitude),dLon=toRad(b.longitude-a.longitude),lat1=toRad(a.latitude),lat2=toRad(b.latitude);
+      const h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(h));
+    }
+    function getCurrentPosition(){return new Promise((resolve,reject)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy}),reject,{enableHighAccuracy:true,timeout:15000,maximumAge:0}):reject(new Error("Geolocation tidak disokong device ini.")))}
+    async function compressAttendanceSelfie(file){
+      if(!file||!file.type.startsWith("image/"))throw new Error("Selfie mesti fail gambar.");
+      const bitmap=await createImageBitmap(file),maxSide=900,scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement("canvas");
+      canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));const ctx=canvas.getContext("2d",{alpha:false});ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();
+      let q=.75,data=canvas.toDataURL("image/jpeg",q);while(data.length>360000&&q>.4){q-=.08;data=canvas.toDataURL("image/jpeg",q)}if(data.length>520000)throw new Error("Selfie terlalu besar. Cuba ambil semula gambar.");return data;
+    }
+    async function loadStoreSettings(){try{const snap=await getDoc(storeRef());state.storeSettings=snap.exists()?snap.data():null}catch(e){state.storeSettings=null}renderAttendance()}
+    function attendanceWorkedMinutes(a){if(!a?.punchIn)return 0;if(a.punchOut)return Number(a.workedMinutes||Math.max(0,Math.round((msTime(a.punchOut)-msTime(a.punchIn))/60000)));return Math.max(0,Math.round((Date.now()-msTime(a.punchIn))/60000))}
+    function renderAttendance(){
+      const a=state.attendanceToday,status=$("attendanceStatus");if(!status)return;
+      const working=Boolean(a?.punchIn&&!a?.punchOut),done=Boolean(a?.punchOut);
+      status.className=`attendance-status ${working?"working":done?"done":"off"}`;status.textContent=working?"● WORKING NOW":done?"✓ SHIFT COMPLETED":"● NOT CLOCKED IN";
+      $("attendanceIn").textContent=timeText(a?.punchIn);$("attendanceOut").textContent=timeText(a?.punchOut);$("attendanceWorked").textContent=durationText(attendanceWorkedMinutes(a));
+      $("punchInBtn").disabled=Boolean(a?.punchIn);$("punchOutBtn").disabled=!working;
+      const setup=isManagement();$("attendanceSetup").classList.toggle("hidden",!setup||Boolean(state.storeSettings?.latitude));$("attendanceOwnerPanel").classList.toggle("hidden",!setup);
+      const v=$("attendanceVerification");if(!state.storeSettings?.latitude){v.className="verify-line warn";v.textContent=setup?"Geofence belum diset. Set lokasi kedai dahulu.":"Attendance belum tersedia: owner belum set geofence kedai."}else if(a?.verificationStatus==="verified"){v.className="verify-line good";v.textContent=`✓ Verified · ${Math.round(Number(a.distanceMeters||0))}m dari store · GPS ±${Math.round(Number(a.locationAccuracy||0))}m`}else{v.className="verify-line warn";v.textContent=`Store radius ${Number(state.storeSettings.radiusMeters||150)}m · GPS + selfie required`}
+    }
+    function listenAttendance(){
+      state.attendanceUnsub?.();state.attendanceUnsub=onSnapshot(attendanceRef(),snap=>{state.attendanceToday=snap.exists()?{id:snap.id,...snap.data()}:null;renderAttendance()},()=>{});
+      if(state.attendanceTimer)clearInterval(state.attendanceTimer);state.attendanceTimer=setInterval(renderAttendance,30000);
+      if(isManagement())listenTeamAttendance();
+    }
+    function listenTeamAttendance(){
+      state.attendanceTeamUnsub?.();const q=query(collection(db,"attendance"),where("date","==",todayISO()));state.attendanceTeamUnsub=onSnapshot(q,snap=>{const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.staffName||"").localeCompare(b.staffName||""));$("attendanceTeamBody").innerHTML=rows.length?rows.map(a=>`<tr><td><strong>${escapeHtml(a.staffName||a.staffEmail||a.userId||"Staff")}</strong></td><td><span class="badge ${a.punchOut?"completed":a.punchIn?"in_progress":"pending"}">${a.punchOut?"COMPLETED":a.punchIn?"WORKING":"PENDING"}</span></td><td>${timeText(a.punchIn)}</td><td>${timeText(a.punchOut)}</td><td>${durationText(attendanceWorkedMinutes(a))}</td><td>${Number.isFinite(Number(a.distanceMeters))?Math.round(Number(a.distanceMeters))+"m":"—"}</td><td>${a.punchInSelfie?`<a href="${escapeHtml(a.punchInSelfie)}" target="_blank" rel="noopener"><img class="attendance-photo" src="${escapeHtml(a.punchInSelfie)}" alt="Punch in selfie"></a>`:"—"}</td></tr>`).join(""):`<tr><td colspan="7" class="muted">Belum ada punch in hari ini.</td></tr>`},()=>{});
+    }
+    $("setStoreLocationBtn").onclick=async()=>{const btn=$("setStoreLocationBtn");btn.disabled=true;btn.textContent="Reading GPS...";try{const loc=await getCurrentPosition(),radius=Math.max(30,Math.min(1000,Number($("storeRadius").value||150)));await setDoc(storeRef(),{latitude:loc.latitude,longitude:loc.longitude,radiusMeters:radius,setBy:state.user.uid,setByName:state.profile.name||state.user.email,updatedAt:serverTimestamp()},{merge:true});state.storeSettings={latitude:loc.latitude,longitude:loc.longitude,radiusMeters:radius};pop("Store geofence berjaya diset");renderAttendance()}catch(e){alert("Gagal set lokasi: "+humanError(e))}finally{btn.disabled=false;btn.textContent="Use My Current Location"}};
+    $("punchInBtn").onclick=async()=>{if(!state.storeSettings?.latitude)return pop("Owner perlu set geofence kedai dahulu");state.attendanceLocation=null;state.attendanceSelfie=null;$("attendanceSelfie").value="";$("attendanceSelfiePreview").classList.add("hidden");$("confirmPunchInBtn").disabled=true;$("attendanceModal").classList.remove("hidden");const box=$("attendanceGpsResult");box.className="verify-line warn";box.textContent="Reading GPS...";try{const loc=await getCurrentPosition(),distance=distanceMeters(loc,state.storeSettings),radius=Number(state.storeSettings.radiusMeters||150);state.attendanceLocation={...loc,distanceMeters:distance,withinRadius:distance<=radius};box.className=`verify-line ${distance<=radius?"good":"bad"}`;box.textContent=distance<=radius?`✓ Location verified · ${Math.round(distance)}m dari store · accuracy ±${Math.round(loc.accuracy)}m`:`✕ Outside geofence · ${Math.round(distance)}m dari store · maximum ${radius}m`;$("confirmPunchInBtn").disabled=!(distance<=radius&&state.attendanceSelfie)}catch(e){box.className="verify-line bad";box.textContent="GPS gagal: "+humanError(e)}};
+    $("closeAttendanceModal").onclick=()=>$("attendanceModal").classList.add("hidden");$("attendanceModal").addEventListener("click",e=>{if(e.target===$("attendanceModal"))$("attendanceModal").classList.add("hidden")});
+    $("attendanceSelfie").onchange=e=>{const file=e.target.files?.[0]||null;state.attendanceSelfie=file;if(!file){$("attendanceSelfiePreview").classList.add("hidden");$("confirmPunchInBtn").disabled=true;return}$("attendanceSelfieImage").src=URL.createObjectURL(file);$("attendanceSelfiePreview").classList.remove("hidden");$("confirmPunchInBtn").disabled=!(state.attendanceLocation?.withinRadius)};
+    $("confirmPunchInBtn").onclick=async()=>{const loc=state.attendanceLocation,file=state.attendanceSelfie;if(!loc?.withinRadius||!file)return pop("GPS dan selfie diperlukan");const btn=$("confirmPunchInBtn");btn.disabled=true;btn.textContent="Saving Punch In...";try{const selfie=await compressAttendanceSelfie(file);await setDoc(attendanceRef(),{userId:state.user.uid,staffName:state.profile.name||state.user.email,staffEmail:state.user.email,date:todayISO(),status:"working",punchIn:serverTimestamp(),punchOut:null,workedMinutes:0,punchInLatitude:loc.latitude,punchInLongitude:loc.longitude,locationAccuracy:loc.accuracy,distanceMeters:loc.distanceMeters,storeRadiusMeters:Number(state.storeSettings.radiusMeters||150),verificationStatus:"verified",punchInSelfie:selfie,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:false});await addDoc(collection(db,"attendanceAudit"),{userId:state.user.uid,staffName:state.profile.name||state.user.email,date:todayISO(),action:"PUNCH_IN_SUCCESS",distanceMeters:loc.distanceMeters,locationAccuracy:loc.accuracy,createdAt:serverTimestamp()});$("attendanceModal").classList.add("hidden");pop("Punch In verified") }catch(e){alert(humanError(e))}finally{btn.disabled=false;btn.textContent="Confirm Punch In"}};
+    $("punchOutBtn").onclick=async()=>{const a=state.attendanceToday;if(!a?.punchIn||a?.punchOut)return;const btn=$("punchOutBtn");btn.disabled=true;btn.textContent="Punching Out...";try{let loc=null;try{loc=await getCurrentPosition()}catch{}const mins=Math.max(0,Math.round((Date.now()-msTime(a.punchIn))/60000));await updateDoc(attendanceRef(),{status:"completed",punchOut:serverTimestamp(),workedMinutes:mins,punchOutLatitude:loc?.latitude??null,punchOutLongitude:loc?.longitude??null,punchOutAccuracy:loc?.accuracy??null,updatedAt:serverTimestamp()});await addDoc(collection(db,"attendanceAudit"),{userId:state.user.uid,staffName:state.profile.name||state.user.email,date:todayISO(),action:"PUNCH_OUT",workedMinutes:mins,createdAt:serverTimestamp()});pop("Punch Out berjaya")}catch(e){alert(humanError(e))}finally{btn.disabled=false;btn.textContent="↪ Punch Out"}};
+    $("refreshAttendanceBtn").onclick=()=>renderAttendance();
 
     $("loginForm").addEventListener("submit", async e=>{
       e.preventDefault();
@@ -448,6 +544,7 @@
 
     onAuthStateChanged(auth, async user=>{
       if(state.unsubscribe){state.unsubscribe();state.unsubscribe=null}
+      state.attendanceUnsub?.();state.attendanceUnsub=null;state.attendanceTeamUnsub?.();state.attendanceTeamUnsub=null;if(state.attendanceTimer){clearInterval(state.attendanceTimer);state.attendanceTimer=null}
       if(!user){
         state.user=null;state.profile=null;state.missions=[];
         $("appView").classList.add("hidden");
@@ -464,6 +561,8 @@
         $("appView").classList.remove("hidden");
         setupDashboard();
         await loadAssignableUsers();
+        await loadStoreSettings();
+        listenAttendance();
         listenToMissions();
       }catch(error){
         alert(humanError(error));
@@ -788,5 +887,3 @@
   });
 </script></body>
 </html>
-
-
