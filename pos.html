@@ -798,7 +798,7 @@
                   <div class="field"><label>Payment Status</label><select id="spPaymentStatus"><option value="unpaid">Unpaid</option><option value="partially_paid">Partially Paid</option><option value="paid">Paid</option></select></div>
                   <div class="field"><label>Amount Paid (RM)</label><input id="spAmountPaid" type="number" min="0" step=".01" value="0"></div>
                   <div class="total-line grand"><span>Total</span><span id="spGrandTotal">RM0.00</span></div>
-                  <button class="btn btn-purple btn-block" type="submit">Create Purchase Order</button>
+                  <button id="spSubmitPurchase" class="btn btn-purple btn-block" type="submit">Create Purchase Order</button>
                 </aside>
               </div>
             </form>
@@ -816,7 +816,7 @@
           <div id="spHistoryPanel" class="hidden">
             <div class="card section">
               <div class="section-head"><div><h3>Stock Purchase History</h3><p>Purchase orders and receiving progress.</p></div></div>
-              <div class="table-wrap"><table><thead><tr><th>PO</th><th>Supplier</th><th>Invoice</th><th>Items</th><th>Received</th><th>Total</th><th>Status</th><th>Payment</th></tr></thead><tbody id="stockPurchaseHistory"></tbody></table></div>
+              <div class="table-wrap"><table><thead><tr><th>PO</th><th>Supplier</th><th>Invoice</th><th>Items</th><th>Received</th><th>Total</th><th>Status</th><th>Payment</th><th>Action</th></tr></thead><tbody id="stockPurchaseHistory"></tbody></table></div>
             </div>
           </div>
         </section>
@@ -2790,9 +2790,11 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   // ==========================
   const newStockPurchaseItem=()=>({id:crypto.randomUUID(),mode:"existing",productId:"",name:"",category:"Console",itemType:"New",qty:1,unitCost:0,showSuggestions:false});
   function resetStockPurchaseDraft(){
+    state.editingStockPurchaseId=null;
     state.stockPurchaseItems=[newStockPurchaseItem()];
     ["spSupplier","spNewSupplierName","spInvoice","spExpectedDate","spNotes"].forEach(id=>{if($(id))$(id).value=""});if($("spNewSupplierBox"))$("spNewSupplierBox").classList.add("hidden");
     if($("spShipping"))$("spShipping").value=0;if($("spDiscount"))$("spDiscount").value=0;if($("spAmountPaid"))$("spAmountPaid").value=0;if($("spPaymentStatus"))$("spPaymentStatus").value="unpaid";
+    if($("spSubmitPurchase"))$("spSubmitPurchase").textContent="Create Purchase Order";
     renderStockPurchaseItems();
   }
   function stockPurchaseSubtotal(){return state.stockPurchaseItems.reduce((sum,i)=>sum+(Number(i.qty||0)*Number(i.unitCost||0)),0)}
@@ -2887,15 +2889,23 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       if(i.qty<1)return toast(`Quantity tidak sah: ${i.name}`);
       if(i.unitCost<0)return toast(`Unit cost tidak sah: ${i.name}`);
     }
-    const btn=e.submitter;btn.disabled=true;btn.textContent="Creating...";
+    const btn=e.submitter;btn.disabled=true;btn.textContent=state.editingStockPurchaseId?"Saving...":"Creating...";
     try{
-      const poNo=await reserveDocumentNumber("stockPurchase","PO");
+      const editingPurchase=state.editingStockPurchaseId?state.stockPurchases.find(p=>p.id===state.editingStockPurchaseId):null;
+      if(state.editingStockPurchaseId&&!editingPurchase)throw new Error("Purchase order untuk edit tidak ditemui.");
+      const existingReceived=editingPurchase?(editingPurchase.items||[]).reduce((sum,i)=>sum+Number(i.quantityReceived||0)+Number(i.quantityDamaged||0),0):0;
+      if(existingReceived>0)throw new Error("Purchase order yang sudah menerima stock tidak boleh diedit.");
+      const poNo=editingPurchase?.purchaseNo||await reserveDocumentNumber("stockPurchase","PO");
       let supplier,supplierName;if(supplierChoice==="__new__"){supplierName=newSupplierName;const duplicate=state.suppliers.find(x=>normalizeText(x.name||x.supplierName)===normalizeText(supplierName));if(duplicate)throw new Error("Supplier sudah wujud. Sila pilih daripada dropdown.");const ref=doc(collection(db,"suppliers"));await runTransaction(db,async tx=>tx.set(ref,{name:supplierName,active:true,createdAt:serverTimestamp(),createdBy:state.user.uid}));supplier={id:ref.id,name:supplierName}}else{supplier=state.suppliers.find(x=>x.id===supplierChoice);if(!supplier)throw new Error("Supplier tidak ditemui");supplierName=supplier.name||supplier.supplierName||"Unnamed supplier"}
       const prepared=[];for(const i of items){const existing=i.mode!=="new"?state.products.find(p=>p.id===i.productId):null;let productId=existing?.id||"",sku=existing?.sku||"";if(!productId){sku=await reserveSku(i.category);productId=doc(collection(db,"products")).id}prepared.push({...i,productId,sku,isNew:!existing})}
-      const purchaseRef=doc(collection(db,"stockPurchases"));const subtotal=prepared.reduce((s,i)=>s+i.qty*i.unitCost,0),shipping=Number($("spShipping").value||0),discount=Number($("spDiscount").value||0),total=Math.max(0,subtotal+shipping-discount),amountPaid=Math.min(total,Number($("spAmountPaid").value||0));
-      await runTransaction(db,async tx=>{prepared.filter(i=>i.isNew).forEach(i=>tx.set(doc(db,"products",i.productId),{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType||"New",status:"Awaiting Stock",cost:i.unitCost,price:0,stock:0,lowStock:1,createdAt:serverTimestamp(),createdBy:state.user.uid}));tx.set(purchaseRef,{purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,itemType:i.itemType||"New",quantityOrdered:i.qty,quantityReceived:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,purchaseStatus:"ordered",transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile.name||state.user.email})});
-      toast(`${poNo} created`);resetStockPurchaseDraft();setStockPurchaseTab("history");
-    }catch(err){console.error("Stock purchase",err);toast("Stock purchase gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Create Purchase Order"}
+      const purchaseRef=editingPurchase?doc(db,"stockPurchases",editingPurchase.id):doc(collection(db,"stockPurchases"));const subtotal=prepared.reduce((s,i)=>s+i.qty*i.unitCost,0),shipping=Number($("spShipping").value||0),discount=Number($("spDiscount").value||0),total=Math.max(0,subtotal+shipping-discount),amountPaid=Math.min(total,Number($("spAmountPaid").value||0));
+      await runTransaction(db,async tx=>{
+        prepared.filter(i=>i.isNew).forEach(i=>tx.set(doc(db,"products",i.productId),{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType||"New",status:"Awaiting Stock",cost:i.unitCost,price:0,stock:0,lowStock:1,createdFromStockPurchaseId:purchaseRef.id,createdAt:serverTimestamp(),createdBy:state.user.uid}));
+        const payload={purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,itemType:i.itemType||"New",quantityOrdered:i.qty,quantityReceived:0,quantityDamaged:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,purchaseStatus:"ordered",updatedAt:serverTimestamp(),updatedBy:state.user.uid,updatedByName:state.profile.name||state.user.email};
+        if(editingPurchase){tx.update(purchaseRef,payload)}else{tx.set(purchaseRef,{...payload,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile.name||state.user.email})}
+      });
+      toast(editingPurchase?`${poNo} updated`:`${poNo} created`);resetStockPurchaseDraft();setStockPurchaseTab("history");
+    }catch(err){console.error("Stock purchase",err);toast("Stock purchase gagal: "+err.message)}finally{btn.disabled=false;btn.textContent=state.editingStockPurchaseId?"Save Changes":"Create Purchase Order"}
   });
   function openStockPurchases(){return state.stockPurchases.filter(p=>!["fully_received","cancelled"].includes(p.purchaseStatus))}
   function renderStockReceiving(){
@@ -2919,7 +2929,26 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       showTransactionDocument({title:"GOODS RECEIVED NOTE",number:grnNo,date:timestampText(entry.transactionDate),customer:purchase.supplierName,phone:"",staff:state.profile.name||state.user.email,items:rows.filter(r=>r.receiveQty>0).map(r=>({name:r.item.name,detail:`${r.item.sku} · PO ${purchase.purchaseNo}`,qty:r.receiveQty,unitPrice:r.item.unitCost,total:r.receiveQty*r.item.unitCost})),totals:[{label:"Received Stock Value",value:rows.reduce((s,r)=>s+r.receiveQty*Number(r.item.unitCost||0),0),grand:true}],payment:"Stock Receiving",note:$("receiveNotes").value.trim()});$("receiveNotes").value="";toast(`${grnNo} stock received`);
     }catch(err){console.error("Stock receive",err);toast("Stock receiving gagal: "+err.message)}finally{btn.disabled=false;btn.textContent="Confirm Stock Received & Stock In"}
   });
-  function renderStockPurchaseHistory(){if(!$("stockPurchaseHistory"))return;const rows=[...state.stockPurchases].sort((a,b)=>effectiveTransactionMs(b)-effectiveTransactionMs(a));$("stockPurchaseHistory").innerHTML=rows.length?rows.map(p=>{const ordered=(p.items||[]).reduce((s,i)=>s+Number(i.quantityOrdered||0),0),received=(p.items||[]).reduce((s,i)=>s+Number(i.quantityReceived||0),0);return `<tr><td><strong>${esc(p.purchaseNo||"—")}</strong></td><td>${esc(p.supplierName||"—")}</td><td>${esc(p.supplierInvoiceNo||"—")}</td><td>${p.items?.length||0}</td><td>${received}/${ordered}</td><td><strong>${money(p.totalAmount)}</strong></td><td><span class="badge ${p.purchaseStatus==="fully_received"?"green":p.purchaseStatus==="partially_received"?"orange":"blue"}">${esc(p.purchaseStatus||"ordered")}</span></td><td>${esc(p.paymentStatus||"unpaid")}</td></tr>`}).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:28px">Tiada stock purchase lagi.</td></tr>'}
+  function stockPurchaseReceivedUnits(p){return (p.items||[]).reduce((s,i)=>s+Number(i.quantityReceived||0)+Number(i.quantityDamaged||0),0)}
+  window.editStockPurchase=id=>{
+    const p=state.stockPurchases.find(x=>x.id===id);if(!p)return toast("Purchase order tidak ditemui.");
+    if(!["owner","manager"].includes(currentRole()))return toast("Owner atau manager sahaja boleh edit Stock Purchase.");
+    if(stockPurchaseReceivedUnits(p)>0)return toast("PO yang sudah menerima stock tidak boleh diedit.");
+    state.editingStockPurchaseId=p.id;
+    state.stockPurchaseItems=(p.items||[]).map(i=>({id:crypto.randomUUID(),mode:"existing",productId:i.productId||"",name:i.name||"",category:i.category||"Others",itemType:i.itemType||"New",qty:Number(i.quantityOrdered||1),unitCost:Number(i.unitCost||0),showSuggestions:false}));
+    if(!state.stockPurchaseItems.length)state.stockPurchaseItems=[newStockPurchaseItem()];
+    renderSupplierList();$("spSupplier").value=p.supplierId||"";$("spInvoice").value=p.supplierInvoiceNo||"";$("spExpectedDate").value=p.expectedDeliveryDate||"";$("spNotes").value=p.notes||"";$("spShipping").value=Number(p.shippingCost||0);$("spDiscount").value=Number(p.discount||0);$("spAmountPaid").value=Number(p.amountPaid||0);$("spPaymentStatus").value=p.paymentStatus||"unpaid";
+    if($("spSubmitPurchase"))$("spSubmitPurchase").textContent=`Save Changes · ${p.purchaseNo||"PO"}`;
+    renderStockPurchaseItems();renderStockPurchaseSummary();setStockPurchaseTab("create");window.scrollTo({top:0,behavior:"smooth"});toast(`${p.purchaseNo} loaded for editing`);
+  };
+  window.deleteStockPurchase=async id=>{
+    const p=state.stockPurchases.find(x=>x.id===id);if(!p)return toast("Purchase order tidak ditemui.");
+    if(!isOwner())return toast("Owner sahaja boleh delete Stock Purchase.");
+    if(stockPurchaseReceivedUnits(p)>0)return toast("PO yang sudah menerima stock tidak boleh dipadam kerana inventory sudah terkesan.");
+    if(!confirm(`Delete ${p.purchaseNo||"purchase order"}?\n\nTindakan ini akan memadam Purchase Order sahaja. Product Master yang pernah dicipta tidak akan dipadam secara automatik.`))return;
+    try{await deleteDoc(doc(db,"stockPurchases",id));if(state.editingStockPurchaseId===id)resetStockPurchaseDraft();toast(`${p.purchaseNo||"Purchase order"} deleted`)}catch(err){console.error("Delete stock purchase",err);toast("Delete gagal: "+err.message)}
+  };
+  function renderStockPurchaseHistory(){if(!$("stockPurchaseHistory"))return;const rows=[...state.stockPurchases].sort((a,b)=>effectiveTransactionMs(b)-effectiveTransactionMs(a));$("stockPurchaseHistory").innerHTML=rows.length?rows.map(p=>{const ordered=(p.items||[]).reduce((s,i)=>s+Number(i.quantityOrdered||0),0),received=(p.items||[]).reduce((s,i)=>s+Number(i.quantityReceived||0),0),locked=stockPurchaseReceivedUnits(p)>0;return `<tr><td><strong>${esc(p.purchaseNo||"—")}</strong></td><td>${esc(p.supplierName||"—")}</td><td>${esc(p.supplierInvoiceNo||"—")}</td><td>${p.items?.length||0}</td><td>${received}/${ordered}</td><td><strong>${money(p.totalAmount)}</strong></td><td><span class="badge ${p.purchaseStatus==="fully_received"?"green":p.purchaseStatus==="partially_received"?"orange":"blue"}">${esc(p.purchaseStatus||"ordered")}</span></td><td>${esc(p.paymentStatus||"unpaid")}</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">${["owner","manager"].includes(currentRole())?`<button type="button" class="btn btn-light" style="padding:7px 9px;min-height:34px" onclick="window.editStockPurchase('${p.id}')" ${locked?"disabled":""}>Edit</button>`:""}${isOwner()?`<button type="button" class="btn btn-danger" style="padding:7px 9px;min-height:34px" onclick="window.deleteStockPurchase('${p.id}')" ${locked?"disabled":""}>Delete</button>`:""}${locked?'<span class="badge gray">Locked after receiving</span>':""}</div></td></tr>`}).join(""):'<tr><td colspan="9" class="muted" style="text-align:center;padding:28px">Tiada stock purchase lagi.</td></tr>'}
   resetStockPurchaseDraft();
 
 </script>
