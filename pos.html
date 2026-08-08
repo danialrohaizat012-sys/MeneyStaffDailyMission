@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Trade-In Accounting V1 · System Maintenance V1 · 2026-08-01</title>
-  <meta name="meney-build" content="POS-CONSIGNMENT-V1.1-20260801" />
+  <title>Meney POS Enterprise · Trade-In Searchable Selector V2 · 2026-08-08</title>
+  <meta name="meney-build" content="POS-TRADE-SEARCH-V2-20260808" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -391,6 +391,16 @@
     .customer-selector .field{margin:0}.customer-channel-row{margin-top:9px;display:grid;grid-template-columns:180px 1fr;gap:9px}
     .customer-selected-note{margin-top:8px;padding:8px 10px;border-radius:9px;background:#ecfdf3;color:#166534;font-size:10px;font-weight:800}
     @media(max-width:700px){.customer-selector-grid,.customer-channel-row{grid-template-columns:1fr}}
+
+    /* ===== Trade-In Searchable Product Selector V2 ===== */
+    .trade-product-search{position:relative}
+    .trade-product-search input[type="search"]{padding-right:38px}
+    .trade-product-search .trade-search-clear{position:absolute;right:8px;top:32px;width:28px;height:28px;border:0;border-radius:8px;background:#f2f4f7;color:#667085;font-weight:900;display:grid;place-items:center;z-index:2}
+    .trade-product-search .trade-search-clear:hover{background:#e9ecef;color:#101828}
+    .trade-selected-product{margin-top:8px;padding:10px 11px;border-radius:11px;background:#edf9f1;border:1px solid #bfe4cb;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .trade-selected-product strong{display:block;font-size:11px}.trade-selected-product span{font-size:9px;color:#39734d}
+    .trade-suggestion-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+    .trade-suggestion-meta span{font-size:9px!important}
 
     /* ===== Dashboard Date Filter V1 ===== */
     .dashboard-filter{margin-bottom:16px;padding:16px 18px;display:grid;grid-template-columns:minmax(210px,1fr) auto;gap:14px;align-items:end}
@@ -884,7 +894,7 @@
             <div class="flow-form" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start">
               <div class="flow-col">
                 <div class="section-head"><div><h4>Stock In — Barang Customer</h4><p id="tradeInCount">0 item dalam draft</p></div></div>
-                <div class="field"><label>Stock In Product</label><select id="tradeInProduct"><option value="">Select existing SKU</option><option value="__new__">＋ Create New Item</option></select><span class="field-help">Pilih produk inventory sedia ada untuk elak duplicate SKU.</span></div>
+                <div class="field trade-product-search"><label>Stock In Product</label><input id="tradeInSearch" type="search" autocomplete="off" placeholder="Search Product / SKU"><input id="tradeInProduct" type="hidden" value=""><button id="tradeInSearchClear" class="trade-search-clear hidden" type="button" aria-label="Clear selected Stock In product">×</button><div id="tradeInSuggestions" class="buy-suggestions hidden"></div><span class="field-help">Cari nama produk / SKU seperti Buy From Customer. Jika tiada produk yang sesuai, pilih Create New Product.</span></div>
                 <div id="tradeInExistingInfo" class="sp-product-status existing hidden"></div>
                 <div id="tradeInNewBox" class="sp-create-box hidden">
                   <div class="field"><label>New Item Name</label><input id="tradeItem" placeholder="Contoh: PS4 Slim 500GB"></div>
@@ -899,7 +909,7 @@
 
               <div class="flow-col">
                 <div class="section-head"><div><h4>Stock Out — Barang Meney</h4><p id="tradeOutCount">0 item dalam draft</p></div></div>
-                <div class="field"><label>Select Product</label><select id="tradeNewProduct"><option value="">Select product</option></select></div>
+                <div class="field trade-product-search"><label>Select Product</label><input id="tradeOutSearch" type="search" autocomplete="off" placeholder="Search Product / SKU"><input id="tradeNewProduct" type="hidden" value=""><button id="tradeOutSearchClear" class="trade-search-clear hidden" type="button" aria-label="Clear selected Stock Out product">×</button><div id="tradeOutSuggestions" class="buy-suggestions hidden"></div><span class="field-help">Hanya produk yang mempunyai stok tersedia akan dipaparkan.</span></div>
                 <div class="form-grid cols-2"><div class="field"><label>Quantity</label><input id="tradeOutQty" type="number" min="1" step="1" value="1"></div><div class="field"><label>Unit Sell Price (RM)</label><input id="tradeOutPrice" type="number" min="0" step=".01" placeholder="Auto ikut inventory"></div></div>
                 <div id="tradeNewInfo" class="summary-mini"><span>Select a product</span><strong>RM0.00</strong></div>
                 <button class="btn btn-purple btn-block" type="button" id="addTradeOutItem">＋ Add to Stock Out List</button>
@@ -2071,21 +2081,61 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   if($("startWarranty"))$("startWarranty").onclick=()=>afterForm("warranty");
   document.querySelectorAll("[data-after-filter]").forEach(b=>b.onclick=()=>{afterFilter=b.dataset.afterFilter;document.querySelectorAll("[data-after-filter]").forEach(x=>x.classList.toggle("active",x===b));renderAfterHistory()});
 
-  function populateTradeProducts(){
-    const select=$("tradeNewProduct"),old=select.value;
-    select.innerHTML='<option value="">Select product</option>'+state.products
-      .filter(p=>Number(p.stock||0)>0)
-      .map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.itemType||"Used")}) — ${money(p.price)} · Stock ${Number(p.stock||0)}</option>`).join("");
-    if(state.products.some(p=>p.id===old&&Number(p.stock||0)>0))select.value=old;
+  function tradeProductResults(queryText,{stockOnly=false}={}){
+    const q=normalizeText(queryText);
+    let products=[...state.products].sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+    if(stockOnly)products=products.filter(p=>Number(p.stock||0)>0);
+    if(q)products=products.filter(p=>normalizeText(`${p.name||""} ${p.sku||""} ${p.category||""} ${p.itemType||""}`).includes(q));
+    return products.slice(0,12);
+  }
+  function tradeSuggestionHtml(product,stockOut=false){
+    return `<button type="button" class="buy-suggestion" data-trade-product-id="${product.id}"><strong>${esc(product.name)}</strong><div class="trade-suggestion-meta"><span>${esc(product.sku||"No SKU")}</span><span>· ${esc(product.category||"Others")}</span><span>· ${esc(product.itemType||"Used")}</span><span>· Stock ${Number(product.stock||0)}</span>${stockOut?`<span>· ${money(product.price||0)}</span>`:""}</div></button>`;
+  }
+  function renderTradeInSuggestions(){
+    const search=$("tradeInSearch"),box=$("tradeInSuggestions");if(!search||!box)return;
+    const results=tradeProductResults(search.value);
+    box.innerHTML=results.map(p=>tradeSuggestionHtml(p,false)).join("")+`<button type="button" class="buy-suggestion" data-trade-create-new="1"><strong>＋ Create New Product</strong><span>Produk tiada dalam Product Master / mahu cipta SKU baharu</span></button>`;
+    box.classList.remove("hidden");
+    box.querySelectorAll("[data-trade-product-id]").forEach(btn=>btn.onclick=()=>selectTradeInProduct(btn.dataset.tradeProductId));
+    box.querySelector("[data-trade-create-new]")?.addEventListener("click",()=>selectTradeInProduct("__new__"));
+  }
+  function renderTradeOutSuggestions(){
+    const search=$("tradeOutSearch"),box=$("tradeOutSuggestions");if(!search||!box)return;
+    const results=tradeProductResults(search.value,{stockOnly:true});
+    box.innerHTML=results.length?results.map(p=>tradeSuggestionHtml(p,true)).join(""):'<div class="buy-suggestion" style="cursor:default"><strong>Tiada produk ditemui</strong><span>Cuba nama atau SKU lain.</span></div>';
+    box.classList.remove("hidden");
+    box.querySelectorAll("[data-trade-product-id]").forEach(btn=>btn.onclick=()=>selectTradeOutProduct(btn.dataset.tradeProductId));
+  }
+  function selectTradeInProduct(value){
+    $("tradeInProduct").value=value||"";
+    const p=state.products.find(x=>x.id===value),isNew=value==="__new__";
+    $("tradeInSearch").value=p?`${p.name}${p.sku?" · "+p.sku:""}`:(isNew?"Create New Product":"");
+    $("tradeInSuggestions").classList.add("hidden");
+    $("tradeInSearchClear").classList.toggle("hidden",!value);
+    updateTradeInProductSelection();
+  }
+  function selectTradeOutProduct(value){
+    $("tradeNewProduct").value=value||"";
+    const p=state.products.find(x=>x.id===value&&Number(x.stock||0)>0);
+    $("tradeOutSearch").value=p?`${p.name}${p.sku?" · "+p.sku:""}`:"";
+    $("tradeOutSuggestions").classList.add("hidden");
+    $("tradeOutSearchClear").classList.toggle("hidden",!p);
     updateTradeOutSelection();
+  }
+  function populateTradeProducts(){
+    const currentOut=$("tradeNewProduct")?.value||"";
+    if(currentOut&&!state.products.some(p=>p.id===currentOut&&Number(p.stock||0)>0))selectTradeOutProduct("");
+    const currentIn=$("tradeInProduct")?.value||"";
+    if(currentIn&&currentIn!=="__new__"&&!state.products.some(p=>p.id===currentIn))selectTradeInProduct("");
+    updateTradeOutSelection();
+    updateTradeInProductSelection();
     calcTrade();
   }
 
   function populateTradeInProducts(){
-    const select=$("tradeInProduct");if(!select)return;
-    const current=select.value;
-    select.innerHTML='<option value="">Select existing SKU</option><option value="__new__">＋ Create New Item</option>'+state.products.slice().sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""))).map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.sku||"No SKU")} · Stock ${Number(p.stock||0)}</option>`).join("");
-    if([...select.options].some(o=>o.value===current))select.value=current;
+    // Kept for edit-flow compatibility. Searchable selector reads directly from state.products.
+    const value=$("tradeInProduct")?.value||"";
+    if(value&&value!=="__new__"&&!state.products.some(p=>p.id===value))selectTradeInProduct("");
   }
   function updateTradeInProductSelection(){
     const value=$("tradeInProduct").value,newMode=value==="__new__",p=state.products.find(x=>x.id===value);
@@ -2098,7 +2148,6 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       $("tradeItem").value="";$("tradeCategory").value="Console";$("tradeItemType").value="Used";$("tradeSellPrice").value="";
     }
   }
-  $("tradeInProduct").addEventListener("change",updateTradeInProductSelection);
 
   function updateTradeOutSelection(){
     const p=state.products.find(x=>x.id===$("tradeNewProduct").value);
@@ -2110,7 +2159,27 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       $("tradeNewInfo").innerHTML='<span>Select a product</span><strong>RM0.00</strong>';
     }
   }
-  $("tradeNewProduct").addEventListener("change",updateTradeOutSelection);
+
+  $("tradeInSearch").addEventListener("input",()=>{
+    // User is typing: clear only the selected product ID, NOT the visible search text.
+    $("tradeInProduct").value="";
+    $("tradeInSearchClear").classList.add("hidden");
+    $("tradeInExistingInfo").classList.add("hidden");
+    renderTradeInSuggestions();
+  });
+  $("tradeInSearch").addEventListener("focus",renderTradeInSuggestions);
+  $("tradeInSearch").addEventListener("blur",()=>setTimeout(()=>$("tradeInSuggestions").classList.add("hidden"),180));
+  $("tradeInSearchClear").addEventListener("click",()=>{selectTradeInProduct("");$("tradeInSearch").focus();renderTradeInSuggestions()});
+  $("tradeOutSearch").addEventListener("input",()=>{
+    // User is typing: clear only the selected product ID, NOT the visible search text.
+    $("tradeNewProduct").value="";
+    $("tradeOutSearchClear").classList.add("hidden");
+    updateTradeOutSelection();
+    renderTradeOutSuggestions();
+  });
+  $("tradeOutSearch").addEventListener("focus",renderTradeOutSuggestions);
+  $("tradeOutSearch").addEventListener("blur",()=>setTimeout(()=>$("tradeOutSuggestions").classList.add("hidden"),180));
+  $("tradeOutSearchClear").addEventListener("click",()=>{selectTradeOutProduct("");$("tradeOutSearch").focus();renderTradeOutSuggestions()});
 
   function tradeTotals(){
     const stockIn=state.tradeInItems.reduce((s,i)=>s+Number(i.tradeValue||0),0);
@@ -2142,12 +2211,12 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
 
   function resetTradeInInputs(){
-    $("tradeInProduct").value="";$("tradeItem").value="";$("tradeSerial").value="";$("tradeInQty").value=1;$("tradeValue").value="";$("tradeSellPrice").value="";$("tradeCategory").value="Console";$("tradeItemType").value="Used";
+    $("tradeInProduct").value="";$("tradeInSearch").value="";$("tradeInSuggestions").classList.add("hidden");$("tradeInSearchClear").classList.add("hidden");$("tradeItem").value="";$("tradeSerial").value="";$("tradeInQty").value=1;$("tradeValue").value="";$("tradeSellPrice").value="";$("tradeCategory").value="Console";$("tradeItemType").value="Used";
     $("tradeInNewBox").classList.add("hidden");$("tradeInExistingInfo").classList.add("hidden");$("tradeInExistingInfo").innerHTML="";
     delete $("addTradeInItem").dataset.editIndex;$("addTradeInItem").textContent="＋ Add to Stock In List";
   }
   function resetTradeOutInputs(){
-    $("tradeNewProduct").value="";$("tradeOutQty").value=1;$("tradeOutPrice").value="";updateTradeOutSelection();
+    $("tradeNewProduct").value="";$("tradeOutSearch").value="";$("tradeOutSuggestions").classList.add("hidden");$("tradeOutSearchClear").classList.add("hidden");$("tradeOutQty").value=1;$("tradeOutPrice").value="";updateTradeOutSelection();
     delete $("addTradeOutItem").dataset.editIndex;$("addTradeOutItem").textContent="＋ Add to Stock Out List";
   }
   function clearTradeDraft(confirmFirst=true){
@@ -2160,13 +2229,13 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   window.removeTradeOut=k=>{state.tradeOutItems.splice(k,1);calcTrade()};
   window.editTradeIn=k=>{
     const i=state.tradeInItems[k];if(!i)return;
-    populateTradeInProducts();$("tradeInProduct").value=i.mode==="new"?"__new__":(i.productId||"");updateTradeInProductSelection();
+    populateTradeInProducts();selectTradeInProduct(i.mode==="new"?"__new__":(i.productId||""));
     $("tradeItem").value=i.name;$("tradeCategory").value=i.category;$("tradeItemType").value=i.itemType||"Used";$("tradeSerial").value=i.serial||"";$("tradeInQty").value=i.qty;$("tradeValue").value=i.tradeValue;$("tradeSellPrice").value=i.sellPrice;
     $("addTradeInItem").dataset.editIndex=String(k);$("addTradeInItem").textContent="Save Stock In Changes";
   };
   window.editTradeOut=k=>{
     const i=state.tradeOutItems[k];if(!i)return;
-    $("tradeNewProduct").value=i.productId;$("tradeOutQty").value=i.qty;$("tradeOutPrice").value=i.price;updateTradeOutSelection();$("tradeOutPrice").value=i.price;
+    selectTradeOutProduct(i.productId);$("tradeOutQty").value=i.qty;$("tradeOutPrice").value=i.price;
     $("addTradeOutItem").dataset.editIndex=String(k);$("addTradeOutItem").textContent="Save Stock Out Changes";
   };
 
