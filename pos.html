@@ -2814,7 +2814,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
           <input data-sp-search="${i.id}" value="${esc(i.name||"")}" autocomplete="off" placeholder="Contoh: PS5 Slim / CON-000001">
           <div class="buy-suggestions ${i.showSuggestions?"":"hidden"}" data-sp-suggestions="${i.id}">
             ${results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")}
-            ${results.length?"":`<button type="button" class="buy-suggestion" data-create-sp-product="${i.id}"><strong>＋ Create New Item</strong><span>Produk tiada dalam Product Master</span></button>`}
+            <button type="button" class="buy-suggestion" data-create-sp-product="${i.id}"><strong>＋ Create New Item${i.name?` · ${esc(i.name)}`:""}</strong><span>Gunakan nama yang ditaip sebagai Product Master baharu</span></button>
           </div>
         </div>
         ${selected&&i.mode!=="new"?`<div class="selected-product"><div><strong>${esc(selected.name)}</strong><span>Existing SKU · ${esc(selected.sku||"No SKU")} · Current stock ${Number(selected.stock||0)}</span></div><button type="button" class="btn btn-light" data-clear-sp-product="${i.id}">Change</button></div>`:""}
@@ -2827,7 +2827,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       const box=document.querySelector(`[data-sp-suggestions="${item.id}"]`);if(!box)return;
       const results=stockPurchaseProductSearchResults(item);
       box.classList.remove('hidden');
-      box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")+(results.length?"":`<button type="button" class="buy-suggestion" data-create-sp-product="${item.id}"><strong>＋ Create New Item</strong><span>Produk tiada dalam Product Master</span></button>`);
+      box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")+`<button type="button" class="buy-suggestion" data-create-sp-product="${item.id}"><strong>＋ Create New Item${item.name?` · ${esc(item.name)}`:""}</strong><span>Gunakan nama yang ditaip sebagai Product Master baharu</span></button>`;
       box.querySelectorAll('[data-select-sp-product]').forEach(btn=>btn.onclick=()=>{
         const row=state.stockPurchaseItems.find(x=>x.id===btn.dataset.selectSpProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!row||!product)return;
         row.mode='existing';row.productId=product.id;row.name=product.name;row.category=product.category||'Others';row.itemType=product.itemType||'New';row.unitCost=Number(product.cost||0);row.showSuggestions=false;renderStockPurchaseItems();
@@ -2875,7 +2875,18 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     e.preventDefault();
     let entry;try{entry=entryContext()}catch(err){return toast(err.message)}const supplierChoice=$("spSupplier").value;if(!supplierChoice)return toast("Pilih supplier.");const newSupplierName=$("spNewSupplierName")?.value.trim()||"";if(supplierChoice==="__new__"&&!newSupplierName)return toast("Masukkan nama supplier baharu.");
     const items=state.stockPurchaseItems.map(i=>({...i,name:i.name.trim(),qty:Number(i.qty||0),unitCost:Number(i.unitCost||0)}));
-    for(const i of items){if(i.mode!=="new"&&!i.productId)return toast("Pilih existing product atau Create New Item untuk setiap baris.");if(!i.name)return toast("Setiap product mesti ada nama.");if(i.mode==="new"&&state.products.some(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category))return toast(`${i.name} sudah wujud. Sila pilih SKU sedia ada.`);if(i.qty<1)return toast(`Quantity tidak sah: ${i.name}`);if(i.unitCost<0)return toast(`Unit cost tidak sah: ${i.name}`)}
+    for(let index=0;index<items.length;index++){
+      const i=items[index];
+      if(i.mode!=="new"&&!i.productId){
+        const card=document.querySelectorAll("#spItemList .sp-item-card")[index];
+        if(card){card.style.outline="3px solid #ef4444";card.style.outlineOffset="3px";card.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>{card.style.outline="";card.style.outlineOffset=""},5000)}
+        return toast(`Product ${index+1}${i.name?` · ${i.name}`:""}: pilih existing product atau Create New Item.`);
+      }
+      if(!i.name)return toast(`Product ${index+1}: setiap product mesti ada nama.`);
+      if(i.mode==="new"&&state.products.some(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category&&(p.itemType||"New")===(i.itemType||"New")))return toast(`${i.name} sudah wujud dengan category/type yang sama. Sila pilih SKU sedia ada.`);
+      if(i.qty<1)return toast(`Quantity tidak sah: ${i.name}`);
+      if(i.unitCost<0)return toast(`Unit cost tidak sah: ${i.name}`);
+    }
     const btn=e.submitter;btn.disabled=true;btn.textContent="Creating...";
     try{
       const poNo=await reserveDocumentNumber("stockPurchase","PO");
