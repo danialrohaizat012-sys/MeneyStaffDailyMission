@@ -2788,7 +2788,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   // ==========================
   // STOCK PURCHASE V1
   // ==========================
-  const newStockPurchaseItem=()=>({id:crypto.randomUUID(),mode:"existing",productId:"",name:"",category:"Console",qty:1,unitCost:0});
+  const newStockPurchaseItem=()=>({id:crypto.randomUUID(),mode:"existing",productId:"",name:"",category:"Console",qty:1,unitCost:0,showSuggestions:false});
   function resetStockPurchaseDraft(){
     state.stockPurchaseItems=[newStockPurchaseItem()];
     ["spSupplier","spNewSupplierName","spInvoice","spExpectedDate","spNotes"].forEach(id=>{if($(id))$(id).value=""});if($("spNewSupplierBox"))$("spNewSupplierBox").classList.add("hidden");
@@ -2798,17 +2798,59 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function stockPurchaseSubtotal(){return state.stockPurchaseItems.reduce((sum,i)=>sum+(Number(i.qty||0)*Number(i.unitCost||0)),0)}
   function stockPurchaseTotal(){return Math.max(0,stockPurchaseSubtotal()+Number($("spShipping")?.value||0)-Number($("spDiscount")?.value||0))}
   function renderSupplierList(){if(!$("spSupplier"))return;const old=$("spSupplier").value;$("spSupplier").innerHTML='<option value="">Select supplier</option><option value="__new__">＋ Create New Supplier</option>'+state.suppliers.filter(x=>x.active!==false).sort((a,b)=>String(a.name||a.supplierName||"").localeCompare(String(b.name||b.supplierName||""))).map(x=>`<option value="${x.id}">${esc(x.name||x.supplierName||"Unnamed supplier")}</option>`).join("");if([...$("spSupplier").options].some(o=>o.value===old))$("spSupplier").value=old}
+  function stockPurchaseProductSearchResults(item){
+    const q=normalizeText(item.name||"");
+    const products=[...state.products].sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+    if(!q)return products.slice(0,10);
+    return products.filter(p=>normalizeText(`${p.name} ${p.sku||""} ${p.category||""}`).includes(q)).slice(0,10);
+  }
   function renderStockPurchaseItems(){
-    if(!$("spItemList"))return;
-    const productOptions='<option value="">Select existing inventory product</option><option value="__new__">＋ Create New Item</option>'+state.products.slice().sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""))).map(p=>`<option value="${p.id}">${esc(p.name)} · ${esc(p.sku||"No SKU")} · Stock ${Number(p.stock||0)}</option>`).join("");
-    $("spItemList").innerHTML=state.stockPurchaseItems.map((i,k)=>`<div class="sp-item-card"><div class="sp-item-head"><div><h4>Product ${k+1}</h4><div class="muted" style="font-size:10px">Link kepada Product Master atau create item baharu.</div></div>${state.stockPurchaseItems.length>1?`<button type="button" class="btn btn-danger" data-sp-remove="${i.id}" style="padding:7px 9px">Remove</button>`:""}</div><div class="field"><label>Product</label><select data-sp-product="${i.id}">${productOptions}</select></div>${i.mode==="new"?`<div class="sp-create-box"><div class="two"><div class="field"><label>New Product Name</label><input data-sp-name="${i.id}" value="${esc(i.name)}" placeholder="Contoh: DualShock 4 Midnight Blue"></div><div class="field"><label>Category</label><select data-sp-category="${i.id}">${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select></div></div><div class="sp-product-status new">Produk baharu akan dicipta dalam inventory dengan stok 0. Kuantiti hanya bertambah selepas Stock Received.</div></div>`:`<div class="sp-product-status existing">Pilih SKU yang sudah ada supaya stock purchase dikaitkan dengan inventory yang sama.</div>`}<div class="three" style="margin-top:11px"><div class="field"><label>Quantity Ordered</label><input data-sp-qty="${i.id}" type="number" min="1" step="1" value="${Number(i.qty||1)}"></div><div class="field"><label>Unit Cost (RM)</label><input data-sp-cost="${i.id}" type="number" min="0" step=".01" value="${Number(i.unitCost||0)}"></div><div class="summary-mini"><span>Subtotal</span><strong>${money(Number(i.qty||0)*Number(i.unitCost||0))}</strong></div></div></div>`).join("");
-    state.stockPurchaseItems.forEach(i=>{const sel=document.querySelector(`[data-sp-product="${i.id}"]`);if(sel)sel.value=i.mode==="new"?"__new__":(i.productId||"")});
+    if(!$('spItemList'))return;
+    $('spItemList').innerHTML=state.stockPurchaseItems.map((i,k)=>{
+      const selected=state.products.find(p=>p.id===i.productId),results=stockPurchaseProductSearchResults(i);
+      return `<div class="sp-item-card">
+        <div class="sp-item-head"><div><h4>Product ${k+1}</h4><div class="muted" style="font-size:10px">Search Product Master atau create item baharu.</div></div>${state.stockPurchaseItems.length>1?`<button type="button" class="btn btn-danger" data-sp-remove="${i.id}" style="padding:7px 9px">Remove</button>`:""}</div>
+        <div class="field buy-product-search"><label>Search Product / SKU</label>
+          <input data-sp-search="${i.id}" value="${esc(i.name||"")}" autocomplete="off" placeholder="Contoh: PS5 Slim / CON-000001">
+          <div class="buy-suggestions ${i.showSuggestions?"":"hidden"}" data-sp-suggestions="${i.id}">
+            ${results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")}
+            ${results.length?"":`<button type="button" class="buy-suggestion" data-create-sp-product="${i.id}"><strong>＋ Create New Item</strong><span>Produk tiada dalam Product Master</span></button>`}
+          </div>
+        </div>
+        ${selected&&i.mode!=="new"?`<div class="selected-product"><div><strong>${esc(selected.name)}</strong><span>Existing SKU · ${esc(selected.sku||"No SKU")} · Current stock ${Number(selected.stock||0)}</span></div><button type="button" class="btn btn-light" data-clear-sp-product="${i.id}">Change</button></div>`:""}
+        ${i.mode==="new"?`<div class="sp-create-box"><div class="two"><div class="field"><label>New Product Name</label><input data-sp-name="${i.id}" value="${esc(i.name)}" placeholder="Contoh: DualShock 4 Midnight Blue"></div><div class="field"><label>Category</label><select data-sp-category="${i.id}">${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select></div></div><div class="sp-product-status new">Produk baharu akan dicipta dalam inventory dengan stok 0. Kuantiti hanya bertambah selepas Stock Received.</div></div>`:(selected?`<div class="sp-product-status existing">SKU sedia ada dipilih. Stock purchase akan dikaitkan dengan Product Master yang sama.</div>`:`<div class="sp-product-status existing">Cari nama produk atau SKU untuk elak duplicate Product Master.</div>`)}
+        <div class="three" style="margin-top:11px"><div class="field"><label>Quantity Ordered</label><input data-sp-qty="${i.id}" type="number" min="1" step="1" value="${Number(i.qty||1)}"></div><div class="field"><label>Unit Cost (RM)</label><input data-sp-cost="${i.id}" type="number" min="0" step=".01" value="${Number(i.unitCost||0)}"></div><div class="summary-mini"><span>Subtotal</span><strong>${money(Number(i.qty||0)*Number(i.unitCost||0))}</strong></div></div>
+      </div>`;
+    }).join("");
+
+    const bindSuggestionBox=(item,input)=>{
+      const box=document.querySelector(`[data-sp-suggestions="${item.id}"]`);if(!box)return;
+      const results=stockPurchaseProductSearchResults(item);
+      box.classList.remove('hidden');
+      box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")+(results.length?"":`<button type="button" class="buy-suggestion" data-create-sp-product="${item.id}"><strong>＋ Create New Item</strong><span>Produk tiada dalam Product Master</span></button>`);
+      box.querySelectorAll('[data-select-sp-product]').forEach(btn=>btn.onclick=()=>{
+        const row=state.stockPurchaseItems.find(x=>x.id===btn.dataset.selectSpProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!row||!product)return;
+        row.mode='existing';row.productId=product.id;row.name=product.name;row.category=product.category||'Others';row.unitCost=Number(product.cost||0);row.showSuggestions=false;renderStockPurchaseItems();
+      });
+      box.querySelectorAll('[data-create-sp-product]').forEach(btn=>btn.onclick=()=>{
+        const row=state.stockPurchaseItems.find(x=>x.id===btn.dataset.createSpProduct);if(!row)return;
+        row.mode='new';row.productId='';row.name=input.value.trim();row.category='Console';row.unitCost=0;row.showSuggestions=false;renderStockPurchaseItems();
+      });
+    };
+
+    document.querySelectorAll('[data-sp-search]').forEach(el=>{
+      const show=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spSearch);if(!i)return;i.name=el.value;i.productId='';i.mode='existing';i.showSuggestions=true;bindSuggestionBox(i,el)};
+      el.oninput=show;el.onfocus=show;
+      el.onblur=()=>setTimeout(()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spSearch);if(i){i.showSuggestions=false;document.querySelector(`[data-sp-suggestions="${i.id}"]`)?.classList.add('hidden')}},180);
+    });
+    document.querySelectorAll('[data-select-sp-product]').forEach(el=>el.onclick=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.selectSpProduct),p=state.products.find(x=>x.id===el.dataset.productId);if(!i||!p)return;i.mode='existing';i.productId=p.id;i.name=p.name;i.category=p.category||'Others';i.unitCost=Number(p.cost||0);i.showSuggestions=false;renderStockPurchaseItems()});
+    document.querySelectorAll('[data-create-sp-product]').forEach(el=>el.onclick=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.createSpProduct);if(i){i.mode='new';i.productId='';i.showSuggestions=false;renderStockPurchaseItems()}});
+    document.querySelectorAll('[data-clear-sp-product]').forEach(el=>el.onclick=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.clearSpProduct);if(i){i.mode='existing';i.productId='';i.name='';i.showSuggestions=false;renderStockPurchaseItems()}});
     document.querySelectorAll('[data-sp-remove]').forEach(b=>b.onclick=()=>{state.stockPurchaseItems=state.stockPurchaseItems.filter(i=>i.id!==b.dataset.spRemove);renderStockPurchaseItems()});
-    document.querySelectorAll('[data-sp-product]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spProduct);if(!i)return;if(el.value==="__new__"){i.mode="new";i.productId="";i.name="";i.category="Console";i.unitCost=0}else{i.mode="existing";i.productId=el.value;const p=state.products.find(x=>x.id===el.value);if(p){i.name=p.name;i.category=p.category||"Others";i.unitCost=Number(p.cost||0)}else{i.name=""}}renderStockPurchaseItems()});
     document.querySelectorAll('[data-sp-name]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spName);if(i){i.name=el.value;renderStockPurchaseSummary()}});
     document.querySelectorAll('[data-sp-category]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spCategory);if(i)i.category=el.value});
-    document.querySelectorAll('[data-sp-qty]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spQty);if(i){i.qty=Math.max(1,Number(el.value||1));renderStockPurchaseSummary()}});
-    document.querySelectorAll('[data-sp-cost]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spCost);if(i){i.unitCost=Math.max(0,Number(el.value||0));renderStockPurchaseSummary()}});
+    document.querySelectorAll('[data-sp-qty]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spQty);if(i){i.qty=Math.max(1,Number(el.value||1));renderStockPurchaseSummary();const card=el.closest('.sp-item-card');const subtotal=card?.querySelector('.summary-mini strong');if(subtotal)subtotal.textContent=money(Number(i.qty||0)*Number(i.unitCost||0))}});
+    document.querySelectorAll('[data-sp-cost]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spCost);if(i){i.unitCost=Math.max(0,Number(el.value||0));renderStockPurchaseSummary();const card=el.closest('.sp-item-card');const subtotal=card?.querySelector('.summary-mini strong');if(subtotal)subtotal.textContent=money(Number(i.qty||0)*Number(i.unitCost||0))}});
     renderStockPurchaseSummary();
   }
   function renderStockPurchaseSummary(){
