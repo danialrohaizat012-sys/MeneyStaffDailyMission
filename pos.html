@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Trade-In Searchable Selector V2 · 2026-08-08</title>
-  <meta name="meney-build" content="POS-TRADE-SEARCH-V2-20260808" />
+  <title>Meney POS Enterprise · Legacy Cash Buy Shift Fix · 2026-08-11</title>
+  <meta name="meney-build" content="POS-LEGACY-BUY-SHIFT-FIX-20260811" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -708,8 +708,12 @@
               <div class="cash-row"><span>Status</span><strong id="shiftStatus">OPEN</strong></div>
               <div class="cash-row"><span>Opening Cash</span><strong id="openingCashText">RM0.00</strong></div>
               <div class="cash-row"><span>Cash Sales</span><strong id="cashSalesText">RM0.00</strong></div>
-              <div class="cash-row"><span>Cash In</span><strong id="cashInText">RM0.00</strong></div>
-              <div class="cash-row"><span>Cash Out</span><strong id="cashOutText" class="redtxt">RM0.00</strong></div>
+              <div class="cash-row"><span>Buy From Customer</span><strong id="cashBuyText" class="redtxt">-RM0.00</strong></div>
+              <div class="cash-row"><span>Trade-In Net Cash</span><strong id="cashTradeText">RM0.00</strong></div>
+              <div class="cash-row"><span>Repair Cash</span><strong id="cashRepairText">RM0.00</strong></div>
+              <div class="cash-row"><span>Stock Purchase Cash</span><strong id="cashStockPurchaseText" class="redtxt">-RM0.00</strong></div>
+              <div class="cash-row"><span>Manual Cash In</span><strong id="cashInText">RM0.00</strong></div>
+              <div class="cash-row"><span>Manual Cash Out</span><strong id="cashOutText" class="redtxt">RM0.00</strong></div>
               <div class="cash-row"><span>Expected Cash</span><strong id="expectedCashText">RM0.00</strong></div>
               <button class="btn btn-light btn-block" data-go="shift" style="margin-top:13px">Manage Shift</button>
             </aside>
@@ -796,6 +800,7 @@
                     <div class="field"><label>Discount (RM)</label><input id="spDiscount" type="number" min="0" step=".01" value="0"></div>
                   </div>
                   <div class="field"><label>Payment Status</label><select id="spPaymentStatus"><option value="unpaid">Unpaid</option><option value="partially_paid">Partially Paid</option><option value="paid">Paid</option></select></div>
+                  <div class="field"><label>Payment Method</label><select id="spPaymentMethod"><option>Bank Transfer</option><option>Cash</option><option>QR / DuitNow</option><option>Card</option><option>Other</option></select><span class="field-help">Jika Cash, Amount Paid akan ditolak daripada expected cash drawer shift semasa.</span></div>
                   <div class="field"><label>Amount Paid (RM)</label><input id="spAmountPaid" type="number" min="0" step=".01" value="0"></div>
                   <div class="total-line grand"><span>Total</span><span id="spGrandTotal">RM0.00</span></div>
                   <button id="spSubmitPurchase" class="btn btn-purple btn-block" type="submit">Create Purchase Order</button>
@@ -1952,7 +1957,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         prepared.filter(i=>i.inventoryAction==="created").forEach(i=>tx.set(i.productRef,{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,status:"Pricing Required",cost:i.buyPrice,price:0,stock:1,lowStock:1,serial:"",intakeHistory:[{source:"buy",buyNo,itemType:i.itemType,qty:1,cost:i.buyPrice,serial:i.serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid}));
         prepared.forEach(i=>tx.set(i.unitRef,{unitId:i.inventoryUnitId,productId:i.productId,sku:i.sku,productName:i.name,category:i.category,itemType:i.itemType,serialNumber:i.serial||"",costPrice:i.buyPrice,sourceType:"customer_purchase",sourceTransactionId:buyRef.id,buyNo,status:i.inventoryAction==="created"?"pricing_required":"available",qcResults:i.qc,notes:i.notes||"",createdAt:serverTimestamp(),createdBy:state.user.uid}));
         const totalAmount=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
-        tx.set(buyRef,{buyNo,...customerData,paymentMethod,totalAmount,itemCount:prepared.length,items:prepared.map(i=>({productId:i.productId,inventoryUnitId:i.inventoryUnitId,name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,serial:i.serial,buyPrice:i.buyPrice,inventoryAction:i.inventoryAction,qcResults:i.qc,notes:i.notes||""})),status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionStatus:"active",transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp()});
+        tx.set(buyRef,{buyNo,...customerData,paymentMethod,totalAmount,itemCount:prepared.length,items:prepared.map(i=>({productId:i.productId,inventoryUnitId:i.inventoryUnitId,name:i.name,sku:i.sku,category:i.category,itemType:i.itemType,serial:i.serial,buyPrice:i.buyPrice,inventoryAction:i.inventoryAction,qcResults:i.qc,notes:i.notes||""})),status:"completed",staffId:state.user.uid,staffName:state.profile.name||state.user.email,shiftId:entry.isBackdated?null:(currentShift()?.id||null),shiftNo:entry.isBackdated?null:(currentShift()?.shiftNo||null),transactionStatus:"active",transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp()});
       });
       const total=prepared.reduce((sum,i)=>sum+i.buyPrice,0);
       showTransactionDocument({title:"PURCHASE RECEIPT",number:buyNo,date:timestampText(entry.transactionDate),customer,phone,staff:state.profile.name||state.user.email,items:prepared.map(i=>({name:i.name,detail:`${i.itemType} · SKU ${i.sku}${i.serial?" · S/N "+i.serial:""}`,qty:1,unitPrice:i.buyPrice,total:i.buyPrice})),totals:[{label:"Amount Paid to Customer",value:total,grand:true}],payment:paymentMethod,note:""});
@@ -2329,7 +2334,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
             tx.set(doc(db,"products",item.productId),{name:item.name,sku:item.sku,category:item.category,itemType:item.itemType||"Used",status:"Available",cost:unitCost,price:Number(item.sellPrice),stock:Number(item.qty),lowStock:1,serial:item.serial||"",intakeHistory:[{source:"trade",itemType:item.itemType||"Used",qty:Number(item.qty),cost:unitCost,serial:item.serial||"",recordedAt:new Date().toISOString()}],createdAt:serverTimestamp(),createdBy:state.user.uid});
           }
         }
-        tx.set(trRef,{tradeNo,customer,phone,stockInItems:inItems.map(({key,existingId,...i})=>i),stockOutItems:outItems,totalTradeValue:inTotal,totalStockOut:outTotal,balance:Math.abs(netBalance),netBalance,paymentDirection:netBalance>0?"customer_pays":netBalance<0?"meney_pays":"even_trade",paymentMethod,status:"completed",transactionStatus:"active",staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp()});
+        tx.set(trRef,{tradeNo,customer,phone,stockInItems:inItems.map(({key,existingId,...i})=>i),stockOutItems:outItems,totalTradeValue:inTotal,totalStockOut:outTotal,balance:Math.abs(netBalance),netBalance,paymentDirection:netBalance>0?"customer_pays":netBalance<0?"meney_pays":"even_trade",paymentMethod,status:"completed",transactionStatus:"active",staffId:state.user.uid,staffName:state.profile.name||state.user.email,shiftId:entry.isBackdated?null:(currentShift()?.id||null),shiftNo:entry.isBackdated?null:(currentShift()?.shiftNo||null),transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp()});
       });
       const receiptItems=[
         ...outItems.map(i=>({name:i.name,detail:`STOCK OUT · ${i.sku||""}${i.serial?" · S/N "+i.serial:""}`,qty:i.qty,unitPrice:i.price,total:i.price*i.qty})),
@@ -2408,7 +2413,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     if(estimate>0&&depositAmount>estimate)return toast("Deposit tidak boleh melebihi anggaran harga repair.");
     try{
       const repairRef=doc(collection(db,"repairs"));ticketNo=await reserveDocumentNumber("repair","RPR");
-      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,...customerData,device,serial,issue,estimate,status:"Received",warranty,depositAmount,depositPaymentMethod:depositAmount>0?depositPaymentMethod:"",depositStatus:depositAmount>0?"paid":"none",paymentStatus:depositAmount>0?"deposit_paid":"no_deposit",isSale:false,staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),depositPaidAt:depositAmount>0?entry.transactionDate:null})});
+      await runTransaction(db,async tx=>{tx.set(repairRef,{ticketNo,...customerData,device,serial,issue,estimate,status:"Received",warranty,depositAmount,depositPaymentMethod:depositAmount>0?depositPaymentMethod:"",depositStatus:depositAmount>0?"paid":"none",paymentStatus:depositAmount>0?"deposit_paid":"no_deposit",isSale:false,staffId:state.user.uid,staffName:state.profile.name||state.user.email,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),depositPaidAt:depositAmount>0?entry.transactionDate:null,depositShiftId:(depositAmount>0&&!entry.isBackdated)?(currentShift()?.id||null):null,depositShiftNo:(depositAmount>0&&!entry.isBackdated)?(currentShift()?.shiftNo||null):null})});
       closeModal("repairModal");
       const totals=[{label:"Estimated Repair Cost",value:estimate}];
       if(depositAmount>0){totals.push({label:"Deposit Paid",value:depositAmount},{label:"Estimated Balance",value:Math.max(0,estimate-depositAmount),grand:true})}else totals[0].grand=true;
@@ -2444,7 +2449,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const finalPrice=Number($("completeFinalPrice").value||0),depositAmount=Number(r.depositAmount||0),balanceDue=Math.max(0,finalPrice-depositAmount),paymentMethod=$("completePaymentMethod").value,repairMethod=$("completeRepairMethod").value,warranty=$("completeWarranty").value.trim(),sparePartCost=repairMethod==="outsource"?0:Number($("completeSpareCost").value||0),outsourceCost=repairMethod==="internal"?0:Number($("completeOutsourceCost").value||0),additionalCost=Number($("completeAdditionalCost").value||0),totalCost=sparePartCost+outsourceCost+additionalCost,netProfit=finalPrice-totalCost,profitMargin=finalPrice>0?(netProfit/finalPrice)*100:0;
     if(finalPrice<depositAmount)return toast("Harga akhir tidak boleh lebih rendah daripada deposit. Buat proses refund dahulu.");
     try{
-      await updateDoc(doc(db,"repairs",id),{status:"Completed",isSale:true,finalPrice,balanceDue,balancePaid:balanceDue,finalPaymentMethod:balanceDue>0?paymentMethod:"Covered by deposit",paymentStatus:"paid_in_full",repairMethod,sparePartCost,outsourceCost,additionalCost,totalCost,netProfit,profitMargin,warranty,completedAt:serverTimestamp(),completedBy:state.user.uid,completedByName:state.profile.name||state.user.email,updatedAt:serverTimestamp()});
+      const completedTransactionDate=new Date().toISOString(),completedShift=currentShift();
+      await updateDoc(doc(db,"repairs",id),{status:"Completed",isSale:true,finalPrice,balanceDue,balancePaid:balanceDue,finalPaymentMethod:balanceDue>0?paymentMethod:"Covered by deposit",paymentStatus:"paid_in_full",repairMethod,sparePartCost,outsourceCost,additionalCost,totalCost,netProfit,profitMargin,warranty,completedTransactionDate,completedShiftId:balanceDue>0?(completedShift?.id||null):null,completedShiftNo:balanceDue>0?(completedShift?.shiftNo||null):null,completedAt:serverTimestamp(),completedBy:state.user.uid,completedByName:state.profile.name||state.user.email,updatedAt:serverTimestamp()});
       closeModal("completeRepairModal");
       showTransactionDocument({title:"REPAIR PAYMENT RECEIPT",number:r.ticketNo,customer:r.customer,phone:r.phone,staff:state.profile.name||state.user.email,items:[{name:r.device,detail:`Repair completed · ${r.issue||""}${r.serial?" · S/N "+r.serial:""}`,warranty,qty:1,unitPrice:finalPrice,total:finalPrice}],totals:[{label:"Final Repair Price",value:finalPrice},{label:"Deposit Previously Paid",value:-depositAmount},{label:"Balance Paid Today",value:balanceDue},{label:"Total Paid",value:finalPrice,grand:true}],payment:balanceDue>0?`${paymentMethod} · Balance ${money(balanceDue)}`:`Fully covered by deposit`,note:""});toast("Repair completed · receipt generated")
     }catch(err){toast(err.message)}
@@ -2738,11 +2744,98 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     if(Array.isArray(sale.payments))return sale.payments.filter(p=>p.method==="Cash").reduce((sum,p)=>sum+Number(p.amount||0),0);
     return sale.paymentMethod==="Cash"?Number(sale.total||0):0;
   }
+  function timestampMs(v){
+    if(!v)return 0;
+    if(v?.toDate instanceof Function)return v.toDate().getTime();
+    if(v?.seconds)return Number(v.seconds)*1000;
+    const n=new Date(v).getTime();
+    return Number.isFinite(n)?n:0;
+  }
+  function localDateKey(v){
+    const ms=timestampMs(v);if(!ms)return "";
+    const d=new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+  function sameShiftOrAfterOpen(record,s,explicitField="shiftId",dateField=null){
+    if(!s||!record||record.status==="cancelled"||record.transactionStatus==="cancelled"||record.isBackdated)return false;
+
+    const explicit=record?.[explicitField];
+    if(explicit)return explicit===s.id;
+
+    const opened=timestampMs(s.openedAt||s.createdAt);
+    const currentShiftDate=localDateKey(s.openedAt||s.createdAt);
+
+    // Legacy records created before shiftId existed:
+    // accept the transaction if EITHER transactionDate OR createdAt proves it
+    // belongs after the shift opened. This avoids missing old Buy transactions
+    // whose transactionDate format/time was not reliable.
+    const candidates=[
+      dateField?record?.[dateField]:null,
+      record?.transactionDate,
+      record?.saleDate,
+      record?.createdAt
+    ].filter(Boolean);
+
+    if(candidates.some(v=>timestampMs(v)>=opened))return true;
+
+    // Final compatibility fallback for old live transactions:
+    // if the record has no shiftId, is not backdated, and was created on
+    // the same local business day as the open shift, count it in this shift.
+    // createdAt is preferred because it is server generated.
+    const createdKey=localDateKey(record?.createdAt);
+    const txKey=localDateKey(record?.transactionDate||record?.saleDate);
+    return !!currentShiftDate && (createdKey===currentShiftDate || txKey===currentShiftDate);
+  }
+  function tradeCashDelta(t){
+    if(String(t.paymentMethod||"").trim().toLowerCase()!=="cash")return 0;
+    const amount=Math.abs(Number(t.netBalance??t.balance??0));
+    const direction=t.paymentDirection||(Number(t.netBalance||0)>0?"customer_pays":Number(t.netBalance||0)<0?"meney_pays":"even_trade");
+    if(direction==="customer_pays")return amount;
+    if(direction==="meney_pays")return -amount;
+    return 0;
+  }
   function getShiftCashSummary(s=currentShift()){
-    const moves=s?state.cashMoves.filter(m=>m.shiftId===s.id):[],cin=moves.filter(m=>m.type==="in").reduce((a,m)=>a+Number(m.amount||0),0),cout=moves.filter(m=>m.type==="out").reduce((a,m)=>a+Number(m.amount||0),0);
-    const relevantSales=s?state.sales.filter(x=>x.status!=="cancelled"&&(x.shiftId?x.shiftId===s.id:x.saleDate===nowDate())):[];
-    const cashSales=relevantSales.reduce((a,x)=>a+saleCashAmount(x),0),opening=Number(s?.openingCash||0);
-    return{opening,cashSales,cin,cout,expected:opening+cashSales+cin-cout};
+    if(!s)return{opening:0,cashSales:0,cashBuys:0,tradeCash:0,repairCash:0,stockPurchaseCash:0,cin:0,cout:0,expected:0};
+
+    const moves=state.cashMoves.filter(m=>m.shiftId===s.id),
+      cin=moves.filter(m=>m.type==="in").reduce((a,m)=>a+Number(m.amount||0),0),
+      cout=moves.filter(m=>m.type==="out").reduce((a,m)=>a+Number(m.amount||0),0);
+
+    const cashSales=state.sales
+      .filter(x=>sameShiftOrAfterOpen(x,s,"shiftId"))
+      .reduce((a,x)=>a+saleCashAmount(x),0);
+
+    const cashBuys=state.buys
+      .filter(x=>sameShiftOrAfterOpen(x,s,"shiftId"))
+      .filter(x=>String(x.paymentMethod||"").trim().toLowerCase()==="cash")
+      .reduce((a,x)=>a+Number(x.totalAmount??x.offer??0),0);
+
+    const tradeCash=state.trades
+      .filter(x=>sameShiftOrAfterOpen(x,s,"shiftId"))
+      .reduce((a,x)=>a+tradeCashDelta(x),0);
+
+    const repairDepositCash=state.repairs
+      .filter(r=>Number(r.depositAmount||0)>0&&String(r.depositPaymentMethod||"").trim().toLowerCase()==="cash")
+      .filter(r=>sameShiftOrAfterOpen({...r,transactionDate:r.depositPaidAt||r.transactionDate},s,"depositShiftId","depositPaidAt"))
+      .reduce((a,r)=>a+Number(r.depositAmount||0),0);
+
+    const repairBalanceCash=state.repairs
+      .filter(r=>(r.status==="Completed"||r.isSale)&&Number(r.balancePaid??r.balanceDue??0)>0&&String(r.finalPaymentMethod||"").trim().toLowerCase()==="cash")
+      .filter(r=>sameShiftOrAfterOpen({...r,transactionDate:r.completedTransactionDate||r.completedAt},s,"completedShiftId","completedTransactionDate"))
+      .reduce((a,r)=>a+Number(r.balancePaid??r.balanceDue??0),0);
+
+    const repairCash=repairDepositCash+repairBalanceCash;
+
+    const stockPurchaseCash=state.stockPurchases
+      .filter(p=>Number(p.amountPaid||0)>0&&String(p.paymentMethod||"").trim().toLowerCase()==="cash")
+      .filter(p=>sameShiftOrAfterOpen({...p,shiftId:p.paymentShiftId||null},s,"shiftId"))
+      .reduce((a,p)=>a+Number(p.amountPaid||0),0);
+
+    const opening=Number(s.openingCash||0);
+    return{
+      opening,cashSales,cashBuys,tradeCash,repairCash,stockPurchaseCash,cin,cout,
+      expected:opening+cashSales-cashBuys+tradeCash+repairCash-stockPurchaseCash+cin-cout
+    };
   }
   function renderShiftVariance(){
     const s=currentShift(),box=$("shiftVarianceBox"),noteField=$("varianceNoteField");
@@ -2754,7 +2847,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   function renderShift(){
     const s=currentShift(),x=getShiftCashSummary(s);
-    $("shiftChip").textContent=s?"● SHIFT OPEN":"○ SHIFT CLOSED";$("shiftStatus").textContent=s?"OPEN":"CLOSED";$("openingCashText").textContent=money(x.opening);$("cashSalesText").textContent=money(x.cashSales);$("cashInText").textContent=money(x.cin);$("cashOutText").textContent="-"+money(x.cout);$("expectedCashText").textContent=money(x.expected);renderShiftVariance()
+    $("shiftChip").textContent=s?"● SHIFT OPEN":"○ SHIFT CLOSED";$("shiftStatus").textContent=s?"OPEN":"CLOSED";$("openingCashText").textContent=money(x.opening);$("cashSalesText").textContent=money(x.cashSales);if($("cashBuyText"))$("cashBuyText").textContent="-"+money(x.cashBuys);if($("cashTradeText")){$("cashTradeText").textContent=(x.tradeCash<0?"-":"+")+money(Math.abs(x.tradeCash));$("cashTradeText").classList.toggle("redtxt",x.tradeCash<0)}if($("cashRepairText"))$("cashRepairText").textContent="+"+money(x.repairCash);if($("cashStockPurchaseText"))$("cashStockPurchaseText").textContent="-"+money(x.stockPurchaseCash);$("cashInText").textContent=money(x.cin);$("cashOutText").textContent="-"+money(x.cout);$("expectedCashText").textContent=money(x.expected);renderShiftVariance()
   }
   resetSplitPayments();
 
@@ -2793,7 +2886,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     state.editingStockPurchaseId=null;
     state.stockPurchaseItems=[newStockPurchaseItem()];
     ["spSupplier","spNewSupplierName","spInvoice","spExpectedDate","spNotes"].forEach(id=>{if($(id))$(id).value=""});if($("spNewSupplierBox"))$("spNewSupplierBox").classList.add("hidden");
-    if($("spShipping"))$("spShipping").value=0;if($("spDiscount"))$("spDiscount").value=0;if($("spAmountPaid"))$("spAmountPaid").value=0;if($("spPaymentStatus"))$("spPaymentStatus").value="unpaid";
+    if($("spShipping"))$("spShipping").value=0;if($("spDiscount"))$("spDiscount").value=0;if($("spAmountPaid"))$("spAmountPaid").value=0;if($("spPaymentStatus"))$("spPaymentStatus").value="unpaid";if($("spPaymentMethod"))$("spPaymentMethod").value="Bank Transfer";
     if($("spSubmitPurchase"))$("spSubmitPurchase").textContent="Create Purchase Order";
     renderStockPurchaseItems();
   }
@@ -2898,10 +2991,10 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       const poNo=editingPurchase?.purchaseNo||await reserveDocumentNumber("stockPurchase","PO");
       let supplier,supplierName;if(supplierChoice==="__new__"){supplierName=newSupplierName;const duplicate=state.suppliers.find(x=>normalizeText(x.name||x.supplierName)===normalizeText(supplierName));if(duplicate)throw new Error("Supplier sudah wujud. Sila pilih daripada dropdown.");const ref=doc(collection(db,"suppliers"));await runTransaction(db,async tx=>tx.set(ref,{name:supplierName,active:true,createdAt:serverTimestamp(),createdBy:state.user.uid}));supplier={id:ref.id,name:supplierName}}else{supplier=state.suppliers.find(x=>x.id===supplierChoice);if(!supplier)throw new Error("Supplier tidak ditemui");supplierName=supplier.name||supplier.supplierName||"Unnamed supplier"}
       const prepared=[];for(const i of items){const existing=i.mode!=="new"?state.products.find(p=>p.id===i.productId):null;let productId=existing?.id||"",sku=existing?.sku||"";if(!productId){sku=await reserveSku(i.category);productId=doc(collection(db,"products")).id}prepared.push({...i,productId,sku,isNew:!existing})}
-      const purchaseRef=editingPurchase?doc(db,"stockPurchases",editingPurchase.id):doc(collection(db,"stockPurchases"));const subtotal=prepared.reduce((s,i)=>s+i.qty*i.unitCost,0),shipping=Number($("spShipping").value||0),discount=Number($("spDiscount").value||0),total=Math.max(0,subtotal+shipping-discount),amountPaid=Math.min(total,Number($("spAmountPaid").value||0));
+      const purchaseRef=editingPurchase?doc(db,"stockPurchases",editingPurchase.id):doc(collection(db,"stockPurchases"));const subtotal=prepared.reduce((s,i)=>s+i.qty*i.unitCost,0),shipping=Number($("spShipping").value||0),discount=Number($("spDiscount").value||0),total=Math.max(0,subtotal+shipping-discount),amountPaid=Math.min(total,Number($("spAmountPaid").value||0)),paymentMethod=$("spPaymentMethod")?.value||"Bank Transfer",paymentShift=(!entry.isBackdated&&amountPaid>0&&paymentMethod==="Cash")?currentShift():null;
       await runTransaction(db,async tx=>{
         prepared.filter(i=>i.isNew).forEach(i=>tx.set(doc(db,"products",i.productId),{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType||"New",status:"Awaiting Stock",cost:i.unitCost,price:0,stock:0,lowStock:1,createdFromStockPurchaseId:purchaseRef.id,createdAt:serverTimestamp(),createdBy:state.user.uid}));
-        const payload={purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,itemType:i.itemType||"New",quantityOrdered:i.qty,quantityReceived:0,quantityDamaged:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,purchaseStatus:"ordered",updatedAt:serverTimestamp(),updatedBy:state.user.uid,updatedByName:state.profile.name||state.user.email};
+        const payload={purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,itemType:i.itemType||"New",quantityOrdered:i.qty,quantityReceived:0,quantityDamaged:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,paymentMethod,paymentShiftId:paymentMethod==="Cash"&&amountPaid>0?(editingPurchase?.paymentShiftId||paymentShift?.id||null):null,paymentShiftNo:paymentMethod==="Cash"&&amountPaid>0?(editingPurchase?.paymentShiftNo||paymentShift?.shiftNo||null):null,purchaseStatus:"ordered",updatedAt:serverTimestamp(),updatedBy:state.user.uid,updatedByName:state.profile.name||state.user.email};
         if(editingPurchase){tx.update(purchaseRef,payload)}else{tx.set(purchaseRef,{...payload,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile.name||state.user.email})}
       });
       toast(editingPurchase?`${poNo} updated`:`${poNo} created`);resetStockPurchaseDraft();setStockPurchaseTab("history");
@@ -2937,7 +3030,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     state.editingStockPurchaseId=p.id;
     state.stockPurchaseItems=(p.items||[]).map(i=>({id:crypto.randomUUID(),mode:"existing",productId:i.productId||"",name:i.name||"",category:i.category||"Others",itemType:i.itemType||"New",qty:Number(i.quantityOrdered||1),unitCost:Number(i.unitCost||0),showSuggestions:false}));
     if(!state.stockPurchaseItems.length)state.stockPurchaseItems=[newStockPurchaseItem()];
-    renderSupplierList();$("spSupplier").value=p.supplierId||"";$("spInvoice").value=p.supplierInvoiceNo||"";$("spExpectedDate").value=p.expectedDeliveryDate||"";$("spNotes").value=p.notes||"";$("spShipping").value=Number(p.shippingCost||0);$("spDiscount").value=Number(p.discount||0);$("spAmountPaid").value=Number(p.amountPaid||0);$("spPaymentStatus").value=p.paymentStatus||"unpaid";
+    renderSupplierList();$("spSupplier").value=p.supplierId||"";$("spInvoice").value=p.supplierInvoiceNo||"";$("spExpectedDate").value=p.expectedDeliveryDate||"";$("spNotes").value=p.notes||"";$("spShipping").value=Number(p.shippingCost||0);$("spDiscount").value=Number(p.discount||0);$("spAmountPaid").value=Number(p.amountPaid||0);$("spPaymentStatus").value=p.paymentStatus||"unpaid";if($("spPaymentMethod"))$("spPaymentMethod").value=p.paymentMethod||"Bank Transfer";
     if($("spSubmitPurchase"))$("spSubmitPurchase").textContent=`Save Changes · ${p.purchaseNo||"PO"}`;
     renderStockPurchaseItems();renderStockPurchaseSummary();setStockPurchaseTab("create");window.scrollTo({top:0,behavior:"smooth"});toast(`${p.purchaseNo} loaded for editing`);
   };
