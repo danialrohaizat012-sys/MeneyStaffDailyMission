@@ -63,6 +63,7 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
     <button data-page="pnl">Monthly P&L</button>
     <button data-page="expenses">Expenses</button>
     <button data-page="cash">Cash Movement</button>
+    <button data-page="receipts">Receipt Filing</button>
   </div>
 </aside>
 
@@ -166,6 +167,48 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
       <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th><th>Staff</th><th>Accounting</th><th>Action</th></tr></thead><tbody id="cashBody"></tbody></table></div>
     </div>
   </section>
+
+  <section id="page-receipts" class="page hidden">
+    <div class="content2">
+      <section class="card">
+        <div class="section-head"><h3>Receipt Filing</h3><span>Scan · enhance · compress · archive</span></div>
+        <div class="notice">Ambil gambar resit atau upload gambar sedia ada. V1 akan crop secara manual, enhance seperti document scan dan compress sebelum simpan. OCR auto-fill belum diaktifkan dalam versi ini.</div>
+        <div class="field"><label>Take / Upload Receipt</label><input id="receiptFile" type="file" accept="image/*" capture="environment"></div>
+        <div id="scanEditor" class="hidden" style="margin-top:14px">
+          <div style="background:#111;border-radius:14px;padding:10px;overflow:auto"><canvas id="receiptCanvas" style="display:block;max-width:100%;margin:auto;background:#fff"></canvas></div>
+          <div class="form-grid">
+            <div class="field"><label>Crop Left %</label><input id="cropL" type="range" min="0" max="40" value="0"></div>
+            <div class="field"><label>Crop Right %</label><input id="cropR" type="range" min="0" max="40" value="0"></div>
+            <div class="field"><label>Crop Top %</label><input id="cropT" type="range" min="0" max="40" value="0"></div>
+            <div class="field"><label>Crop Bottom %</label><input id="cropB" type="range" min="0" max="40" value="0"></div>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label>Scan Mode</label><select id="scanMode"><option value="document">Document Enhance</option><option value="gray">Grayscale</option><option value="original">Original</option></select></div>
+            <div class="field"><label>Quality</label><select id="scanQuality"><option value=".72">Balanced</option><option value=".58">Smaller File</option><option value=".84">Higher Quality</option></select></div>
+          </div>
+          <button id="applyScanBtn" class="btn btn-dark" type="button">Apply Scan</button>
+        </div>
+      </section>
+      <aside class="card">
+        <div class="section-head"><h3>Receipt Details</h3><span id="receiptSize">No scan</span></div>
+        <form id="receiptForm">
+          <div class="field"><label>Date</label><input id="receiptDate" type="date" required></div>
+          <div class="field"><label>Merchant / Supplier</label><input id="receiptMerchant" required placeholder="Contoh: TNB / Supplier ABC"></div>
+          <div class="field"><label>Amount (RM)</label><input id="receiptAmount" type="number" min="0" step=".01"></div>
+          <div class="field"><label>Filing Type</label><select id="receiptType"><option value="operating_expense">Operating Expense</option><option value="stock_purchase">Stock Purchase</option><option value="other">Other / Supporting Document</option></select></div>
+          <div class="field"><label>Category</label><select id="receiptCategory"><option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option><option>Marketing</option><option>Transport</option><option>Maintenance</option><option>Office & Supplies</option><option>Professional Fees</option><option>Bank Charges</option><option>Miscellaneous</option><option>Stock Purchase</option></select></div>
+          <div class="field"><label>Reference / Invoice No.</label><input id="receiptReference"></div>
+          <div class="field"><label>Notes</label><textarea id="receiptNotes" rows="3"></textarea></div>
+          <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px"><input id="createExpenseFromReceipt" type="checkbox"> Create linked expense automatically (Operating Expense only)</label>
+          <button class="btn btn-green" style="width:100%;margin-top:14px">Save Receipt</button>
+        </form>
+      </aside>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="section-head"><h3>Monthly Receipt Archive</h3><span id="receiptCount">0 receipts</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Preview</th><th>Merchant</th><th>Type</th><th>Category</th><th>Reference</th><th>Amount</th><th>Linked</th><th>Action</th></tr></thead><tbody id="receiptBody"></tbody></table></div>
+    </div>
+  </section>
 </main>
 </div>
 </section>
@@ -200,7 +243,7 @@ import{getFirestore,doc,getDoc,collection,onSnapshot,query,orderBy,addDoc,update
 
 const firebaseConfig={apiKey:"AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",authDomain:"meney-daily-mission.firebaseapp.com",databaseURL:"https://meney-daily-mission-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"meney-daily-mission",storageBucket:"meney-daily-mission.firebasestorage.app",messagingSenderId:"1035705938755",appId:"1:1035705938755:web:a9ec6c7ea9c9b91f4a35f6"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
-const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],cashMoves:[],expenses:[],outletId:"pasir_tumboh",month:"",unsubs:[]};
+const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],cashMoves:[],expenses:[],accountingReceipts:[],scannedReceipt:null,outletId:"pasir_tumboh",month:"",unsubs:[]};
 const allowedRoles=["owner","partner","manager"];
 const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR",minimumFractionDigits:2}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
@@ -247,7 +290,7 @@ function render(){
   $("categoryBars").innerHTML=cats.length?cats.map(([k,v])=>`<div class="cat-row"><strong>${esc(k)}</strong><div class="bar-track"><div class="bar-fill" style="width:${v/max*100}%"></div></div><strong style="text-align:right">${money(v)}</strong></div>`).join(""):'<div class="empty">Belum ada operating expense untuk bulan ini.</div>';
   $("pRevenue").textContent=money(f.revenue);$("pDirectSales").textContent=money(f.directSales);$("pTradeSales").textContent=money(f.trade.sales);$("pRepairSales").textContent=money(f.repairSales);$("pCogs").textContent=money(f.cogs);$("pGross").textContent=money(f.gross);$("pExpenses").textContent=money(f.opex);$("pNet").textContent=money(f.net);$("pGrossMargin").textContent=gm.toFixed(1)+"%";$("pNetMargin").textContent=nm.toFixed(1)+"%";
   $("pExpenseRows").innerHTML=cats.map(([k,v])=>`<div class="pnl-row indent"><span>${esc(k)}</span><span>${money(v)}</span></div>`).join("");
-  renderExpenses(f.expenses);renderCash();
+  renderExpenses(f.expenses);renderCash();renderReceipts();
 }
 function renderExpenses(expenses){
   $("expenseBody").innerHTML=expenses.length?[...expenses].sort((a,b)=>(toDate(b.expenseDate||b.createdAt)||0)-(toDate(a.expenseDate||a.createdAt)||0)).map(e=>`<tr><td>${localISO(toDate(e.expenseDate||e.createdAt)||new Date())}</td><td><span class="badge blue">${esc(e.category||"-")}</span></td><td><strong>${esc(e.description||"-")}</strong>${e.notes?`<div class="muted" style="font-size:10px">${esc(e.notes)}</div>`:""}</td><td>${esc(e.paymentMethod||"-")}</td><td>${e.cashMoveId?'<span class="badge green">POS Cash</span>':'<span class="badge amber">Manual</span>'}</td><td><strong>${money(e.amount)}</strong></td><td>${esc(e.createdByName||"-")}</td><td><button class="btn btn-light" onclick="editExpense('${e.id}')">Edit</button> <button class="btn btn-red" onclick="deleteExpense('${e.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="8" class="empty">Belum ada expense.</td></tr>'
@@ -270,13 +313,121 @@ async function saveExpense(payload,id=""){if(id)await updateDoc(doc(db,"accounti
 $("quickExpenseForm").onsubmit=async e=>{e.preventDefault();try{await saveExpense({outletId:state.outletId,expenseDate:$("expenseDate").value+"T12:00:00",category:$("expenseCategory").value,description:$("expenseDescription").value.trim(),amount:Number($("expenseAmount").value||0),paymentMethod:$("expensePayment").value,notes:"",cashMoveId:null});e.target.reset();$("expenseDate").value=localISO(new Date());toast("Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
 $("expenseModalForm").onsubmit=async e=>{e.preventDefault();const id=$("modalExpenseId").value;try{await saveExpense({outletId:state.outletId,expenseDate:$("modalDate").value+"T12:00:00",category:$("modalCategory").value,description:$("modalDescription").value.trim(),amount:Number($("modalAmount").value||0),paymentMethod:$("modalPayment").value,notes:$("modalNotes").value.trim(),cashMoveId:$("modalCashMoveId").value||null},id);$("expenseModal").classList.add("hidden");toast(id?"Expense updated":"Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
 $("newExpenseBtn").onclick=()=>openExpense();$("closeExpenseModal").onclick=()=>$("expenseModal").classList.add("hidden");$("expenseModal").onclick=e=>{if(e.target===$("expenseModal"))$("expenseModal").classList.add("hidden")};
-document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+b.dataset.page).classList.remove("hidden");const titles={dashboard:"Accounting Overview",pnl:"Monthly P&L",expenses:"Expense Ledger",cash:"Cash Movement Audit"};$("pageTitle").textContent=titles[b.dataset.page]});
+
+function enhancePixels(ctx,w,h,mode){
+  if(mode==="original")return;
+  const img=ctx.getImageData(0,0,w,h),d=img.data;
+  for(let i=0;i<d.length;i+=4){
+    const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+    let v=mode==="document" ? Math.max(0,Math.min(255,(g-128)*1.45+148)) : g;
+    d[i]=d[i+1]=d[i+2]=v;
+  }
+  ctx.putImageData(img,0,0);
+}
+let receiptSourceImage=null;
+$("receiptFile").onchange=e=>{
+  const f=e.target.files?.[0]; if(!f)return;
+  if(!f.type.startsWith("image/"))return toast("Fail mesti gambar.");
+  const r=new FileReader();
+  r.onload=ev=>{const img=new Image();img.onload=()=>{receiptSourceImage=img;["cropL","cropR","cropT","cropB"].forEach(id=>$(id).value=0);$("scanEditor").classList.remove("hidden");drawReceiptPreview()};img.src=ev.target.result};r.readAsDataURL(f)
+};
+function drawReceiptPreview(){
+  if(!receiptSourceImage)return;
+  const img=receiptSourceImage,L=+$("cropL").value/100,R=+$("cropR").value/100,T=+$("cropT").value/100,B=+$("cropB").value/100;
+  const sx=img.width*L,sy=img.height*T,sw=Math.max(10,img.width*(1-L-R)),sh=Math.max(10,img.height*(1-T-B));
+  const maxW=1100,scale=Math.min(1,maxW/sw),c=$("receiptCanvas");c.width=Math.round(sw*scale);c.height=Math.round(sh*scale);
+  const ctx=c.getContext("2d");ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);enhancePixels(ctx,c.width,c.height,$("scanMode").value)
+}
+["cropL","cropR","cropT","cropB","scanMode"].forEach(id=>$(id).oninput=drawReceiptPreview);
+$("applyScanBtn").onclick=()=>{
+  drawReceiptPreview();const c=$("receiptCanvas"),q=+$("scanQuality").value;
+  let data=c.toDataURL("image/jpeg",q);
+  if(data.length>850000){
+    const scale=Math.sqrt(800000/data.length),tmp=document.createElement("canvas");tmp.width=Math.max(300,Math.round(c.width*scale));tmp.height=Math.max(300,Math.round(c.height*scale));tmp.getContext("2d").drawImage(c,0,0,tmp.width,tmp.height);data=tmp.toDataURL("image/jpeg",.58)
+  }
+  if(data.length>950000)return toast("Receipt masih terlalu besar. Crop lebih ketat atau pilih Smaller File.");
+  state.scannedReceipt=data;$("receiptSize").textContent=`Scanned · ~${Math.round(data.length*0.75/1024)} KB`;toast("Receipt scan ready")
+};
+function renderReceipts(){
+  const rows=state.accountingReceipts.filter(r=>r.outletId===state.outletId&&inMonthExpense({expenseDate:r.receiptDate,createdAt:r.createdAt})).sort((a,b)=>(toDate(b.receiptDate||b.createdAt)||0)-(toDate(a.receiptDate||a.createdAt)||0));
+  $("receiptCount").textContent=`${rows.length} receipts`;
+  $("receiptBody").innerHTML=rows.length?rows.map(r=>`<tr><td>${localISO(toDate(r.receiptDate||r.createdAt)||new Date())}</td><td>${r.imageData?`<img src="${r.imageData}" style="width:42px;height:55px;object-fit:cover;border-radius:6px;border:1px solid #ddd">`:"—"}</td><td><strong>${esc(r.merchant||"-")}</strong></td><td><span class="badge ${r.filingType==="operating_expense"?"green":r.filingType==="stock_purchase"?"blue":"amber"}">${esc((r.filingType||"").replaceAll("_"," "))}</span></td><td>${esc(r.category||"-")}</td><td>${esc(r.referenceNo||"-")}</td><td><strong>${money(r.amount)}</strong></td><td>${r.expenseId?'<span class="badge green">Expense</span>':"—"}</td><td><button class="btn btn-red" onclick="deleteReceipt('${r.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="9" class="empty">Belum ada receipt untuk bulan ini.</td></tr>'
+}
+window.deleteReceipt=async id=>{if(!confirm("Delete receipt ini? Linked expense tidak akan dipadam secara automatik."))return;try{await deleteDoc(doc(db,"accountingReceipts",id));toast("Receipt deleted")}catch(e){toast("Delete gagal: "+e.message)}}
+$("receiptForm").onsubmit=async e=>{
+  e.preventDefault();if(!state.scannedReceipt)return toast("Scan / apply receipt image dahulu.");
+  const filingType=$("receiptType").value,amount=Number($("receiptAmount").value||0);
+  try{
+    const ref=await addDoc(collection(db,"accountingReceipts"),{outletId:state.outletId,receiptDate:$("receiptDate").value+"T12:00:00",merchant:$("receiptMerchant").value.trim(),amount,filingType,category:$("receiptCategory").value,referenceNo:$("receiptReference").value.trim(),notes:$("receiptNotes").value.trim(),imageData:state.scannedReceipt,imageMime:"image/jpeg",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email,expenseId:null});
+    if(filingType==="operating_expense"&&$("createExpenseFromReceipt").checked&&amount>0){
+      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,expenseDate:$("receiptDate").value+"T12:00:00",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
+      await updateDoc(ref,{expenseId:er.id});
+    }
+    state.scannedReceipt=null;receiptSourceImage=null;e.target.reset();$("receiptDate").value=localISO(new Date());$("scanEditor").classList.add("hidden");$("receiptSize").textContent="No scan";$("receiptFile").value="";toast("Receipt filed")
+  }catch(err){toast("Save receipt gagal: "+err.message)}
+};
+
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{
+function enhancePixels(ctx,w,h,mode){
+  if(mode==="original")return;
+  const img=ctx.getImageData(0,0,w,h),d=img.data;
+  for(let i=0;i<d.length;i+=4){
+    const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+    let v=mode==="document" ? Math.max(0,Math.min(255,(g-128)*1.45+148)) : g;
+    d[i]=d[i+1]=d[i+2]=v;
+  }
+  ctx.putImageData(img,0,0);
+}
+let receiptSourceImage=null;
+$("receiptFile").onchange=e=>{
+  const f=e.target.files?.[0]; if(!f)return;
+  if(!f.type.startsWith("image/"))return toast("Fail mesti gambar.");
+  const r=new FileReader();
+  r.onload=ev=>{const img=new Image();img.onload=()=>{receiptSourceImage=img;["cropL","cropR","cropT","cropB"].forEach(id=>$(id).value=0);$("scanEditor").classList.remove("hidden");drawReceiptPreview()};img.src=ev.target.result};r.readAsDataURL(f)
+};
+function drawReceiptPreview(){
+  if(!receiptSourceImage)return;
+  const img=receiptSourceImage,L=+$("cropL").value/100,R=+$("cropR").value/100,T=+$("cropT").value/100,B=+$("cropB").value/100;
+  const sx=img.width*L,sy=img.height*T,sw=Math.max(10,img.width*(1-L-R)),sh=Math.max(10,img.height*(1-T-B));
+  const maxW=1100,scale=Math.min(1,maxW/sw),c=$("receiptCanvas");c.width=Math.round(sw*scale);c.height=Math.round(sh*scale);
+  const ctx=c.getContext("2d");ctx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);enhancePixels(ctx,c.width,c.height,$("scanMode").value)
+}
+["cropL","cropR","cropT","cropB","scanMode"].forEach(id=>$(id).oninput=drawReceiptPreview);
+$("applyScanBtn").onclick=()=>{
+  drawReceiptPreview();const c=$("receiptCanvas"),q=+$("scanQuality").value;
+  let data=c.toDataURL("image/jpeg",q);
+  if(data.length>850000){
+    const scale=Math.sqrt(800000/data.length),tmp=document.createElement("canvas");tmp.width=Math.max(300,Math.round(c.width*scale));tmp.height=Math.max(300,Math.round(c.height*scale));tmp.getContext("2d").drawImage(c,0,0,tmp.width,tmp.height);data=tmp.toDataURL("image/jpeg",.58)
+  }
+  if(data.length>950000)return toast("Receipt masih terlalu besar. Crop lebih ketat atau pilih Smaller File.");
+  state.scannedReceipt=data;$("receiptSize").textContent=`Scanned · ~${Math.round(data.length*0.75/1024)} KB`;toast("Receipt scan ready")
+};
+function renderReceipts(){
+  const rows=state.accountingReceipts.filter(r=>r.outletId===state.outletId&&inMonthExpense({expenseDate:r.receiptDate,createdAt:r.createdAt})).sort((a,b)=>(toDate(b.receiptDate||b.createdAt)||0)-(toDate(a.receiptDate||a.createdAt)||0));
+  $("receiptCount").textContent=`${rows.length} receipts`;
+  $("receiptBody").innerHTML=rows.length?rows.map(r=>`<tr><td>${localISO(toDate(r.receiptDate||r.createdAt)||new Date())}</td><td>${r.imageData?`<img src="${r.imageData}" style="width:42px;height:55px;object-fit:cover;border-radius:6px;border:1px solid #ddd">`:"—"}</td><td><strong>${esc(r.merchant||"-")}</strong></td><td><span class="badge ${r.filingType==="operating_expense"?"green":r.filingType==="stock_purchase"?"blue":"amber"}">${esc((r.filingType||"").replaceAll("_"," "))}</span></td><td>${esc(r.category||"-")}</td><td>${esc(r.referenceNo||"-")}</td><td><strong>${money(r.amount)}</strong></td><td>${r.expenseId?'<span class="badge green">Expense</span>':"—"}</td><td><button class="btn btn-red" onclick="deleteReceipt('${r.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="9" class="empty">Belum ada receipt untuk bulan ini.</td></tr>'
+}
+window.deleteReceipt=async id=>{if(!confirm("Delete receipt ini? Linked expense tidak akan dipadam secara automatik."))return;try{await deleteDoc(doc(db,"accountingReceipts",id));toast("Receipt deleted")}catch(e){toast("Delete gagal: "+e.message)}}
+$("receiptForm").onsubmit=async e=>{
+  e.preventDefault();if(!state.scannedReceipt)return toast("Scan / apply receipt image dahulu.");
+  const filingType=$("receiptType").value,amount=Number($("receiptAmount").value||0);
+  try{
+    const ref=await addDoc(collection(db,"accountingReceipts"),{outletId:state.outletId,receiptDate:$("receiptDate").value+"T12:00:00",merchant:$("receiptMerchant").value.trim(),amount,filingType,category:$("receiptCategory").value,referenceNo:$("receiptReference").value.trim(),notes:$("receiptNotes").value.trim(),imageData:state.scannedReceipt,imageMime:"image/jpeg",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email,expenseId:null});
+    if(filingType==="operating_expense"&&$("createExpenseFromReceipt").checked&&amount>0){
+      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,expenseDate:$("receiptDate").value+"T12:00:00",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
+      await updateDoc(ref,{expenseId:er.id});
+    }
+    state.scannedReceipt=null;receiptSourceImage=null;e.target.reset();$("receiptDate").value=localISO(new Date());$("scanEditor").classList.add("hidden");$("receiptSize").textContent="No scan";$("receiptFile").value="";toast("Receipt filed")
+  }catch(err){toast("Save receipt gagal: "+err.message)}
+};
+
+document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+b.dataset.page).classList.remove("hidden");const titles={dashboard:"Accounting Overview",pnl:"Monthly P&L",expenses:"Expense Ledger",cash:"Cash Movement Audit",receipts:"Receipt Filing"};$("pageTitle").textContent=titles[b.dataset.page]});
 $("monthPicker").onchange=e=>{state.month=e.target.value;render()};$("outletSelect").onchange=e=>{state.outletId=e.target.value;render()};$("logoutBtn").onclick=()=>signOut(auth);
 $("loginForm").onsubmit=async e=>{e.preventDefault();$("loginError").classList.add("hidden");try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(err){$("loginError").textContent="Login gagal: "+(err.code?.includes("invalid-credential")?"Email atau password salah.":err.message);$("loginError").classList.remove("hidden")}}
 function sub(name,sort="createdAt"){const u=onSnapshot(query(collection(db,name),orderBy(sort,"desc")),s=>{state[name]=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.warn(name,e));state.unsubs.push(u)}
-function subscribeAll(){state.unsubs.forEach(u=>u());state.unsubs=[];state.unsubs.push(onSnapshot(collection(db,"products"),s=>{state.products=s.docs.map(d=>({id:d.id,...d.data()}));render()}));["sales","buys","trades","repairs","cashMoves","accountingExpenses"].forEach(n=>sub(n))}
+function subscribeAll(){state.unsubs.forEach(u=>u());state.unsubs=[];state.unsubs.push(onSnapshot(collection(db,"products"),s=>{state.products=s.docs.map(d=>({id:d.id,...d.data()}));render()}));["sales","buys","trades","repairs","cashMoves","accountingExpenses","accountingReceipts"].forEach(n=>sub(n))}
 onAuthStateChanged(auth,async user=>{state.unsubs.forEach(u=>u());state.unsubs=[];if(!user){state.user=null;$("loginPage").classList.remove("hidden");$("appShell").classList.add("hidden");return}state.user=user;const s=await getDoc(doc(db,"users",user.uid));state.profile=s.exists()?s.data():{};const role=String(state.profile.role||"").toLowerCase();if(!allowedRoles.includes(role)||state.profile.active===false){await signOut(auth);$("loginError").textContent="Akses ditolak. Meney Accounting hanya untuk Owner, Partner atau Manager aktif.";$("loginError").classList.remove("hidden");return}$("userText").textContent=state.profile.name||user.email;$("loginPage").classList.add("hidden");$("appShell").classList.remove("hidden");subscribeAll();render()});
-const now=new Date();state.month=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;$("monthPicker").value=state.month;$("expenseDate").value=localISO(now);
+const now=new Date();state.month=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;$("monthPicker").value=state.month;$("expenseDate").value=localISO(now);$("receiptDate").value=localISO(now);
 </script>
 </body>
 </html>
