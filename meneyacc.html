@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07110c">
+<title>Meney Accounting</title>
+<style>
+:root{
+  --bg:#f4f7f5;--panel:#fff;--ink:#0f1712;--muted:#718078;--line:#dfe7e2;
+  --green:#16a34a;--green2:#0c6d32;--soft:#eaf7ef;--dark:#07110c;
+  --amber:#f59e0b;--red:#dc2626;--blue:#2563eb;--purple:#7c3aed;
+  --shadow:0 18px 55px rgba(10,35,21,.09)
+}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit}.hidden{display:none!important}.muted{color:var(--muted)}
+button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:850}.btn-dark{background:var(--dark);color:#fff}.btn-green{background:var(--green);color:#fff}.btn-light{background:#fff;border:1px solid var(--line);color:var(--ink)}.btn-red{background:#fee2e2;color:#991b1b}
+.login{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top right,#184e31 0,#07110c 48%,#030705 100%)}
+.login-card{width:min(440px,100%);background:#fff;border-radius:28px;padding:32px;box-shadow:0 30px 100px rgba(0,0,0,.35)}
+.brand{display:flex;align-items:center;gap:12px}.mark{width:48px;height:48px;border-radius:15px;background:linear-gradient(145deg,#22c55e,#0b6b31);display:grid;place-items:center;color:#fff;font-size:24px;font-weight:1000}
+.login h1{font-size:30px;margin:24px 0 8px}.field{margin-top:14px}.field label{display:block;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:#55625b;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 12px;outline:none;background:#fff}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(22,163,74,.09)}
+.error{margin-top:12px;background:#fff1f2;color:#be123c;padding:10px;border-radius:10px;font-size:12px}
+.shell{min-height:100vh}.topbar{height:72px;position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px}.top-left{display:flex;align-items:center;gap:12px}.top-actions{display:flex;gap:9px;align-items:center}.live{font-size:11px;font-weight:900;color:var(--green2);background:var(--soft);padding:8px 10px;border-radius:999px}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1500px;margin:auto}.sidebar{padding:22px 14px;border-right:1px solid var(--line);min-height:calc(100vh - 72px);background:#fff}.nav-label{font-size:10px;font-weight:900;color:#98a2b3;text-transform:uppercase;letter-spacing:.07em;padding:6px 10px}.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:11px;font-weight:800;color:#536158}.nav button.active{background:var(--dark);color:#fff}.main{padding:24px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px}.hero h1{margin:0 0 5px;font-size:32px;letter-spacing:-.04em}.filters{display:flex;gap:8px;align-items:end;flex-wrap:wrap}.filters .field{margin:0;min-width:150px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 25px rgba(15,35,23,.04)}.metric .label{font-size:11px;color:var(--muted);font-weight:900;text-transform:uppercase;letter-spacing:.05em}.metric .value{font-size:28px;font-weight:950;margin-top:9px;letter-spacing:-.04em}.metric .sub{font-size:11px;color:var(--muted);margin-top:5px}
+.content2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:16px;margin-top:16px}.stack{display:grid;gap:16px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.section-head h3{margin:0;font-size:17px}.section-head span{font-size:11px;color:var(--muted)}
+.pnl{display:grid;gap:0}.pnl-row{display:flex;justify-content:space-between;gap:20px;padding:11px 0;border-bottom:1px solid #edf1ee;font-size:13px}.pnl-row.indent{padding-left:18px;color:#526158}.pnl-row.total{font-weight:950;font-size:15px;border-top:2px solid var(--dark);border-bottom:0;margin-top:4px}.pnl-row.net{background:var(--dark);color:#fff;border-radius:12px;padding:14px;margin-top:12px;border:0;font-size:17px}
+.breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{border:1px solid var(--line);border-radius:13px;padding:13px}.mini span{display:block;color:var(--muted);font-size:10px}.mini strong{display:block;font-size:17px;margin-top:6px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:11px 9px;border-bottom:1px solid #edf1ee;text-align:left;font-size:12px}th{font-size:10px;text-transform:uppercase;color:#8b9891;background:#f8faf9}.badge{display:inline-flex;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900}.green{background:#eaf7ef;color:#0b6b31}.red{background:#fff1f2;color:#be123c}.amber{background:#fff7e6;color:#a16207}.blue{background:#eff6ff;color:#1d4ed8}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.expense-total{font-size:28px;font-weight:950}.category-bars{display:grid;gap:10px}.cat-row{display:grid;grid-template-columns:130px 1fr 95px;gap:10px;align-items:center;font-size:11px}.bar-track{height:8px;background:#edf1ee;border-radius:99px;overflow:hidden}.bar-fill{height:100%;background:linear-gradient(90deg,#16a34a,#6ed491);border-radius:99px}.empty{text-align:center;padding:28px;color:var(--muted);font-size:12px}
+.notice{padding:12px 13px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:11px;line-height:1.55}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tabs button.active{background:var(--dark);color:#fff}
+.modal-bg{position:fixed;inset:0;background:rgba(7,17,12,.6);backdrop-filter:blur(5px);display:grid;place-items:center;padding:16px;z-index:50}.modal{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:20px;box-shadow:0 30px 100px rgba(0,0,0,.3)}
+.toast{position:fixed;right:18px;bottom:18px;background:#07110c;color:#fff;padding:12px 14px;border-radius:12px;font-size:12px;font-weight:800;z-index:80;box-shadow:0 18px 55px rgba(0,0,0,.25)}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}.sidebar{min-height:auto;border-right:0;border-bottom:1px solid var(--line);padding:10px 14px}.nav{display:flex;overflow:auto}.nav-label{display:none}.nav button{white-space:nowrap}.grid4{grid-template-columns:repeat(2,1fr)}.content2{grid-template-columns:1fr}}
+@media(max-width:650px){.topbar{padding:0 14px}.top-left .brand-text{display:none}.main{padding:16px 13px 50px}.hero{align-items:flex-start;flex-direction:column}.hero h1{font-size:27px}.filters{width:100%}.filters .field{flex:1;min-width:125px}.grid4{grid-template-columns:1fr 1fr;gap:10px}.card{padding:15px}.metric .value{font-size:22px}.breakdown{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.cat-row{grid-template-columns:95px 1fr 75px}}
+</style>
+</head>
+<body>
+<section id="loginPage" class="login">
+  <form id="loginForm" class="login-card">
+    <div class="brand"><div class="mark">M</div><div><strong>Meney Accounting</strong><div class="muted" style="font-size:12px">Finance · P&L · Expenses</div></div></div>
+    <h1>Financial control.</h1><p class="muted">Data revenue dan gross profit diselaraskan terus daripada Meney POS.</p>
+    <div class="field"><label>Email</label><input id="email" type="email" required></div>
+    <div class="field"><label>Password</label><input id="password" type="password" required></div>
+    <button class="btn btn-dark" style="width:100%;margin-top:18px">Log Masuk</button>
+    <div id="loginError" class="error hidden"></div>
+  </form>
+</section>
+
+<section id="appShell" class="shell hidden">
+<header class="topbar">
+  <div class="top-left"><div class="mark" style="width:40px;height:40px;border-radius:12px">M</div><div class="brand-text"><strong>Meney Accounting</strong><div class="muted" style="font-size:11px">Finance Control</div></div></div>
+  <div class="top-actions"><div class="live">● FIRESTORE LIVE</div><div id="userText" style="font-size:12px;font-weight:850"></div><button id="logoutBtn" class="btn btn-light">Keluar</button></div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="nav-label">Accounting</div>
+  <div class="nav">
+    <button class="active" data-page="dashboard">Overview</button>
+    <button data-page="pnl">Monthly P&L</button>
+    <button data-page="expenses">Expenses</button>
+    <button data-page="cash">Cash Movement</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="hero">
+    <div><h1 id="pageTitle">Accounting Overview</h1><div class="muted" id="periodText"></div></div>
+    <div class="filters">
+      <div class="field"><label>Outlet</label><select id="outletSelect"><option value="pasir_tumboh">Meney Pasir Tumboh</option></select></div>
+      <div class="field"><label>Month</label><input id="monthPicker" type="month"></div>
+    </div>
+  </div>
+
+  <section id="page-dashboard" class="page">
+    <div class="grid4">
+      <div class="card metric"><div class="label">Revenue</div><div id="mRevenue" class="value">RM0</div><div class="sub">POS synced</div></div>
+      <div class="card metric"><div class="label">Gross Profit</div><div id="mGross" class="value">RM0</div><div id="mMargin" class="sub">Margin 0%</div></div>
+      <div class="card metric"><div class="label">Operating Expenses</div><div id="mExpenses" class="value">RM0</div><div class="sub">Manual + linked cash expenses</div></div>
+      <div class="card metric"><div class="label">Net Profit</div><div id="mNet" class="value">RM0</div><div id="mNetMargin" class="sub">Net margin 0%</div></div>
+    </div>
+
+    <div class="content2">
+      <div class="stack">
+        <section class="card">
+          <div class="section-head"><h3>Revenue & Gross Profit Breakdown</h3><span>Same logic as Meney POS</span></div>
+          <div class="breakdown">
+            <div class="mini"><span>Direct Product Sales</span><strong id="bDirectSales">RM0</strong></div>
+            <div class="mini"><span>Direct Product Profit</span><strong id="bDirectProfit">RM0</strong></div>
+            <div class="mini"><span>Trade-In Sales</span><strong id="bTradeSales">RM0</strong></div>
+            <div class="mini"><span>Trade-In Profit</span><strong id="bTradeProfit">RM0</strong></div>
+            <div class="mini"><span>Repair Sales</span><strong id="bRepairSales">RM0</strong></div>
+            <div class="mini"><span>Repair Profit</span><strong id="bRepairProfit">RM0</strong></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-head"><h3>Expense Categories</h3><span id="expenseCount">0 records</span></div>
+          <div id="categoryBars" class="category-bars"></div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card">
+          <div class="section-head"><h3>Quick Expense</h3><span>Owner / Partner / Manager</span></div>
+          <form id="quickExpenseForm">
+            <div class="field"><label>Date</label><input id="expenseDate" type="date" required></div>
+            <div class="field"><label>Category</label><select id="expenseCategory" required>
+              <option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option>
+              <option>Marketing</option><option>Transport</option><option>Maintenance</option><option>Office & Supplies</option>
+              <option>Professional Fees</option><option>Bank Charges</option><option>Miscellaneous</option>
+            </select></div>
+            <div class="field"><label>Description</label><input id="expenseDescription" required placeholder="Contoh: Bil elektrik Ogos"></div>
+            <div class="field"><label>Amount (RM)</label><input id="expenseAmount" type="number" min="0.01" step=".01" required></div>
+            <div class="field"><label>Payment Method</label><select id="expensePayment"><option>Cash</option><option>Bank Transfer</option><option>QR / DuitNow</option><option>Card</option><option>Other</option></select></div>
+            <button class="btn btn-green" style="width:100%;margin-top:12px">Save Expense</button>
+          </form>
+        </section>
+        <section class="card">
+          <div class="section-head"><h3>Accounting Rule</h3></div>
+          <div class="notice"><strong>Stock purchase / Buy From Customer bukan operating expense.</strong><br><br>Ia masuk inventory/COGS. P&L ini menolak kos produk melalui gross profit POS dahulu, kemudian hanya menolak overhead dan operating expenses di Accounting.</div>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <section id="page-pnl" class="page hidden">
+    <div class="content2">
+      <section class="card">
+        <div class="section-head"><h3>Profit & Loss Statement</h3><span id="pnlPeriod"></span></div>
+        <div class="pnl">
+          <div class="pnl-row"><strong>REVENUE</strong><strong id="pRevenue">RM0</strong></div>
+          <div class="pnl-row indent"><span>Direct Product Sales</span><span id="pDirectSales">RM0</span></div>
+          <div class="pnl-row indent"><span>Trade-In Sales</span><span id="pTradeSales">RM0</span></div>
+          <div class="pnl-row indent"><span>Repair Sales</span><span id="pRepairSales">RM0</span></div>
+          <div class="pnl-row"><strong>COST OF SALES</strong><strong id="pCogs">RM0</strong></div>
+          <div class="pnl-row total"><span>GROSS PROFIT</span><span id="pGross">RM0</span></div>
+          <div id="pExpenseRows"></div>
+          <div class="pnl-row"><strong>TOTAL OPERATING EXPENSES</strong><strong id="pExpenses">RM0</strong></div>
+          <div class="pnl-row net"><strong>NET PROFIT</strong><strong id="pNet">RM0</strong></div>
+        </div>
+      </section>
+      <aside class="stack">
+        <section class="card"><div class="section-head"><h3>Margins</h3></div><div class="mini"><span>Gross Margin</span><strong id="pGrossMargin">0%</strong></div><div class="mini" style="margin-top:9px"><span>Net Margin</span><strong id="pNetMargin">0%</strong></div></section>
+        <section class="card"><div class="section-head"><h3>Outlet</h3></div><div class="mini"><span>Current Outlet</span><strong>Meney Pasir Tumboh</strong></div><div class="muted" style="font-size:11px;margin-top:10px">Architecture sudah sedia untuk outletId walaupun sekarang hanya satu outlet.</div></section>
+      </aside>
+    </div>
+  </section>
+
+  <section id="page-expenses" class="page hidden">
+    <div class="card">
+      <div class="section-head"><h3>Expense Ledger</h3><button id="newExpenseBtn" class="btn btn-green">＋ Add Expense</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Payment</th><th>Source</th><th>Amount</th><th>By</th><th>Action</th></tr></thead><tbody id="expenseBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="page-cash" class="page hidden">
+    <div class="card" style="margin-bottom:16px">
+      <div class="section-head"><h3>Cash Movement Audit</h3><span>Live from POS cashMoves</span></div>
+      <div class="notice">Cash Out tidak semestinya expense. Contoh cash drop ke bank/safe atau owner withdrawal hanya pergerakan tunai. Tekan <strong>Convert to Expense</strong> hanya bila movement itu benar-benar operating expense.</div>
+    </div>
+    <div class="card">
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th><th>Staff</th><th>Accounting</th><th>Action</th></tr></thead><tbody id="cashBody"></tbody></table></div>
+    </div>
+  </section>
+</main>
+</div>
+</section>
+
+<div id="expenseModal" class="modal-bg hidden"><div class="modal">
+  <div class="section-head"><h3 id="expenseModalTitle">Add Expense</h3><button id="closeExpenseModal" class="btn btn-light">✕</button></div>
+  <form id="expenseModalForm">
+    <input id="modalExpenseId" type="hidden"><input id="modalCashMoveId" type="hidden">
+    <div class="form-grid">
+      <div class="field"><label>Date</label><input id="modalDate" type="date" required></div>
+      <div class="field"><label>Category</label><select id="modalCategory" required>
+        <option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option>
+        <option>Marketing</option><option>Transport</option><option>Maintenance</option><option>Office & Supplies</option>
+        <option>Professional Fees</option><option>Bank Charges</option><option>Miscellaneous</option>
+      </select></div>
+    </div>
+    <div class="field"><label>Description</label><input id="modalDescription" required></div>
+    <div class="form-grid">
+      <div class="field"><label>Amount (RM)</label><input id="modalAmount" type="number" min="0.01" step=".01" required></div>
+      <div class="field"><label>Payment</label><select id="modalPayment"><option>Cash</option><option>Bank Transfer</option><option>QR / DuitNow</option><option>Card</option><option>Other</option></select></div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="modalNotes" rows="3"></textarea></div>
+    <button class="btn btn-green" style="width:100%;margin-top:12px">Save Expense</button>
+  </form>
+</div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+import{getFirestore,doc,getDoc,collection,onSnapshot,query,orderBy,addDoc,updateDoc,deleteDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+const firebaseConfig={apiKey:"AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",authDomain:"meney-daily-mission.firebaseapp.com",databaseURL:"https://meney-daily-mission-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"meney-daily-mission",storageBucket:"meney-daily-mission.firebasestorage.app",messagingSenderId:"1035705938755",appId:"1:1035705938755:web:a9ec6c7ea9c9b91f4a35f6"};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
+const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],cashMoves:[],expenses:[],outletId:"pasir_tumboh",month:"",unsubs:[]};
+const allowedRoles=["owner","partner","manager"];
+const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR",minimumFractionDigits:2}).format(Number(n||0));
+const esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+const toDate=v=>v?.toDate?v.toDate():v?.seconds?new Date(v.seconds*1000):v?new Date(v):null;
+const localISO=d=>{const x=new Date(d);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,10)};
+const effectiveDate=r=>toDate(r?.transactionDate||r?.saleDate||r?.completedTransactionDate||r?.completedAt||r?.createdAt);
+const isActive=r=>r?.status!=="cancelled"&&r?.transactionStatus!=="cancelled";
+function toast(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2400)}
+function monthBounds(){const [y,m]=state.month.split("-").map(Number);const start=new Date(y,m-1,1),end=new Date(y,m,1);return{start,end}}
+function inMonthRecord(r){const d=effectiveDate(r);if(!d)return false;const{start,end}=monthBounds();return d>=start&&d<end}
+function inMonthExpense(e){const d=toDate(e.expenseDate||e.createdAt);if(!d)return false;const{start,end}=monthBounds();return d>=start&&d<end}
+function inMonthCash(c){const d=toDate(c.transactionDate||c.createdAt);if(!d)return false;const{start,end}=monthBounds();return d>=start&&d<end}
+function tradeOutUnitCost(item){if(Number.isFinite(Number(item.cost)))return Number(item.cost||0);const p=state.products.find(x=>x.id===item.productId);return Number(p?.cost||0)}
+function tradeAccounting(t){const outs=t.stockOutItems||[],ins=t.stockInItems||[];const salesValue=Number(t.totalStockOut??outs.reduce((s,i)=>s+Number(i.price||0)*Number(i.qty||1),0));const cogs=outs.reduce((s,i)=>s+tradeOutUnitCost(i)*Number(i.qty||1),0);const buy=Number(t.totalTradeValue??ins.reduce((s,i)=>s+Number(i.tradeValue||0),0));return{salesValue,cogs,profit:salesValue-cogs,buy}}
+function financials(){
+  const sales=state.sales.filter(x=>isActive(x)&&inMonthRecord(x));
+  const trades=state.trades.filter(x=>isActive(x)&&inMonthRecord(x));
+  const repairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inMonthRecord(x));
+  const directSales=sales.reduce((s,x)=>s+Number(x.total||0),0);
+  const directCogs=sales.reduce((s,x)=>s+(x.items||[]).reduce((a,i)=>a+Number(i.ownershipType==="consignment"?(i.supplierUnitCost??i.cost??0):(i.cost||0))*Number(i.qty||1),0),0);
+  const directProfit=directSales-directCogs;
+  const trade=trades.reduce((a,t)=>{const z=tradeAccounting(t);a.sales+=z.salesValue;a.cogs+=z.cogs;a.profit+=z.profit;return a},{sales:0,cogs:0,profit:0});
+  const repairSales=repairs.reduce((s,x)=>s+Number(x.finalPrice||x.estimate||0),0);
+  const repairProfit=repairs.reduce((s,x)=>s+Number(x.netProfit??(Number(x.finalPrice||x.estimate||0)-Number(x.totalCost||0))),0);
+  const repairCogs=repairSales-repairProfit;
+  const revenue=directSales+trade.sales+repairSales;
+  const cogs=directCogs+trade.cogs+repairCogs;
+  const gross=directProfit+trade.profit+repairProfit;
+  const expenses=state.expenses.filter(x=>x.status!=="void"&&x.outletId===state.outletId&&inMonthExpense(x));
+  const opex=expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+  return{sales,trades,repairs,directSales,directCogs,directProfit,trade,repairSales,repairProfit,repairCogs,revenue,cogs,gross,expenses,opex,net:gross-opex};
+}
+function categorySummary(expenses){const m={};expenses.forEach(e=>m[e.category||"Miscellaneous"]=(m[e.category||"Miscellaneous"]||0)+Number(e.amount||0));return Object.entries(m).sort((a,b)=>b[1]-a[1])}
+function render(){
+  if(!state.user||!state.month)return;
+  const f=financials(),gm=f.revenue?f.gross/f.revenue*100:0,nm=f.revenue?f.net/f.revenue*100:0;
+  $("periodText").textContent=new Intl.DateTimeFormat("ms-MY",{month:"long",year:"numeric"}).format(monthBounds().start)+" · Meney Pasir Tumboh";
+  $("pnlPeriod").textContent=$("periodText").textContent;
+  $("mRevenue").textContent=money(f.revenue);$("mGross").textContent=money(f.gross);$("mExpenses").textContent=money(f.opex);$("mNet").textContent=money(f.net);
+  $("mMargin").textContent=`Margin ${gm.toFixed(1)}%`;$("mNetMargin").textContent=`Net margin ${nm.toFixed(1)}%`;
+  $("bDirectSales").textContent=money(f.directSales);$("bDirectProfit").textContent=money(f.directProfit);$("bTradeSales").textContent=money(f.trade.sales);$("bTradeProfit").textContent=money(f.trade.profit);$("bRepairSales").textContent=money(f.repairSales);$("bRepairProfit").textContent=money(f.repairProfit);
+  $("expenseCount").textContent=`${f.expenses.length} records`;
+  const cats=categorySummary(f.expenses),max=Math.max(1,...cats.map(x=>x[1]));
+  $("categoryBars").innerHTML=cats.length?cats.map(([k,v])=>`<div class="cat-row"><strong>${esc(k)}</strong><div class="bar-track"><div class="bar-fill" style="width:${v/max*100}%"></div></div><strong style="text-align:right">${money(v)}</strong></div>`).join(""):'<div class="empty">Belum ada operating expense untuk bulan ini.</div>';
+  $("pRevenue").textContent=money(f.revenue);$("pDirectSales").textContent=money(f.directSales);$("pTradeSales").textContent=money(f.trade.sales);$("pRepairSales").textContent=money(f.repairSales);$("pCogs").textContent=money(f.cogs);$("pGross").textContent=money(f.gross);$("pExpenses").textContent=money(f.opex);$("pNet").textContent=money(f.net);$("pGrossMargin").textContent=gm.toFixed(1)+"%";$("pNetMargin").textContent=nm.toFixed(1)+"%";
+  $("pExpenseRows").innerHTML=cats.map(([k,v])=>`<div class="pnl-row indent"><span>${esc(k)}</span><span>${money(v)}</span></div>`).join("");
+  renderExpenses(f.expenses);renderCash();
+}
+function renderExpenses(expenses){
+  $("expenseBody").innerHTML=expenses.length?[...expenses].sort((a,b)=>(toDate(b.expenseDate||b.createdAt)||0)-(toDate(a.expenseDate||a.createdAt)||0)).map(e=>`<tr><td>${localISO(toDate(e.expenseDate||e.createdAt)||new Date())}</td><td><span class="badge blue">${esc(e.category||"-")}</span></td><td><strong>${esc(e.description||"-")}</strong>${e.notes?`<div class="muted" style="font-size:10px">${esc(e.notes)}</div>`:""}</td><td>${esc(e.paymentMethod||"-")}</td><td>${e.cashMoveId?'<span class="badge green">POS Cash</span>':'<span class="badge amber">Manual</span>'}</td><td><strong>${money(e.amount)}</strong></td><td>${esc(e.createdByName||"-")}</td><td><button class="btn btn-light" onclick="editExpense('${e.id}')">Edit</button> <button class="btn btn-red" onclick="deleteExpense('${e.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="8" class="empty">Belum ada expense.</td></tr>'
+}
+function renderCash(){
+  const rows=state.cashMoves.filter(inMonthCash).sort((a,b)=>(toDate(b.transactionDate||b.createdAt)||0)-(toDate(a.transactionDate||a.createdAt)||0));
+  $("cashBody").innerHTML=rows.length?rows.map(c=>{const linked=state.expenses.find(e=>e.cashMoveId===c.id&&e.status!=="void");const isOut=String(c.type||"").toLowerCase()==="out";return `<tr><td>${localISO(toDate(c.transactionDate||c.createdAt)||new Date())}</td><td><span class="badge ${isOut?"red":"green"}">${isOut?"CASH OUT":"CASH IN"}</span></td><td><strong>${isOut?"−":"+"}${money(c.amount)}</strong></td><td>${esc(c.note||c.reason||"-")}</td><td>${esc(c.staffName||c.createdByName||"-")}</td><td>${linked?`<span class="badge green">Expense: ${esc(linked.category)}</span>`:'<span class="badge amber">Unclassified</span>'}</td><td>${isOut&&!linked?`<button class="btn btn-light" onclick="convertCash('${c.id}')">Convert to Expense</button>`:"—"}</td></tr>`}).join(""):'<tr><td colspan="7" class="empty">Tiada manual cash movement untuk bulan ini.</td></tr>'
+}
+function openExpense(data={}){
+  $("expenseModalTitle").textContent=data.id?"Edit Expense":data.cashMoveId?"Convert Cash Out to Expense":"Add Expense";
+  $("modalExpenseId").value=data.id||"";$("modalCashMoveId").value=data.cashMoveId||"";
+  $("modalDate").value=data.expenseDate?localISO(toDate(data.expenseDate)||new Date()):localISO(new Date());
+  $("modalCategory").value=data.category||"Miscellaneous";$("modalDescription").value=data.description||"";$("modalAmount").value=Number(data.amount||0)||"";$("modalPayment").value=data.paymentMethod||"Cash";$("modalNotes").value=data.notes||"";
+  $("expenseModal").classList.remove("hidden")
+}
+window.editExpense=id=>{const e=state.expenses.find(x=>x.id===id);if(e)openExpense(e)}
+window.deleteExpense=async id=>{if(!confirm("Delete expense ini?"))return;try{await deleteDoc(doc(db,"accountingExpenses",id));toast("Expense deleted")}catch(e){toast("Delete gagal: "+e.message)}}
+window.convertCash=id=>{const c=state.cashMoves.find(x=>x.id===id);if(!c)return;openExpense({cashMoveId:id,expenseDate:c.transactionDate||c.createdAt,description:c.note||c.reason||"Cash Out",amount:Number(c.amount||0),paymentMethod:"Cash",notes:"Converted from POS Cash Movement"})}
+async function saveExpense(payload,id=""){if(id)await updateDoc(doc(db,"accountingExpenses",id),{...payload,updatedAt:serverTimestamp(),updatedBy:state.user.uid});else await addDoc(collection(db,"accountingExpenses"),{...payload,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email})}
+$("quickExpenseForm").onsubmit=async e=>{e.preventDefault();try{await saveExpense({outletId:state.outletId,expenseDate:$("expenseDate").value+"T12:00:00",category:$("expenseCategory").value,description:$("expenseDescription").value.trim(),amount:Number($("expenseAmount").value||0),paymentMethod:$("expensePayment").value,notes:"",cashMoveId:null});e.target.reset();$("expenseDate").value=localISO(new Date());toast("Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
+$("expenseModalForm").onsubmit=async e=>{e.preventDefault();const id=$("modalExpenseId").value;try{await saveExpense({outletId:state.outletId,expenseDate:$("modalDate").value+"T12:00:00",category:$("modalCategory").value,description:$("modalDescription").value.trim(),amount:Number($("modalAmount").value||0),paymentMethod:$("modalPayment").value,notes:$("modalNotes").value.trim(),cashMoveId:$("modalCashMoveId").value||null},id);$("expenseModal").classList.add("hidden");toast(id?"Expense updated":"Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
+$("newExpenseBtn").onclick=()=>openExpense();$("closeExpenseModal").onclick=()=>$("expenseModal").classList.add("hidden");$("expenseModal").onclick=e=>{if(e.target===$("expenseModal"))$("expenseModal").classList.add("hidden")};
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+b.dataset.page).classList.remove("hidden");const titles={dashboard:"Accounting Overview",pnl:"Monthly P&L",expenses:"Expense Ledger",cash:"Cash Movement Audit"};$("pageTitle").textContent=titles[b.dataset.page]});
+$("monthPicker").onchange=e=>{state.month=e.target.value;render()};$("outletSelect").onchange=e=>{state.outletId=e.target.value;render()};$("logoutBtn").onclick=()=>signOut(auth);
+$("loginForm").onsubmit=async e=>{e.preventDefault();$("loginError").classList.add("hidden");try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(err){$("loginError").textContent="Login gagal: "+(err.code?.includes("invalid-credential")?"Email atau password salah.":err.message);$("loginError").classList.remove("hidden")}}
+function sub(name,sort="createdAt"){const u=onSnapshot(query(collection(db,name),orderBy(sort,"desc")),s=>{state[name]=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.warn(name,e));state.unsubs.push(u)}
+function subscribeAll(){state.unsubs.forEach(u=>u());state.unsubs=[];state.unsubs.push(onSnapshot(collection(db,"products"),s=>{state.products=s.docs.map(d=>({id:d.id,...d.data()}));render()}));["sales","buys","trades","repairs","cashMoves","accountingExpenses"].forEach(n=>sub(n))}
+onAuthStateChanged(auth,async user=>{state.unsubs.forEach(u=>u());state.unsubs=[];if(!user){state.user=null;$("loginPage").classList.remove("hidden");$("appShell").classList.add("hidden");return}state.user=user;const s=await getDoc(doc(db,"users",user.uid));state.profile=s.exists()?s.data():{};const role=String(state.profile.role||"").toLowerCase();if(!allowedRoles.includes(role)||state.profile.active===false){await signOut(auth);$("loginError").textContent="Akses ditolak. Meney Accounting hanya untuk Owner, Partner atau Manager aktif.";$("loginError").classList.remove("hidden");return}$("userText").textContent=state.profile.name||user.email;$("loginPage").classList.add("hidden");$("appShell").classList.remove("hidden");subscribeAll();render()});
+const now=new Date();state.month=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;$("monthPicker").value=state.month;$("expenseDate").value=localISO(now);
+</script>
+</body>
+</html>
