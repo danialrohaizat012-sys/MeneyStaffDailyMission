@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <title>Meney POS Enterprise · Legacy Cash Buy Shift Fix · 2026-08-11</title>
-  <meta name="meney-build" content="POS-LEGACY-BUY-SHIFT-FIX-20260811" />
+  <meta name="meney-build" content="POS-LEGACY-BUY-SHIFT-FIX-REPAIR-CUSTOMER-20260812" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -1485,14 +1485,81 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   // ===== Trade-In Accounting V1 =====
   const customerPrefixes=["sale","buy","trade","repair"];
   function customerPhoneKey(v){return cleanPhone(v||"")}
-  function customerDisplay(c){return `${c.name||"Unnamed"}${c.phone?" · "+c.phone:""}${c.customerNo?" · "+c.customerNo:""}`}
+  function customerDisplay(c){
+    const legacy=c._legacySource?` · ${c._legacySource}`:"";
+    return `${c.name||"Unnamed"}${c.phone?" · "+c.phone:""}${c.customerNo?" · "+c.customerNo:""}${legacy}`
+  }
+
+  function meaningfulCustomerName(v){
+    const n=normalizeText(v);
+    return n && ![
+      "walk-in",
+      "walk in",
+      "walk-in customer",
+      "walk in customer",
+      "online customer",
+      "customer"
+    ].includes(n);
+  }
+
+  function customerDirectory(){
+    const result=[],byPhone=new Map(),byName=new Map();
+
+    // Registered Customer Master has highest priority.
+    [...state.customers].forEach(c=>{
+      const item={...c,_legacy:false};
+      result.push(item);
+      const pk=customerPhoneKey(c.phone),nk=normalizeText(c.name);
+      if(pk)byPhone.set(pk,item);
+      if(nk)byName.set(nk,item);
+    });
+
+    // Backward compatibility for customers from older transactions
+    // that were saved before Customer Master was introduced.
+    const sources=[
+      ["Sale",state.sales],
+      ["Buy",state.buys],
+      ["Trade-In",state.trades],
+      ["Repair",state.repairs]
+    ];
+
+    sources.forEach(([sourceLabel,rows])=>{
+      (rows||[]).forEach(row=>{
+        const name=String(row.customer||row.customerName||"").trim();
+        const phone=String(row.phone||row.customerPhone||"").trim();
+        const pk=customerPhoneKey(phone),nk=normalizeText(name);
+
+        if(!pk&&!meaningfulCustomerName(name))return;
+
+        // Phone is strongest dedupe key. Fall back to normalized name.
+        if((pk&&byPhone.has(pk)) || (nk&&byName.has(nk)))return;
+
+        const item={
+          id:`legacy:${sourceLabel}:${row.id}`,
+          name:name||"Unnamed Customer",
+          phone,
+          customerNo:"",
+          _legacy:true,
+          _legacySource:`From ${sourceLabel}`
+        };
+
+        result.push(item);
+        if(pk)byPhone.set(pk,item);
+        if(nk)byName.set(nk,item);
+      });
+    });
+
+    return result.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+  }
+
   function populateCustomerDropdowns(){
+    const directory=customerDirectory();
     customerPrefixes.forEach(prefix=>{
       const select=$(prefix+"ExistingCustomer");if(!select)return;
       const old=select.value;
-      const sorted=[...state.customers].sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
-      select.innerHTML='<option value="">Select customer / search by name or phone</option>'+sorted.map(c=>`<option value="${c.id}">${esc(customerDisplay(c))}</option>`).join("");
-      if(sorted.some(c=>c.id===old))select.value=old;
+      select.innerHTML='<option value="">Select customer / search by name or phone</option>'+
+        directory.map(c=>`<option value="${esc(c.id)}">${esc(customerDisplay(c))}</option>`).join("");
+      if(directory.some(c=>c.id===old))select.value=old;
     });
   }
   function customerFields(prefix){return {name:$(prefix+"Customer"),phone:$(prefix+"Phone")}}
@@ -1512,14 +1579,49 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     }
   }
   function selectCustomer(prefix,id){
-    const c=state.customers.find(x=>x.id===id),fields=customerFields(prefix),note=$(prefix+"CustomerNote");
+    const c=customerDirectory().find(x=>x.id===id),fields=customerFields(prefix),note=$(prefix+"CustomerNote");
     if(!c){if(note)note.classList.add("hidden");return}
-    if(fields.name)fields.name.value=c.name||"";if(fields.phone)fields.phone.value=c.phone||"";
-    if(fields.name)fields.name.dataset.customerId=c.id;if(fields.phone)fields.phone.dataset.customerId=c.id;
-    if(note){note.textContent=`Selected: ${customerDisplay(c)}`;note.classList.remove("hidden")}
+
+    if(fields.name)fields.name.value=c.name||"";
+    if(fields.phone)fields.phone.value=c.phone||"";
+
+    if(c._legacy){
+      if(fields.name){
+        delete fields.name.dataset.customerId;
+        fields.name.dataset.legacyCustomer="1";
+      }
+      if(fields.phone){
+        delete fields.phone.dataset.customerId;
+        fields.phone.dataset.legacyCustomer="1";
+      }
+    }else{
+      if(fields.name){
+        fields.name.dataset.customerId=c.id;
+        delete fields.name.dataset.legacyCustomer;
+      }
+      if(fields.phone){
+        fields.phone.dataset.customerId=c.id;
+        delete fields.phone.dataset.legacyCustomer;
+      }
+    }
+
+    if(note){
+      note.textContent=c._legacy
+        ? `Selected: ${customerDisplay(c)} · will be registered into Customer Master when this repair is saved`
+        : `Selected: ${customerDisplay(c)}`;
+      note.classList.remove("hidden")
+    }
   }
   function clearCustomerSelection(prefix){
-    const fields=customerFields(prefix);if(fields.name)delete fields.name.dataset.customerId;if(fields.phone)delete fields.phone.dataset.customerId;
+    const fields=customerFields(prefix);
+    if(fields.name){
+      delete fields.name.dataset.customerId;
+      delete fields.name.dataset.legacyCustomer;
+    }
+    if(fields.phone){
+      delete fields.phone.dataset.customerId;
+      delete fields.phone.dataset.legacyCustomer;
+    }
   }
   function getCustomerPayload(prefix){
     const type=$(prefix+"CustomerType")?.value||"registered",fields=customerFields(prefix),selectedId=fields.name?.dataset.customerId||null;
@@ -1533,6 +1635,43 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const existing=$(prefix+"ExistingCustomer");if(existing)existing.value="";
     const online=$(prefix+"OnlineName");if(online)online.value="";
     setCustomerMode(prefix,defaultType);
+  }
+
+  async function ensureCustomerMaster(customerData){
+    if(customerData.customerType!=="registered")return customerData;
+    if(customerData.customerId)return customerData;
+
+    const name=String(customerData.customer||"").trim();
+    const phone=String(customerData.phone||"").trim();
+    const phoneKey=customerPhoneKey(phone);
+
+    const duplicate=phoneKey
+      ? state.customers.find(c=>customerPhoneKey(c.phone)===phoneKey)
+      : state.customers.find(c=>normalizeText(c.name)===normalizeText(name)&&!c.phone);
+
+    if(duplicate)return {...customerData,customerId:duplicate.id};
+    if(!phoneKey&&!meaningfulCustomerName(name))return customerData;
+
+    const customerNo=await reserveDocumentNumber("customer","CUS",false);
+    const ref=doc(collection(db,"customers"));
+
+    await setDoc(ref,{
+      customerNo,
+      name:name||"Unnamed Customer",
+      normalizedName:normalizeText(name),
+      phone,
+      normalizedPhone:phoneKey,
+      email:"",
+      address:"",
+      notes:"Auto-created from legacy Meney transaction / repair history",
+      profileType:"registered",
+      active:true,
+      createdBy:state.user.uid,
+      createdAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    });
+
+    return {...customerData,customerId:ref.id};
   }
   customerPrefixes.forEach(prefix=>{
     const type=$(prefix+"CustomerType"),existing=$(prefix+"ExistingCustomer"),create=$(prefix+"CreateCustomer"),online=$(prefix+"OnlineName");
@@ -1720,7 +1859,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
   }
 
-  function refresh(){renderMaintenance();syncEntryModePanel();syncDashboardAccess();populateCategories();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales();renderStockPurchase();renderConsignment()}
+  function refresh(){renderMaintenance();syncEntryModePanel();syncDashboardAccess();populateCategories();populateCustomerDropdowns();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales();renderStockPurchase();renderConsignment()}
   function populateCategories(){
     const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort();
     ["posCategory","inventoryCategory"].forEach(id=>{const old=$(id).value;$(id).innerHTML='<option value="">All Category</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");$(id).value=old})
@@ -2404,11 +2543,14 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     }catch(err){toast("Save gagal: "+err.message)}
   };
 
-  $("newRepairBtn").onclick=()=>$("repairModal").classList.remove("hidden");$("cancelRepair").onclick=()=>closeModal("repairModal");
+  $("newRepairBtn").onclick=()=>{populateCustomerDropdowns();resetCustomerSelector("repair","registered");$("repairModal").classList.remove("hidden")};$("cancelRepair").onclick=()=>closeModal("repairModal");
   $("repairForm").onsubmit=async e=>{
     e.preventDefault();
     let entry;try{entry=entryContext()}catch(err){return toast(err.message)}
-    const customerData=getCustomerPayload("repair"),customer=customerData.customer,phone=customerData.phone,device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),depositAmount=Number($("repairDeposit").value||0),depositPaymentMethod=$("repairDepositMethod").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
+    let customerData=getCustomerPayload("repair");
+    try{customerData=await ensureCustomerMaster(customerData)}
+    catch(err){return toast("Customer registration gagal: "+err.message)}
+    const customer=customerData.customer,phone=customerData.phone,device=$("repairDevice").value.trim(),serial=$("repairSerial").value.trim(),issue=$("repairIssue").value.trim(),estimate=Number($("repairEstimate").value||0),depositAmount=Number($("repairDeposit").value||0),depositPaymentMethod=$("repairDepositMethod").value,warranty=$("repairWarranty").value.trim();let ticketNo="";
     if(depositAmount<0)return toast("Deposit tidak boleh negatif.");
     if(estimate>0&&depositAmount>estimate)return toast("Deposit tidak boleh melebihi anggaran harga repair.");
     try{
