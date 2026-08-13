@@ -218,6 +218,8 @@
       .stats{grid-template-columns:1fr 1fr}.hero-line{display:block}.role-pill{display:inline-block;margin-top:12px}
       .grid2{grid-template-columns:1fr}.toolbar{align-items:flex-end}.top{align-items:flex-start}
     }
+
+    .sales-target-card{margin-top:16px;border:1px solid #35532d;background:linear-gradient(145deg,rgba(125,255,70,.09),rgba(18,21,18,.98));border-radius:22px;padding:17px}.sales-target-head{display:flex;justify-content:space-between;gap:12px;align-items:end}.sales-target-head span{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:850}.sales-target-head strong{display:block;font-size:26px;margin-top:4px}.sales-target-progress{height:10px;background:#090b09;border:1px solid var(--line);border-radius:99px;overflow:hidden;margin:14px 0 10px}.sales-target-progress>div{height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));border-radius:99px}.sales-target-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sales-target-grid div{padding:11px;border-radius:13px;background:#090b09;border:1px solid var(--line)}.sales-target-grid span{display:block;font-size:9px;color:var(--muted)}.sales-target-grid b{display:block;margin-top:4px;font-size:14px}@media(max-width:650px){.sales-target-grid{grid-template-columns:1fr 1fr}.sales-target-grid div:last-child{grid-column:1/-1}}
   </style>
 </head>
 <script>
@@ -288,6 +290,12 @@
         </div>
       </section>
 
+
+      <section class="sales-target-card">
+        <div class="sales-target-head"><div><span>Monthly Sales Target</span><strong id="dmSalesAchieved">RM0</strong></div><div style="text-align:right"><span id="dmSalesPercent">0% achieved</span><strong id="dmSalesTarget" style="font-size:15px">Target RM0</strong></div></div>
+        <div class="sales-target-progress"><div id="dmSalesBar" style="width:0%"></div></div>
+        <div class="sales-target-grid"><div><span>BAKI TARGET</span><b id="dmSalesRemaining">RM0</b></div><div><span>HARI BERBAKI</span><b id="dmSalesDays">0 hari</b></div><div><span>PERLU SALES / HARI</span><b id="dmSalesDaily">RM0</b></div></div>
+      </section>
       <section id="attendanceCard" class="attendance-card">
         <div class="attendance-head">
           <div><h3>Attendance · Punch In</h3><p>GPS geofence + selfie verification + Firebase server time.</p></div>
@@ -403,7 +411,7 @@
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
     import {
       getFirestore, doc, getDoc, collection, addDoc, onSnapshot,
-      query, where, updateDoc, deleteDoc, serverTimestamp, Timestamp, getDocs, setDoc
+      query, where, updateDoc, deleteDoc, serverTimestamp, Timestamp, getDocs, setDoc, orderBy
     } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -421,7 +429,7 @@
     const db = getFirestore(app);
 
     const $ = id => document.getElementById(id);
-    const state = { user:null, profile:null, missions:[], users:[], filter:"active", unsubscribe:null, editingMissionId:null, proofMissionId:null, proofFile:null, attendanceToday:null, attendanceUnsub:null, attendanceTeamUnsub:null, attendanceSelfie:null, attendanceLocation:null, storeSettings:null, attendanceTimer:null };
+    const state = { user:null, profile:null, missions:[], users:[], filter:"active", unsubscribe:null, editingMissionId:null, proofMissionId:null, proofFile:null, attendanceToday:null, attendanceUnsub:null, attendanceTeamUnsub:null, attendanceSelfie:null, attendanceLocation:null, storeSettings:null, attendanceTimer:null, salesTarget:5000, sales:[], trades:[], repairs:[], salesUnsubs:[] };
     const isManagement = () => ["owner","admin","manager"].includes(String(state.profile?.role||"").toLowerCase());
 
     const todayISO = () => {
@@ -490,6 +498,13 @@
     $("punchOutBtn").onclick=async()=>{const a=state.attendanceToday;if(!a?.punchIn||a?.punchOut)return;const btn=$("punchOutBtn");btn.disabled=true;btn.textContent="Punching Out...";try{let loc=null;try{loc=await getCurrentPosition()}catch{}const mins=Math.max(0,Math.round((Date.now()-msTime(a.punchIn))/60000));await updateDoc(attendanceRef(),{status:"completed",punchOut:serverTimestamp(),workedMinutes:mins,punchOutLatitude:loc?.latitude??null,punchOutLongitude:loc?.longitude??null,punchOutAccuracy:loc?.accuracy??null,updatedAt:serverTimestamp()});await addDoc(collection(db,"attendanceAudit"),{userId:state.user.uid,staffName:state.profile.name||state.user.email,date:todayISO(),action:"PUNCH_OUT",workedMinutes:mins,createdAt:serverTimestamp()});pop("Punch Out berjaya")}catch(e){alert(humanError(e))}finally{btn.disabled=false;btn.textContent="↪ Punch Out"}};
     $("refreshAttendanceBtn").onclick=()=>renderAttendance();
 
+    const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR",minimumFractionDigits:0,maximumFractionDigits:2}).format(Number(n||0));
+    const txDate=x=>x?.transactionDate||x?.saleDate||x?.completedAt||x?.createdAt||null;
+    const asDate=v=>v?.toDate?v.toDate():v?new Date(v):new Date(0);
+    function tradeSalesValue(t){return Number(t.totalStockOut??(t.stockOutItems||[]).reduce((s,i)=>s+Number(i.price||0)*Number(i.qty||1),0))}
+    function renderSalesTarget(){const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),1),end=new Date(now.getFullYear(),now.getMonth()+1,1),inside=x=>{const v=txDate(x);if(!v)return false;const d=asDate(v);return d>=start&&d<end},active=x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled";const direct=state.sales.filter(x=>active(x)&&inside(x)).reduce((s,x)=>s+Number(x.total||0),0),trade=state.trades.filter(x=>active(x)&&inside(x)).reduce((s,x)=>s+tradeSalesValue(x),0),repair=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inside(x)).reduce((s,x)=>s+Number(x.finalPrice||x.estimate||0),0),achieved=direct+trade+repair,target=Number(state.salesTarget||5000),remaining=Math.max(0,target-achieved),days=Math.max(1,new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate()+1),pct=Math.min(100,target?achieved/target*100:0);$("dmSalesAchieved").textContent=money(achieved);$("dmSalesTarget").textContent="Target "+money(target);$("dmSalesPercent").textContent=Math.round(pct)+"% achieved";$("dmSalesBar").style.width=pct+"%";$("dmSalesRemaining").textContent=money(remaining);$("dmSalesDays").textContent=days+" hari";$("dmSalesDaily").textContent=money(remaining/days)}
+    function listenSalesTarget(){state.salesUnsubs.forEach(u=>u());state.salesUnsubs=[];[["sales","sales"],["trades","trades"],["repairs","repairs"]].forEach(([name,key])=>state.salesUnsubs.push(onSnapshot(collection(db,name),snap=>{state[key]=snap.docs.map(d=>({id:d.id,...d.data()}));renderSalesTarget()},()=>{})));state.salesUnsubs.push(onSnapshot(doc(db,"settings","ownerDashboard"),snap=>{if(snap.exists())state.salesTarget=Number(snap.data().salesTarget||5000);renderSalesTarget()},()=>renderSalesTarget()))}
+
     $("loginForm").addEventListener("submit", async e=>{
       e.preventDefault();
       $("loginError").textContent="";
@@ -544,7 +559,7 @@
 
     onAuthStateChanged(auth, async user=>{
       if(state.unsubscribe){state.unsubscribe();state.unsubscribe=null}
-      state.attendanceUnsub?.();state.attendanceUnsub=null;state.attendanceTeamUnsub?.();state.attendanceTeamUnsub=null;if(state.attendanceTimer){clearInterval(state.attendanceTimer);state.attendanceTimer=null}
+      state.attendanceUnsub?.();state.attendanceUnsub=null;state.salesUnsubs.forEach(u=>u());state.salesUnsubs=[];state.attendanceTeamUnsub?.();state.attendanceTeamUnsub=null;if(state.attendanceTimer){clearInterval(state.attendanceTimer);state.attendanceTimer=null}
       if(!user){
         state.user=null;state.profile=null;state.missions=[];
         $("appView").classList.add("hidden");
@@ -563,6 +578,7 @@
         await loadAssignableUsers();
         await loadStoreSettings();
         listenAttendance();
+        listenSalesTarget();
         listenToMissions();
       }catch(error){
         alert(humanError(error));
