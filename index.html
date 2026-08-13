@@ -220,6 +220,18 @@
     }
 
     .sales-target-card{margin-top:16px;border:1px solid #35532d;background:linear-gradient(145deg,rgba(125,255,70,.09),rgba(18,21,18,.98));border-radius:22px;padding:17px}.sales-target-head{display:flex;justify-content:space-between;gap:12px;align-items:end}.sales-target-head span{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:850}.sales-target-head strong{display:block;font-size:26px;margin-top:4px}.sales-target-progress{height:10px;background:#090b09;border:1px solid var(--line);border-radius:99px;overflow:hidden;margin:14px 0 10px}.sales-target-progress>div{height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));border-radius:99px}.sales-target-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sales-target-grid div{padding:11px;border-radius:13px;background:#090b09;border:1px solid var(--line)}.sales-target-grid span{display:block;font-size:9px;color:var(--muted)}.sales-target-grid b{display:block;margin-top:4px;font-size:14px}@media(max-width:650px){.sales-target-grid{grid-template-columns:1fr 1fr}.sales-target-grid div:last-child{grid-column:1/-1}}
+    .daily-sales-card{margin-top:10px;border:1px solid #31422e;background:#0d110d;border-radius:20px;padding:16px}
+    .daily-sales-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .daily-sales-label{font-size:9px;color:var(--muted);font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+    .daily-sales-value{font-size:28px;font-weight:950;letter-spacing:-.035em;margin-top:4px}
+    .daily-sales-goal{text-align:right}.daily-sales-goal span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;font-weight:850}.daily-sales-goal strong{display:block;margin-top:4px;font-size:15px}
+    .daily-sales-progress{height:12px;border-radius:999px;background:#050705;border:1px solid var(--line);overflow:hidden;margin:14px 0 9px}
+    .daily-sales-progress>div{height:100%;width:0;background:linear-gradient(90deg,#48c91e,#7dff46);border-radius:999px;transition:width .35s ease}
+    .daily-sales-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .daily-sales-status{font-size:11px;font-weight:900}.daily-sales-status.behind{color:#ffd37b}.daily-sales-status.hit{color:var(--green)}
+    .daily-sales-breakdown{font-size:9px;color:var(--muted);text-align:right}
+    @media(max-width:650px){.daily-sales-value{font-size:24px}.daily-sales-bottom{display:block}.daily-sales-breakdown{text-align:left;margin-top:5px}}
+
   </style>
 </head>
 <script>
@@ -244,7 +256,7 @@
 
   <div class="splash-footer">
     Powered by Meney Gaming<br>
-    Version 1.2 · Attendance
+    Version 1.3 · Attendance + Live Sales
   </div>
 </div>
   <main class="shell">
@@ -294,7 +306,25 @@
       <section class="sales-target-card">
         <div class="sales-target-head"><div><span>Monthly Sales Target</span><strong id="dmSalesAchieved">RM0</strong></div><div style="text-align:right"><span id="dmSalesPercent">0% achieved</span><strong id="dmSalesTarget" style="font-size:15px">Target RM0</strong></div></div>
         <div class="sales-target-progress"><div id="dmSalesBar" style="width:0%"></div></div>
-        <div class="sales-target-grid"><div><span>BAKI TARGET</span><b id="dmSalesRemaining">RM0</b></div><div><span>HARI BERBAKI</span><b id="dmSalesDays">0 hari</b></div><div><span>PERLU SALES / HARI</span><b id="dmSalesDaily">RM0</b></div></div>
+        <div class="sales-target-grid"><div><span>BAKI TARGET</span><b id="dmSalesRemaining">RM0</b></div><div><span>HARI BERBAKI</span><b id="dmSalesDays">0 hari</b></div><div><span>PACE DIPERLUKAN</span><b id="dmSalesDaily">RM0/hari</b></div></div>
+      </section>
+
+      <section class="daily-sales-card">
+        <div class="daily-sales-top">
+          <div>
+            <div class="daily-sales-label">Today's Live Sales</div>
+            <div id="dmTodaySales" class="daily-sales-value">RM0</div>
+          </div>
+          <div class="daily-sales-goal">
+            <span>Today's Goal</span>
+            <strong id="dmTodayGoal">RM0</strong>
+          </div>
+        </div>
+        <div class="daily-sales-progress"><div id="dmTodaySalesBar"></div></div>
+        <div class="daily-sales-bottom">
+          <div id="dmTodaySalesStatus" class="daily-sales-status behind">RM0 lagi untuk capai target hari ini</div>
+          <div id="dmTodaySalesBreakdown" class="daily-sales-breakdown">Direct RM0 · Trade RM0 · Repair RM0</div>
+        </div>
       </section>
       <section id="attendanceCard" class="attendance-card">
         <div class="attendance-head">
@@ -502,7 +532,59 @@
     const txDate=x=>x?.transactionDate||x?.saleDate||x?.completedAt||x?.createdAt||null;
     const asDate=v=>v?.toDate?v.toDate():v?new Date(v):new Date(0);
     function tradeSalesValue(t){return Number(t.totalStockOut??(t.stockOutItems||[]).reduce((s,i)=>s+Number(i.price||0)*Number(i.qty||1),0))}
-    function renderSalesTarget(){const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),1),end=new Date(now.getFullYear(),now.getMonth()+1,1),inside=x=>{const v=txDate(x);if(!v)return false;const d=asDate(v);return d>=start&&d<end},active=x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled";const direct=state.sales.filter(x=>active(x)&&inside(x)).reduce((s,x)=>s+Number(x.total||0),0),trade=state.trades.filter(x=>active(x)&&inside(x)).reduce((s,x)=>s+tradeSalesValue(x),0),repair=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inside(x)).reduce((s,x)=>s+Number(x.finalPrice||x.estimate||0),0),achieved=direct+trade+repair,target=Number(state.salesTarget||5000),remaining=Math.max(0,target-achieved),days=Math.max(1,new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate()+1),pct=Math.min(100,target?achieved/target*100:0);$("dmSalesAchieved").textContent=money(achieved);$("dmSalesTarget").textContent="Target "+money(target);$("dmSalesPercent").textContent=Math.round(pct)+"% achieved";$("dmSalesBar").style.width=pct+"%";$("dmSalesRemaining").textContent=money(remaining);$("dmSalesDays").textContent=days+" hari";$("dmSalesDaily").textContent=money(remaining/days)}
+    function renderSalesTarget(){
+      const now=new Date(),
+            monthStart=new Date(now.getFullYear(),now.getMonth(),1),
+            monthEnd=new Date(now.getFullYear(),now.getMonth()+1,1),
+            todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()),
+            tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1),
+            active=x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled",
+            inPeriod=(x,start,end)=>{const v=txDate(x);if(!v)return false;const d=asDate(v);return d>=start&&d<end};
+
+      const directMonth=state.sales.filter(x=>active(x)&&inPeriod(x,monthStart,monthEnd)).reduce((s,x)=>s+Number(x.total||0),0),
+            tradeMonth=state.trades.filter(x=>active(x)&&inPeriod(x,monthStart,monthEnd)).reduce((s,x)=>s+tradeSalesValue(x),0),
+            repairMonth=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inPeriod(x,monthStart,monthEnd)).reduce((s,x)=>s+Number(x.finalPrice||x.estimate||0),0);
+
+      const directToday=state.sales.filter(x=>active(x)&&inPeriod(x,todayStart,tomorrow)).reduce((s,x)=>s+Number(x.total||0),0),
+            tradeToday=state.trades.filter(x=>active(x)&&inPeriod(x,todayStart,tomorrow)).reduce((s,x)=>s+tradeSalesValue(x),0),
+            repairToday=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inPeriod(x,todayStart,tomorrow)).reduce((s,x)=>s+Number(x.finalPrice||x.estimate||0),0);
+
+      const achieved=directMonth+tradeMonth+repairMonth,
+            todaySales=directToday+tradeToday+repairToday,
+            achievedBeforeToday=Math.max(0,achieved-todaySales),
+            target=Number(state.salesTarget||5000),
+            remaining=Math.max(0,target-achieved),
+            daysRemaining=Math.max(1,new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate()+1),
+            monthlyPct=Math.min(100,target?achieved/target*100:0),
+            currentRequiredPace=remaining/daysRemaining,
+            todayGoal=Math.max(0,(target-achievedBeforeToday)/daysRemaining),
+            todayPct=todayGoal>0?Math.min(100,todaySales/todayGoal*100):(target<=achieved?100:0),
+            todayGap=todaySales-todayGoal;
+
+      $("dmSalesAchieved").textContent=money(achieved);
+      $("dmSalesTarget").textContent="Target "+money(target);
+      $("dmSalesPercent").textContent=Math.round(monthlyPct)+"% achieved";
+      $("dmSalesBar").style.width=monthlyPct+"%";
+      $("dmSalesRemaining").textContent=money(remaining);
+      $("dmSalesDays").textContent=daysRemaining+" hari";
+      $("dmSalesDaily").textContent=money(currentRequiredPace)+"/hari";
+
+      $("dmTodaySales").textContent=money(todaySales);
+      $("dmTodayGoal").textContent=money(todayGoal);
+      $("dmTodaySalesBar").style.width=todayPct+"%";
+      $("dmTodaySalesBreakdown").textContent=`Direct ${money(directToday)} · Trade ${money(tradeToday)} · Repair ${money(repairToday)}`;
+
+      const status=$("dmTodaySalesStatus");
+      if(todayGoal<=0 || todayGap>=-0.005){
+        status.className="daily-sales-status hit";
+        status.textContent=todayGoal<=0
+          ? "✓ Monthly target sudah dicapai"
+          : `✓ Target harian lepas · +${money(Math.max(0,todayGap))}`;
+      }else{
+        status.className="daily-sales-status behind";
+        status.textContent=`${money(Math.abs(todayGap))} lagi untuk capai target hari ini`;
+      }
+    }
     function listenSalesTarget(){state.salesUnsubs.forEach(u=>u());state.salesUnsubs=[];[["sales","sales"],["trades","trades"],["repairs","repairs"]].forEach(([name,key])=>state.salesUnsubs.push(onSnapshot(collection(db,name),snap=>{state[key]=snap.docs.map(d=>({id:d.id,...d.data()}));renderSalesTarget()},()=>{})));state.salesUnsubs.push(onSnapshot(doc(db,"settings","ownerDashboard"),snap=>{if(snap.exists())state.salesTarget=Number(snap.data().salesTarget||5000);renderSalesTarget()},()=>renderSalesTarget()))}
 
     $("loginForm").addEventListener("submit", async e=>{
