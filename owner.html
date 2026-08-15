@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07110c">
-<title>Meney Empire · Command Centre · POS + Accounting Profitability V1</title>
+<title>Meney Empire · Command Centre · POS + Accounting Management V2</title>
 <link rel="manifest" href="manifest-owner.json?v=3">
 <link rel="icon" type="image/png" href="empire-favicon.png?v=3">
 <link rel="apple-touch-icon" href="empire-apple-touch-icon.png?v=3">
@@ -24,7 +24,7 @@ main{max-width:1440px;margin:auto;padding:30px 24px 70px}.hero{display:flex;just
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card{background:var(--panel);border:1px solid var(--line);border-radius:19px;padding:20px;box-shadow:0 8px 25px rgba(15,35,23,.045)}.clickable{cursor:pointer;transition:.2s}.clickable:hover{transform:translateY(-2px);box-shadow:0 14px 35px rgba(15,35,23,.09);border-color:#b8d6c4}.metric .label{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.metric .value{font-size:29px;font-weight:900;margin:10px 0 7px;letter-spacing:-.04em;white-space:nowrap}.delta{font-size:12px;font-weight:750}.up{color:var(--green2)}.down{color:var(--red)}.neutral{color:var(--muted)}
 .content{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(310px,.75fr);gap:18px;margin-top:18px}.stack{display:grid;gap:18px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:17px}.section-head h3{margin:0;font-size:17px}.section-head span{font-size:12px;color:var(--muted)}
 .breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{border:1px solid var(--line);border-radius:14px;padding:14px}.mini span{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}.mini strong{font-size:17px}.mini .sub{font-size:10px;color:var(--muted);margin-top:4px}.coverage{height:7px;background:#edf1ee;border-radius:99px;overflow:hidden;margin-top:9px}.coverage div{height:100%;background:var(--green);border-radius:99px}
-.target-row{display:flex;align-items:end;justify-content:space-between;gap:18px}.target-amount{font-size:30px;font-weight:900;letter-spacing:-.04em}.target-edit{display:flex;gap:7px}.target-edit input{width:120px;border:1px solid var(--line);border-radius:10px;padding:9px}.progress{height:12px;background:#edf1ee;border-radius:99px;overflow:hidden;margin:18px 0 9px}.progress>div{height:100%;background:linear-gradient(90deg,#16a34a,#65d78d);border-radius:99px;transition:width .5s}.target-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.target-insights{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}.target-insight{border:1px solid var(--line);border-radius:13px;padding:12px}.target-insight span{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}.target-insight strong{font-size:15px}@media(max-width:620px){.target-insights{grid-template-columns:1fr}}.finance-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.finance-mini{border:1px solid var(--line);border-radius:14px;padding:14px}.finance-mini span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.finance-mini strong{display:block;font-size:20px;margin-top:6px}.finance-mini .sub{font-size:10px;color:var(--muted);margin-top:4px}.expense-list{display:grid;gap:8px;margin-top:12px}.expense-row{display:grid;grid-template-columns:140px 1fr 95px;gap:10px;align-items:center;font-size:11px}.expense-track{height:8px;background:#edf1ee;border-radius:99px;overflow:hidden}.expense-fill{height:100%;background:linear-gradient(90deg,#16a34a,#6ed491);border-radius:99px}@media(max-width:760px){.finance-grid{grid-template-columns:1fr 1fr}.expense-row{grid-template-columns:105px 1fr 80px}}
+.target-row{display:flex;align-items:end;justify-content:space-between;gap:18px}.target-amount{font-size:30px;font-weight:900;letter-spacing:-.04em}.target-edit{display:flex;gap:7px}.target-edit input{width:120px;border:1px solid var(--line);border-radius:10px;padding:9px}.progress{height:12px;background:#edf1ee;border-radius:99px;overflow:hidden;margin:18px 0 9px}.progress>div{height:100%;background:linear-gradient(90deg,#16a34a,#65d78d);border-radius:99px;transition:width .5s}.target-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.target-insights{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}.target-insight{border:1px solid var(--line);border-radius:13px;padding:12px}.target-insight span{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}.target-insight strong{font-size:15px}@media(max-width:620px){.target-insights{grid-template-columns:1fr}}.finance-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.finance-mini{border:1px solid var(--line);border-radius:14px;padding:14px}.finance-mini span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.finance-mini strong{display:block;font-size:20px;margin-top:6px}.finance-mini .sub{font-size:10px;color:var(--muted);margin-top:4px}.expense-list{display:grid;gap:8px;margin-top:12px}.expense-row{display:grid;grid-template-columns:140px 1fr 95px;gap:10px;align-items:center;font-size:11px}.expense-track{height:8px;background:#edf1ee;border-radius:99px;overflow:hidden}.expense-fill{height:100%;background:linear-gradient(90deg,#16a34a,#6ed491);border-radius:99px}@media(max-width:760px){.finance-grid{grid-template-columns:1fr 1fr}.expense-row{grid-template-columns:105px 1fr 80px}}.mgmt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mgmt-mini{border:1px solid var(--line);border-radius:14px;padding:14px}.mgmt-mini span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.mgmt-mini strong{display:block;font-size:18px;margin-top:6px}.mgmt-mini .sub{font-size:10px;color:var(--muted);margin-top:4px}.cash-audit{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}.cash-audit div{border:1px solid var(--line);border-radius:13px;padding:12px}.cash-audit span{display:block;font-size:10px;color:var(--muted)}.cash-audit strong{display:block;font-size:15px;margin-top:4px}@media(max-width:760px){.mgmt-grid{grid-template-columns:1fr 1fr}.cash-audit{grid-template-columns:1fr}}
 .chart{display:flex;align-items:end;gap:10px;height:190px;padding-top:16px}.bar-wrap{flex:1;height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:8px}.bar{width:min(42px,75%);min-height:4px;background:linear-gradient(#38c76a,#0b6b31);border-radius:9px 9px 3px 3px;position:relative}.bar:hover:after{content:attr(data-value);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);background:#07110c;color:#fff;font-size:10px;padding:5px 7px;border-radius:6px;white-space:nowrap}.bar-label{font-size:10px;color:var(--muted)}
 .ops{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.op{border:1px solid var(--line);border-radius:14px;padding:15px}.op-top{display:flex;justify-content:space-between;align-items:center}.op strong{font-size:24px}.badge{font-size:10px;font-weight:850;padding:6px 8px;border-radius:99px}.green{background:var(--soft);color:var(--green2)}.orange{background:#fff7e6;color:#b45309}.red{background:#fff1f2;color:#be123c}.blue{background:#eff6ff;color:#1d4ed8}
 .aging{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.aging div{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}.aging strong{display:block;font-size:20px}.aging span{font-size:10px;color:var(--muted)}
@@ -99,6 +99,26 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}.shell{opacity:1}.shell.launc
   <div class="section-head" style="margin-top:18px;margin-bottom:8px"><h3 style="font-size:14px">Expense Breakdown</h3><span id="finExpensePeriod">This month</span></div>
   <div id="finExpenseBreakdown" class="expense-list"><div class="empty">Belum ada operating expense.</div></div>
 </section>
+
+<section class="card">
+  <div class="section-head"><h3>Inventory & Cash Context · This Month</h3><span>Management indicators · not P&amp;L expenses</span></div>
+  <div class="mgmt-grid">
+    <div class="mgmt-mini"><span>Current Inventory Cost</span><strong id="mgInventoryCost">RM0</strong><div class="sub" id="mgInventoryUnits">0 units · product master value</div></div>
+    <div class="mgmt-mini"><span>Stock Purchases MTD</span><strong id="mgStockPurchases">RM0</strong><div class="sub" id="mgStockPurchaseCount">0 purchase orders</div></div>
+    <div class="mgmt-mini"><span>Stock Purchase Paid MTD</span><strong id="mgStockPaid">RM0</strong><div class="sub">Inventory acquisition cash/payment, not OpEx</div></div>
+    <div class="mgmt-mini"><span>Supplier Outstanding</span><strong id="mgSupplierOutstanding">RM0</strong><div class="sub">Outstanding balance on active purchase orders</div></div>
+    <div class="mgmt-mini"><span>Buy From Customer MTD</span><strong id="mgBuyCustomer">RM0</strong><div class="sub">Inventory acquisition · excluded from OpEx</div></div>
+    <div class="mgmt-mini"><span>Operating Expenses MTD</span><strong id="mgOpex">RM0</strong><div class="sub">From Meney Accounting only</div></div>
+    <div class="mgmt-mini"><span>Manual Cash In MTD</span><strong id="mgCashIn">RM0</strong><div class="sub">POS cashMoves · movement, not revenue</div></div>
+    <div class="mgmt-mini"><span>Manual Cash Out MTD</span><strong id="mgCashOut">RM0</strong><div class="sub">POS cashMoves · movement, not automatically expense</div></div>
+  </div>
+  <div class="cash-audit">
+    <div><span>Known Inventory Acquisition MTD</span><strong id="mgInventoryAcquisition">RM0</strong></div>
+    <div><span>Known Operating Outflow MTD</span><strong id="mgOperatingOutflow">RM0</strong></div>
+    <div><span>Non-P&amp;L Cash Movement Net</span><strong id="mgCashMoveNet">RM0</strong></div>
+  </div>
+</section>
+
 <section class="card"><div class="section-head"><h3>Sales Target</h3><span>Synced across devices</span></div><div class="target-row"><div><div id="targetCurrent" class="target-amount">RM0</div><div class="muted" style="font-size:12px">Current performance</div></div><div class="target-edit"><input id="targetInput" type="number" min="1" step="100"><button id="saveTarget" class="btn btn-light">Save</button></div></div><div class="progress"><div id="targetBar"></div></div><div class="target-meta"><span id="targetPercent">0% achieved</span><span id="targetTotal">Target RM0</span></div><div class="target-insights"><div class="target-insight"><span>Baki Target</span><strong id="targetRemaining">RM0</strong></div><div class="target-insight"><span>Hari Operasi Berbaki</span><strong id="targetDaysLeft">0 hari</strong></div><div class="target-insight"><span>Purata Sales Diperlukan / Hari</span><strong id="targetDailyNeeded">RM0</strong></div></div></section>
 <section class="card"><div class="section-head"><h3>Total Revenue · Last 7 Days</h3><span>Direct + Trade-In + Repair</span></div><div id="chart" class="chart"></div></section>
 <section class="card"><div class="section-head"><h3>Recent Activity</h3><span id="activityCount">0 records</span></div><div id="activity" class="activity"></div></section>
@@ -126,7 +146,7 @@ import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https:
 import{getFirestore,doc,getDoc,setDoc,collection,onSnapshot,query,orderBy}from"https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",authDomain:"meney-daily-mission.firebaseapp.com",databaseURL:"https://meney-daily-mission-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"meney-daily-mission",storageBucket:"meney-daily-mission.firebasestorage.app",messagingSenderId:"1035705938755",appId:"1:1035705938755:web:a9ec6c7ea9c9b91f4a35f6"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
-const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],missions:[],users:[],accountingExpenses:[],range:"today",from:null,to:null,target:5000,unsubs:[]};
+const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],missions:[],users:[],accountingExpenses:[],stockPurchases:[],inventoryUnits:[],range:"today",from:null,to:null,target:5000,unsubs:[]};
 const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR",minimumFractionDigits:0,maximumFractionDigits:2}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
 const toDate=v=>v?.toDate?v.toDate():v?new Date(v):new Date(0),dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`,startOfDay=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate()),todayKey=()=>dateKey(new Date());
@@ -138,7 +158,7 @@ const activeSales=()=>state.sales.filter(x=>isActiveRecord(x)&&inRangeRecord(x))
 const activeBuys=()=>state.buys.filter(x=>isActiveRecord(x)&&inRangeRecord(x));
 const activeTrades=()=>state.trades.filter(x=>isActiveRecord(x)&&inRangeRecord(x));
 const completedRepairs=()=>state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inRangeRecord(x));
-const itemCost=i=>Number(i.ownershipType==="consignment"?(i.supplierUnitCost??i.cost??0):(i.cost??i.costPrice??0))*Number(i.qty||1);
+const itemCost=i=>Number(i.ownershipType==="consignment"?(i.supplierUnitCost??i.cost??0):(i.cost||0))*Number(i.qty||1);
 const saleProfit=s=>Number(s.total||0)-Number((s.items||[]).reduce((a,i)=>a+itemCost(i),0));
 function tradeOutUnitCost(item){if(Number.isFinite(Number(item.cost)))return Number(item.cost||0);const product=state.products.find(p=>p.id===item.productId);return Number(product?.cost||0)}
 function tradeAccounting(trade){const stockOutItems=trade.stockOutItems||[],stockInItems=trade.stockInItems||[];const salesValue=Number(trade.totalStockOut??stockOutItems.reduce((sum,i)=>sum+Number(i.price||0)*Number(i.qty||1),0));const cogs=stockOutItems.reduce((sum,i)=>sum+tradeOutUnitCost(i)*Number(i.qty||1),0);const stockBuyValue=Number(trade.totalTradeValue??stockInItems.reduce((sum,i)=>sum+Number(i.tradeValue||0),0));return{salesValue,cogs,profit:salesValue-cogs,stockBuyValue}}
@@ -161,9 +181,44 @@ function accountingSummary(){
   return{...monthSummary,expenses,opex,categories,operatingProfit,operatingMargin:monthSummary.revenue?operatingProfit/monthSummary.revenue*100:0,grossMargin:monthSummary.revenue?monthSummary.profit/monthSummary.revenue*100:0};
 }
 
+function inCurrentMonthByValue(v){
+  if(!v)return false;
+  const d=toDate(v),b=monthBoundsNow();
+  return d>=b.start&&d<b.end;
+}
+function managementSummary(fin){
+  const stockPurchases=state.stockPurchases.filter(p=>p.purchaseStatus!=="cancelled"&&inCurrentMonthByValue(p.transactionDate||p.createdAt));
+  const stockPurchaseTotal=stockPurchases.reduce((s,p)=>s+Number(p.totalAmount||0),0);
+  const stockPaid=stockPurchases.reduce((s,p)=>s+Number(p.amountPaid||0),0);
+  const supplierOutstanding=state.stockPurchases
+    .filter(p=>p.purchaseStatus!=="cancelled")
+    .reduce((s,p)=>s+Number(p.outstandingAmount||0),0);
+
+  const monthBuys=state.buys.filter(x=>isActiveRecord(x)&&inCurrentMonthByValue(effectiveTransactionValue(x)));
+  const buyFromCustomer=monthBuys.reduce((s,x)=>s+Number(x.totalAmount??x.offer??0),0);
+
+  const monthCashMoves=state.cashMoves.filter(c=>inCurrentMonthByValue(c.transactionDate||c.createdAt));
+  const manualCashIn=monthCashMoves.filter(c=>String(c.type||"").toLowerCase()==="in").reduce((s,c)=>s+Number(c.amount||0),0);
+  const manualCashOut=monthCashMoves.filter(c=>String(c.type||"").toLowerCase()==="out").reduce((s,c)=>s+Number(c.amount||0),0);
+
+  // Product master stock valuation, consistent with the existing Command Centre inventory card.
+  // This is an indicator, not a formal balance-sheet valuation.
+  const inventoryCost=state.products.reduce((s,p)=>s+Number(p.cost||0)*Number(p.stock||0),0);
+  const inventoryUnits=state.products.reduce((s,p)=>s+Number(p.stock||0),0);
+
+  return{
+    stockPurchases,stockPurchaseTotal,stockPaid,supplierOutstanding,
+    buyFromCustomer,manualCashIn,manualCashOut,
+    inventoryCost,inventoryUnits,
+    inventoryAcquisition:stockPaid+buyFromCustomer,
+    operatingOutflow:fin.opex,
+    cashMoveNet:manualCashIn-manualCashOut
+  };
+}
+
 function currentShift(){return state.shifts.find(s=>s.status==="open")}
 function subscribe(name,sort="createdAt"){const u=onSnapshot(query(collection(db,name),orderBy(sort,"desc")),snap=>{state[name]=snap.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{state[name]=[];render()});state.unsubs.push(u)}
-function subscribeAll(){state.unsubs.forEach(u=>u());state.unsubs=[];state.unsubs.push(onSnapshot(query(collection(db,"products"),orderBy("name")),snap=>{state.products=snap.docs.map(d=>({id:d.id,...d.data()}));render()}));["sales","buys","trades","repairs","shifts","cashMoves","accountingExpenses"].forEach(n=>subscribe(n));state.unsubs.push(onSnapshot(collection(db,"missions"),snap=>{state.missions=snap.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{state.missions=[];render()}));state.unsubs.push(onSnapshot(collection(db,"users"),snap=>{state.users=snap.docs.map(d=>({uid:d.id,...d.data()}));render()},()=>{state.users=[];render()}));state.unsubs.push(onSnapshot(doc(db,"settings","ownerDashboard"),snap=>{if(snap.exists())state.target=Number(snap.data().salesTarget||5000);render()},()=>render()))}
+function subscribeAll(){state.unsubs.forEach(u=>u());state.unsubs=[];state.unsubs.push(onSnapshot(query(collection(db,"products"),orderBy("name")),snap=>{state.products=snap.docs.map(d=>({id:d.id,...d.data()}));render()}));["sales","buys","trades","repairs","shifts","cashMoves","accountingExpenses","stockPurchases","inventoryUnits"].forEach(n=>subscribe(n));state.unsubs.push(onSnapshot(collection(db,"missions"),snap=>{state.missions=snap.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{state.missions=[];render()}));state.unsubs.push(onSnapshot(collection(db,"users"),snap=>{state.users=snap.docs.map(d=>({uid:d.id,...d.data()}));render()},()=>{state.users=[];render()}));state.unsubs.push(onSnapshot(doc(db,"settings","ownerDashboard"),snap=>{if(snap.exists())state.target=Number(snap.data().salesTarget||5000);render()},()=>render()))}
 function greeting(){const h=new Date().getHours();return h<12?"Selamat pagi":h<18?"Selamat petang":"Selamat malam"}
 function paymentGroup(method){const m=String(method||"").toLowerCase();if(m.includes("cash"))return"cash";if(m.includes("qr")||m.includes("transfer")||m.includes("duitnow")||m.includes("bank"))return"qr";return"other"}
 function render(){if(!state.user)return;const summary=revenueSummary(),revenue=summary.revenue,profit=summary.profit,txnCount=summary.transactions,priorSummary=revenueSummary(priorRangeRecord),prior=priorSummary.revenue,delta=prior?((revenue-prior)/prior)*100:null;
@@ -183,10 +238,25 @@ $("finExpensePeriod").textContent=new Intl.DateTimeFormat("ms-MY",{month:"long",
 const maxExp=Math.max(1,...fin.categories.map(x=>x[1]));
 $("finExpenseBreakdown").innerHTML=fin.categories.length?fin.categories.map(([k,v])=>`<div class="expense-row"><strong>${esc(k)}</strong><div class="expense-track"><div class="expense-fill" style="width:${v/maxExp*100}%"></div></div><strong style="text-align:right">${money(v)}</strong></div>`).join(""):'<div class="empty">Belum ada operating expense untuk bulan ini.</div>';
 
+const mg=managementSummary(fin);
+$("mgInventoryCost").textContent=money(mg.inventoryCost);
+$("mgInventoryUnits").textContent=`${mg.inventoryUnits} units · product master value`;
+$("mgStockPurchases").textContent=money(mg.stockPurchaseTotal);
+$("mgStockPurchaseCount").textContent=`${mg.stockPurchases.length} purchase orders`;
+$("mgStockPaid").textContent=money(mg.stockPaid);
+$("mgSupplierOutstanding").textContent=money(mg.supplierOutstanding);
+$("mgBuyCustomer").textContent=money(mg.buyFromCustomer);
+$("mgOpex").textContent=money(fin.opex);
+$("mgCashIn").textContent=money(mg.manualCashIn);
+$("mgCashOut").textContent=money(mg.manualCashOut);
+$("mgInventoryAcquisition").textContent=money(mg.inventoryAcquisition);
+$("mgOperatingOutflow").textContent=money(mg.operatingOutflow);
+$("mgCashMoveNet").textContent=money(mg.cashMoveNet);
+
 const stockCost=state.products.reduce((a,p)=>a+Number(p.cost||0)*Number(p.stock||0),0),stockRetail=state.products.reduce((a,p)=>a+Number(p.price||0)*Number(p.stock||0),0);$("stockCost").textContent=money(stockCost);$("stockRetail").textContent=money(stockRetail);$("stockCostSub").textContent=units+" units";$("stockMargin").textContent="Potential margin "+money(stockRetail-stockCost);
 let itemCount=0,costKnown=0;summary.sales.forEach(s=>(s.items||[]).forEach(i=>{itemCount+=Number(i.qty||1);if(Number(i.ownershipType==="consignment"?(i.supplierUnitCost??i.cost??0):(i.cost??i.costPrice??0))>0)costKnown+=Number(i.qty||1)}));summary.trades.forEach(t=>(t.stockOutItems||[]).forEach(i=>{itemCount+=Number(i.qty||1);if(tradeOutUnitCost(i)>0)costKnown+=Number(i.qty||1)}));summary.repairs.forEach(r=>{itemCount+=1;if(Number(r.totalCost||0)>0||Number(r.netProfit||0)!==0)costKnown+=1});const coverage=itemCount?Math.round(costKnown/itemCount*100):0;$("costCoverage").textContent=coverage+"%";$("coverageBar").style.width=coverage+"%";
 const ages=[0,0,0,0];pending.forEach(r=>{const a=Math.max(0,Math.floor((Date.now()-toDate(r.createdAt).getTime())/86400000));if(a<=2)ages[0]++;else if(a<=5)ages[1]++;else if(a<=7)ages[2]++;else ages[3]++});["age02","age35","age67","age8"].forEach((id,i)=>$(id).textContent=ages[i]);
-renderTarget();renderChart();renderShift();renderActivity();const dm=renderDM();renderAlerts(low,pending,dm);const shift=currentShift(),brief=[];brief.push(`Meney merekodkan ${txnCount} transaksi operasi untuk tempoh dipilih, dengan revenue ${money(revenue)}.`);brief.push(`Direct ${money(summary.directSales)}, Trade-In ${money(summary.tradeSales)}, Repair ${money(summary.repairRevenue)}, Buy From Customer ${money(summary.buyOutflow)} cash outflow.`);brief.push(`Gross profit ${money(profit)} dengan liputan data kos ${coverage}%.`);brief.push(`Untuk bulan semasa, operating expenses ${money(fin.opex)} dan operating profit ${money(fin.operatingProfit)} (${fin.operatingMargin.toFixed(1)}% margin).`);if(pending.length)brief.push(`${pending.length} repair belum selesai${ages[3]?`, ${ages[3]} melebihi 7 hari`:""}.`);if(low.length)brief.push(`${low.length} item berada pada paras stok rendah.`);if(dm.overdue.length)brief.push(`${dm.overdue.length} Daily Mission telah melepasi due date.`);else if(dm.dueToday.length)brief.push(`${dm.done.length} daripada ${dm.dueToday.length} DM hari ini telah siap.`);brief.push(shift?`Shift ${shift.staffName||"staff"} sedang aktif.`:"Tiada shift aktif sekarang.");$("briefText").textContent=brief.join(" ")}
+renderTarget();renderChart();renderShift();renderActivity();const dm=renderDM();renderAlerts(low,pending,dm);const shift=currentShift(),brief=[];brief.push(`Meney merekodkan ${txnCount} transaksi operasi untuk tempoh dipilih, dengan revenue ${money(revenue)}.`);brief.push(`Direct ${money(summary.directSales)}, Trade-In ${money(summary.tradeSales)}, Repair ${money(summary.repairRevenue)}, Buy From Customer ${money(summary.buyOutflow)} cash outflow.`);brief.push(`Gross profit ${money(profit)} dengan liputan data kos ${coverage}%.`);brief.push(`Untuk bulan semasa, operating expenses ${money(fin.opex)} dan operating profit ${money(fin.operatingProfit)} (${fin.operatingMargin.toFixed(1)}% margin).`);brief.push(`Stock purchases bulan ini ${money(mg.stockPurchaseTotal)} (${money(mg.stockPaid)} paid), Buy From Customer ${money(mg.buyFromCustomer)}, dan supplier outstanding ${money(mg.supplierOutstanding)}.`);if(pending.length)brief.push(`${pending.length} repair belum selesai${ages[3]?`, ${ages[3]} melebihi 7 hari`:""}.`);if(low.length)brief.push(`${low.length} item berada pada paras stok rendah.`);if(dm.overdue.length)brief.push(`${dm.overdue.length} Daily Mission telah melepasi due date.`);else if(dm.dueToday.length)brief.push(`${dm.done.length} daripada ${dm.dueToday.length} DM hari ini telah siap.`);brief.push(shift?`Shift ${shift.staffName||"staff"} sedang aktif.`:"Tiada shift aktif sekarang.");$("briefText").textContent=brief.join(" ")}
 function renderTarget(){const now=new Date(),monthStart=new Date(now.getFullYear(),now.getMonth(),1),nextMonth=new Date(now.getFullYear(),now.getMonth()+1,1);const monthRevenue=revenueSummary(r=>{const d=toDate(effectiveTransactionValue(r));return Boolean(effectiveTransactionValue(r))&&d>=monthStart&&d<nextMonth}).revenue;const target=Number(state.target||5000),remaining=Math.max(0,target-monthRevenue),daysLeft=Math.max(1,new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate()+1),daily=remaining/daysLeft,pct=Math.min(100,target?monthRevenue/target*100:0);$("targetInput").value=target;$("targetCurrent").textContent=money(monthRevenue);$("targetTotal").textContent="Target "+money(target);$("targetPercent").textContent=`${Math.round(pct)}% achieved`;$("targetBar").style.width=pct+"%";$("targetRemaining").textContent=money(remaining);$("targetDaysLeft").textContent=daysLeft+" hari";$("targetDailyNeeded").textContent=money(daily)}
 function revenueForDateKey(key){const sales=state.sales.filter(x=>isActiveRecord(x)&&dateKey(toDate(effectiveTransactionValue(x)))===key).reduce((a,x)=>a+Number(x.total||0),0);const trades=state.trades.filter(x=>isActiveRecord(x)&&dateKey(toDate(effectiveTransactionValue(x)))===key).reduce((a,x)=>a+tradeAccounting(x).salesValue,0);const repairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&dateKey(toDate(effectiveTransactionValue(x)))===key).reduce((a,x)=>a+Number(x.finalPrice||x.estimate||0),0);return sales+trades+repairs}
 function renderChart(){const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return d}),vals=days.map(d=>revenueForDateKey(dateKey(d))),max=Math.max(...vals,1);$("chart").innerHTML=days.map((d,i)=>`<div class="bar-wrap"><div class="bar" data-value="${money(vals[i])}" style="height:${Math.max(3,vals[i]/max*100)}%"></div><div class="bar-label">${new Intl.DateTimeFormat("ms-MY",{weekday:"short"}).format(d)}</div></div>`).join("")}
