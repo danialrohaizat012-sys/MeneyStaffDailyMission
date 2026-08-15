@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07110c">
-<title>Meney Empire · Command Centre · Phase 1 Complete · POS + Accounting V3</title>
+<title>Meney Empire · Command Centre · Export Snapshot V4</title>
 <link rel="manifest" href="manifest-owner.json?v=3">
 <link rel="icon" type="image/png" href="empire-favicon.png?v=3">
 <link rel="apple-touch-icon" href="empire-apple-touch-icon.png?v=3">
@@ -73,7 +73,7 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}.shell{opacity:1}.shell.launc
 <button class="btn btn-primary">Log Masuk</button><div id="loginError" class="error hidden"></div>
 </form></section>
 <section id="app" class="shell hidden">
-<header class="topbar"><div class="brand"><div class="mark" style="width:40px;height:40px;border-radius:12px"><svg viewBox="0 0 48 48" fill="none"><path d="M10 35V13l14 11 14-11v22" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 24v12" stroke="white" stroke-width="6" stroke-linecap="round"/></svg></div><div class="brand-text"><strong>Meney Empire</strong><div class="muted" style="font-size:11px">Command Centre</div></div></div><div class="top-actions"><div id="liveStatus" class="live">● LIVE</div><div id="avatar" class="avatar">D</div><button id="logoutBtn" class="btn btn-light">Keluar</button></div></header>
+<header class="topbar"><div class="brand"><div class="mark" style="width:40px;height:40px;border-radius:12px"><svg viewBox="0 0 48 48" fill="none"><path d="M10 35V13l14 11 14-11v22" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 24v12" stroke="white" stroke-width="6" stroke-linecap="round"/></svg></div><div class="brand-text"><strong>Meney Empire</strong><div class="muted" style="font-size:11px">Command Centre</div></div></div><div class="top-actions"><div id="liveStatus" class="live">● LIVE</div><button id="exportSnapshotBtn" class="btn btn-light">Export Meney Snapshot</button><div id="avatar" class="avatar">D</div><button id="logoutBtn" class="btn btn-light">Keluar</button></div></header>
 <main>
 <div class="hero"><div><h1 id="greeting">Selamat datang.</h1><div id="dateText" class="date"></div></div><div><div class="filters"><button class="chip active" data-range="today">Today</button><button class="chip" data-range="week">7 Days</button><button class="chip" data-range="month">This Month</button><button class="chip" data-range="custom">Custom</button></div><div id="customRange" class="custom-range hidden" style="margin-top:8px"><input id="dateFrom" type="date"><span class="muted">hingga</span><input id="dateTo" type="date"><button id="applyRange" class="btn btn-light btn-sm">Apply</button></div></div></div>
 <section class="brief"><div class="brief-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="8"/></svg></div><div><strong>Executive Brief</strong><p id="briefText">Mengambil data operasi...</p></div><div id="updatedText" class="updated">Live</div></section>
@@ -347,6 +347,164 @@ function renderActivity(){const rows=[...state.sales.map(x=>({t:"sale",date:effe
 function renderDM(){const now=new Date(),today=todayKey();const dueToday=state.missions.filter(m=>dateKey(toDate(m.dueDate))===today),done=dueToday.filter(m=>m.status==="completed"),overdue=state.missions.filter(m=>m.status!=="completed"&&toDate(m.dueDate)<startOfDay(now));$("dmToday").textContent=dueToday.length;$("dmDone").textContent=done.length;$("dmOverdue").textContent=overdue.length;const staff=state.users.filter(u=>u.role!=="owner"&&u.active!==false);$("staffDm").innerHTML=staff.length?staff.map(u=>{const ms=dueToday.filter(m=>m.assignedTo===u.uid),c=ms.filter(m=>m.status==="completed").length,pct=ms.length?Math.round(c/ms.length*100):0,active=ms.find(m=>m.status==="in_progress")||ms.find(m=>m.status==="pending");return `<div class="staff-card"><div class="staff-head"><div><div class="staff-name">${esc(u.name||u.email||"Staff")}</div><div class="staff-meta">${c}/${ms.length} DM completed today</div></div><span class="badge ${pct===100&&ms.length?"green":ms.length?"orange":"blue"}">${ms.length?pct+"%":"NO DM"}</span></div><div class="dm-progress"><div style="width:${pct}%"></div></div>${active?`<div class="mission-mini"><strong>${esc(active.title||"Mission")}</strong><span class="status-${esc(active.status||"pending")}">${esc((active.status||"pending").replace("_"," ").toUpperCase())}</span></div>`:""}</div>`}).join(""):"<div class='empty'>Tiada staff aktif dijumpai.</div>";return{dueToday,done,overdue}}
 function renderAlerts(low,pending,dm){const alerts=[];(dm?.overdue||[]).slice(0,3).forEach(m=>alerts.push({type:"mission",title:`DM overdue: ${m.title||"Mission"}`,sub:`${m.assignedToName||"Staff"} · due ${toDate(m.dueDate).toLocaleDateString("ms-MY")}`}));low.slice(0,3).forEach(p=>alerts.push({type:"stock",title:`${p.name} tinggal ${Number(p.stock||0)}`,sub:`Low stock threshold: ${Number(p.lowStock??1)}`}));pending.filter(r=>(Date.now()-toDate(r.createdAt))/86400000>=5).slice(0,3).forEach(r=>alerts.push({type:"repair",title:`${r.ticketNo||"Repair"} sudah ${Math.floor((Date.now()-toDate(r.createdAt))/86400000)} hari`,sub:`${r.device||"Device"} · ${r.status||"Received"}`}));$("alerts").innerHTML=alerts.length?alerts.map(a=>`<div class="alert"><div>${a.type==="mission"?"✓":icons[a.type==="stock"?"buy":"repair"]}</div><div><strong>${esc(a.title)}</strong><p>${esc(a.sub)}</p></div></div>`).join(""):"<div class='empty'>Tiada perkara kritikal buat masa ini.</div>"}
 function openDetails(type){let title="Details",rows=[],headers=[];if(type==="sales"||type==="transactions"){title="Operating Transactions";headers=["No.","Type","Customer","Amount"];rows=[...activeSales().map(s=>[s.receiptNo||s.id,"Direct Sale",s.customer||"Walk-in",money(s.total)]),...activeBuys().map(b=>[b.buyNo||b.id,"Buy From Customer",b.customer||"Customer","−"+money(b.totalAmount??b.offer??0)]),...activeTrades().map(t=>[t.tradeNo||t.id,"Trade-In Sale",t.customer||"Customer",money(tradeAccounting(t).salesValue)]),...completedRepairs().map(r=>[r.ticketNo||r.id,"Repair",r.customer||"Customer",money(r.finalPrice||r.estimate||0)])].sort((a,b)=>String(a[0]).localeCompare(String(b[0])))}else if(type==="profit"){title="Gross Profit Breakdown";headers=["No.","Type","Revenue","Profit"];rows=[...activeSales().map(s=>[s.receiptNo||s.id,"Direct Sale",money(s.total),money(saleProfit(s))]),...activeTrades().map(t=>{const a=tradeAccounting(t);return[t.tradeNo||t.id,"Trade-In",money(a.salesValue),money(a.profit)]}),...completedRepairs().map(r=>[r.ticketNo||r.id,"Repair",money(r.finalPrice||r.estimate||0),money(r.netProfit??(Number(r.finalPrice||r.estimate||0)-Number(r.totalCost||0)))])]}else if(type==="repairs"||type==="ready"){title=type==="ready"?"Ready for Pickup":"Pending Repairs";headers=["Ticket","Customer","Device","Status","Age"];rows=state.repairs.filter(r=>type==="ready"?r.status==="Ready":r.status!=="Completed").map(r=>[r.ticketNo||r.id,r.customer||"-",r.device||"-",r.status||"Received",Math.max(0,Math.floor((Date.now()-toDate(r.createdAt))/86400000))+" days"])}else if(type==="lowstock"||type==="inventory"){title=type==="lowstock"?"Low Stock Items":"Inventory Overview";headers=["Product","SKU","Stock","Cost Value","Retail Value"];rows=state.products.filter(p=>type==="lowstock"?Number(p.stock||0)<=Number(p.lowStock??1):true).map(p=>[p.name||"-",p.sku||"-",Number(p.stock||0),money(Number(p.cost||0)*Number(p.stock||0)),money(Number(p.price||0)*Number(p.stock||0))])}else if(type==="missions"){title="Daily Missions";headers=["Mission","Staff","Priority","Status","Due"];rows=[...state.missions].sort((a,b)=>toDate(a.dueDate)-toDate(b.dueDate)).map(m=>[m.title||"-",m.assignedToName||"-",String(m.priority||"medium").toUpperCase(),String(m.status||"pending").replace("_"," ").toUpperCase(),toDate(m.dueDate).toLocaleDateString("ms-MY")])}$("modalTitle").textContent=title;$("modalContent").innerHTML=rows.length?`<table class="modal-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`:"<div class='empty'>Tiada data untuk dipaparkan.</div>";$("detailModal").classList.remove("hidden")}
+
+function round2(n){return Math.round((Number(n||0)+Number.EPSILON)*100)/100}
+function monthKeyNow(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
+function currentMonthRevenueData(){
+  const b=monthBoundsNow();
+  return revenueSummary(r=>{
+    const v=effectiveTransactionValue(r);
+    if(!v)return false;
+    const d=toDate(v);
+    return d>=b.start&&d<b.end;
+  });
+}
+function currentMonthDailySales(){
+  const now=new Date(),b=monthBoundsNow(),days=[];
+  for(let d=new Date(b.start);d<b.end;d.setDate(d.getDate()+1)){
+    const key=dateKey(d);
+    if(d>now && key!==dateKey(now)) break;
+    days.push({date:key,revenue:round2(revenueForDateKey(key))});
+  }
+  return days;
+}
+function buildMeneySnapshot(){
+  const now=new Date();
+  const fin=accountingSummary();
+  const mg=managementSummary(fin);
+  const target=Number(state.target||5000);
+  const remaining=Math.max(0,target-fin.revenue);
+  const daysRemaining=Math.max(1,new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate()+1);
+  const requiredDaily=remaining/daysRemaining;
+  const targetAchievement=target?fin.revenue/target*100:0;
+
+  const channel = (revenue,gp)=>({
+    revenue:round2(revenue),
+    grossProfit:round2(gp),
+    grossMarginPct:round2(revenue?gp/revenue*100:0),
+    revenueContributionPct:round2(fin.revenue?revenue/fin.revenue*100:0)
+  });
+
+  const todayKeyValue=dateKey(now);
+  const todaySales=round2(revenueForDateKey(todayKeyValue));
+  const dailySales=currentMonthDailySales();
+  const activeDays=dailySales.filter(d=>d.revenue>0).length;
+  const averageDailySales=activeDays?dailySales.reduce((s,d)=>s+d.revenue,0)/activeDays:0;
+
+  const lowStock=state.products.filter(p=>Number(p.stock||0)<=Number(p.lowStock??1));
+  const pendingRepairs=state.repairs.filter(r=>r.status!=="Completed");
+  const readyRepairs=state.repairs.filter(r=>r.status==="Ready");
+  const agedRepairs=pendingRepairs.filter(r=>{
+    const created=toDate(r.createdAt);
+    return created && (Date.now()-created.getTime())/86400000>=7;
+  });
+
+  const expenseBreakdown=Object.fromEntries(fin.categories.map(([k,v])=>[k,round2(v)]));
+
+  const alerts=[];
+  if(fin.operatingProfit<0)alerts.push("Operating profit is negative.");
+  if(fin.grossMargin<15&&fin.revenue>0)alerts.push("Gross margin is below 15%.");
+  if(targetAchievement<50&&now.getDate()>15)alerts.push("Monthly sales target pace is behind 50% after mid-month.");
+  if(mg.supplierOutstanding>0)alerts.push(`Supplier outstanding is ${round2(mg.supplierOutstanding)}.`);
+  if(lowStock.length)alerts.push(`${lowStock.length} products are at or below low-stock threshold.`);
+  if(agedRepairs.length)alerts.push(`${agedRepairs.length} pending repairs are aged 7+ days.`);
+
+  return {
+    schemaVersion:"meney_snapshot_v1",
+    generatedAt:now.toISOString(),
+    business:{
+      name:"Meney",
+      outletId:"pasir_tumboh",
+      outletName:"Meney Pasir Tumboh"
+    },
+    reportingPeriod:{
+      type:"month_to_date",
+      month:monthKeyNow(),
+      startDate:dateKey(monthBoundsNow().start),
+      asOfDate:todayKeyValue
+    },
+    sales:{
+      monthlyTarget:round2(target),
+      revenueMTD:round2(fin.revenue),
+      targetAchievementPct:round2(targetAchievement),
+      remainingSalesNeeded:round2(remaining),
+      daysRemaining,
+      requiredDailySalesPace:round2(requiredDaily),
+      todaySales,
+      averageDailySalesOnActiveSalesDays:round2(averageDailySales),
+      transactionCount:fin.transactions
+    },
+    profitability:{
+      grossProfitMTD:round2(fin.profit),
+      grossMarginPct:round2(fin.grossMargin),
+      operatingExpensesMTD:round2(fin.opex),
+      operatingProfitMTD:round2(fin.operatingProfit),
+      operatingMarginPct:round2(fin.operatingMargin),
+      currentNetProfitProxyMTD:round2(fin.operatingProfit),
+      terminologyNote:"Current net profit proxy equals operating profit because non-operating items such as tax, financing cost and depreciation are not separately tracked yet."
+    },
+    revenueMix:{
+      directProduct:channel(fin.directSales,fin.directProfit),
+      tradeIn:channel(fin.tradeSales,fin.tradeProfit),
+      repair:channel(fin.repairRevenue,fin.repairProfit)
+    },
+    inventory:{
+      currentProductMasterCostValue:round2(mg.inventoryCost),
+      productStockUnits:mg.inventoryUnits,
+      inventoryLedgerOwnedUnits:mg.ownedInventoryUnits,
+      inventoryLedgerConsignmentUnits:mg.consignmentUnits,
+      ownedInventoryUnitCostValue:round2(mg.ownedUnitCost),
+      consignmentSupplierValue:round2(mg.consignmentSupplierValue),
+      stockPurchasesMTD:round2(mg.stockPurchaseTotal),
+      stockPurchasesPaidMTD:round2(mg.stockPaid),
+      supplierOutstanding:round2(mg.supplierOutstanding),
+      buyFromCustomerMTD:round2(mg.buyFromCustomer),
+      lowStockProductCount:lowStock.length
+    },
+    expenses:{
+      operatingExpenseCount:fin.expenses.length,
+      totalOperatingExpensesMTD:round2(fin.opex),
+      breakdown:expenseBreakdown
+    },
+    cashFlowIndicators:{
+      manualCashInMTD:round2(mg.manualCashIn),
+      manualCashOutMTD:round2(mg.manualCashOut),
+      manualCashMovementNetMTD:round2(mg.cashMoveNet),
+      knownInventoryAcquisitionMTD:round2(mg.inventoryAcquisition),
+      knownOperatingOutflowMTD:round2(mg.operatingOutflow),
+      note:"Cash movement is not automatically treated as revenue or operating expense."
+    },
+    operations:{
+      pendingRepairCount:pendingRepairs.length,
+      readyForPickupCount:readyRepairs.length,
+      agedRepair7PlusDaysCount:agedRepairs.length,
+      lowStockProductCount:lowStock.length
+    },
+    dailySales,
+    alerts
+  };
+}
+function downloadMeneySnapshot(){
+  try{
+    const snapshot=buildMeneySnapshot();
+    const json=JSON.stringify(snapshot,null,2);
+    const blob=new Blob([json],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=`Meney-Snapshot-${snapshot.reportingPeriod.month}-${snapshot.reportingPeriod.asOfDate}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    showToast("Meney Snapshot exported");
+  }catch(err){
+    console.error(err);
+    showToast("Snapshot export gagal","error");
+  }
+}
+$("exportSnapshotBtn").onclick=downloadMeneySnapshot;
+
 $("loginForm").onsubmit=async e=>{e.preventDefault();$("loginError").classList.add("hidden");$("loader").classList.remove("hidden");try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(err){$("loginError").textContent="Login gagal: "+(err.code?.includes("invalid-credential")?"Email atau password salah.":err.message);$("loginError").classList.remove("hidden")}finally{$("loader").classList.add("hidden")}};
 $("logoutBtn").onclick=()=>signOut(auth);$("saveTarget").onclick=async()=>{const v=Math.max(1,Number($("targetInput").value||5000));try{await setDoc(doc(db,"settings","ownerDashboard"),{salesTarget:v,updatedAt:new Date(),updatedBy:state.user.uid},{merge:true});state.target=v;render();showToast("Sales target updated")}catch(e){showToast("Target gagal disimpan","error")}};document.querySelectorAll("[data-range]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-range]").forEach(x=>x.classList.toggle("active",x===b));state.range=b.dataset.range;$("customRange").classList.toggle("hidden",state.range!=="custom");render()});$("applyRange").onclick=()=>{state.from=$("dateFrom").value;state.to=$("dateTo").value;if(!state.from||!state.to)return alert("Pilih tarikh mula dan akhir.");if(state.from>state.to)return alert("Tarikh mula mesti sebelum tarikh akhir.");render()};document.querySelectorAll("[data-detail]").forEach(el=>el.onclick=()=>openDetails(el.dataset.detail));$("closeModal").onclick=()=>$("detailModal").classList.add("hidden");$("detailModal").onclick=e=>{if(e.target===$("detailModal"))$("detailModal").classList.add("hidden")};window.addEventListener("online",()=>{updateConnectivity();render();showToast("Connection restored");});window.addEventListener("offline",()=>{updateConnectivity();render();});
 onAuthStateChanged(auth,async user=>{finishSplash();state.unsubs.forEach(u=>u());state.unsubs=[];if(!user){state.user=null;$("loginPage").classList.remove("hidden");$("app").classList.add("hidden");return}$("loader").classList.remove("hidden");state.user=user;const snap=await getDoc(doc(db,"users",user.uid));state.profile=snap.exists()?snap.data():{name:user.email,role:"staff"};const commandCentreRoles=["owner","partner"];if(!commandCentreRoles.includes(String(state.profile.role||"").toLowerCase())){await signOut(auth);$("loginError").textContent="Akses ditolak. Command Centre hanya untuk Owner atau Partner.";$("loginError").classList.remove("hidden");$("loader").classList.add("hidden");return}$("avatar").textContent=(state.profile.name||user.email).charAt(0).toUpperCase();$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");launchDashboard();subscribeAll();$("loader").classList.add("hidden")});setInterval(()=>{if(state.user)render()},60000);
