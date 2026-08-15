@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07110c">
-<title>Meney Accounting · Expense UI Fix V2</title>
+<title>Meney Accounting · Accrual Period V3</title>
 <style>
 :root{
   --bg:#f4f7f5;--panel:#fff;--ink:#0f1712;--muted:#718078;--line:#dfe7e2;
@@ -108,7 +108,10 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
         <section class="card">
           <div class="section-head"><h3>Quick Expense</h3><span>Owner / Partner / Manager</span></div>
           <form id="quickExpenseForm">
-            <div class="field"><label>Date</label><input id="expenseDate" type="date" required></div>
+            <div class="form-grid">
+              <div class="field"><label>Expense Period</label><input id="expensePeriod" type="month" required></div>
+              <div class="field"><label>Payment Date</label><input id="expenseDate" type="date" required></div>
+            </div>
             <div class="field"><label>Category</label><select id="expenseCategory" required>
               <option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option>
               <option>Marketing</option><option>Transport</option><option>Maintenance</option><option>Office & Supplies</option>
@@ -122,7 +125,7 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
         </section>
         <section class="card">
           <div class="section-head"><h3>Accounting Rule</h3></div>
-          <div class="notice"><strong>Stock purchase / Buy From Customer bukan operating expense.</strong><br><br>Ia masuk inventory/COGS. P&L ini menolak kos produk melalui gross profit POS dahulu, kemudian hanya menolak overhead dan operating expenses di Accounting.</div>
+          <div class="notice"><strong>P&L menggunakan Expense Period, bukan Payment Date.</strong><br><br>Contoh: gaji Julai dibayar pada Ogos → expense masuk P&L Julai, tetapi payment date kekal Ogos untuk cash-flow context.<br><br><strong>Stock purchase / Buy From Customer bukan operating expense.</strong> Ia masuk inventory/COGS.</div>
         </section>
       </aside>
     </div>
@@ -154,7 +157,7 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
   <section id="page-expenses" class="page hidden">
     <div class="card">
       <div class="section-head"><h3>Expense Ledger</h3><button id="newExpenseBtn" class="btn btn-green">＋ Add Expense</button></div>
-      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Payment</th><th>Source</th><th>Amount</th><th>By</th><th>Action</th></tr></thead><tbody id="expenseBody"></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Expense Period</th><th>Payment Date</th><th>Category</th><th>Description</th><th>Payment</th><th>Source</th><th>Amount</th><th>By</th><th>Action</th></tr></thead><tbody id="expenseBody"></tbody></table></div>
     </div>
   </section>
 
@@ -218,13 +221,14 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
   <form id="expenseModalForm">
     <input id="modalExpenseId" type="hidden"><input id="modalCashMoveId" type="hidden">
     <div class="form-grid">
-      <div class="field"><label>Date</label><input id="modalDate" type="date" required></div>
-      <div class="field"><label>Category</label><select id="modalCategory" required>
+      <div class="field"><label>Expense Period</label><input id="modalExpensePeriod" type="month" required></div>
+      <div class="field"><label>Payment Date</label><input id="modalDate" type="date" required></div>
+    </div>
+    <div class="field"><label>Category</label><select id="modalCategory" required>
         <option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option>
         <option>Marketing</option><option>Transport</option><option>Maintenance</option><option>Office & Supplies</option>
         <option>Professional Fees</option><option>Bank Charges</option><option>Miscellaneous</option>
       </select></div>
-    </div>
     <div class="field"><label>Description</label><input id="modalDescription" required></div>
     <div class="form-grid">
       <div class="field"><label>Amount (RM)</label><input id="modalAmount" type="number" min="0.01" step=".01" required></div>
@@ -254,7 +258,13 @@ const isActive=r=>r?.status!=="cancelled"&&r?.transactionStatus!=="cancelled";
 function toast(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),2400)}
 function monthBounds(){const [y,m]=state.month.split("-").map(Number);const start=new Date(y,m-1,1),end=new Date(y,m,1);return{start,end}}
 function inMonthRecord(r){const d=effectiveDate(r);if(!d)return false;const{start,end}=monthBounds();return d>=start&&d<end}
-function inMonthExpense(e){const d=toDate(e.expenseDate||e.createdAt);if(!d)return false;const{start,end}=monthBounds();return d>=start&&d<end}
+function expensePeriodKey(e){
+  if(e?.expensePeriod)return String(e.expensePeriod).slice(0,7);
+  const d=toDate(e?.expenseDate||e?.paymentDate||e?.createdAt);
+  return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`:"";
+}
+function inMonthExpense(e){return expensePeriodKey(e)===state.month}
+function paymentDateOfExpense(e){return toDate(e?.paymentDate||e?.expenseDate||e?.createdAt)}
 function inMonthCash(c){const d=toDate(c.transactionDate||c.createdAt);if(!d)return false;const{start,end}=monthBounds();return d>=start&&d<end}
 function tradeOutUnitCost(item){if(Number.isFinite(Number(item.cost)))return Number(item.cost||0);const p=state.products.find(x=>x.id===item.productId);return Number(p?.cost||0)}
 function tradeAccounting(t){const outs=t.stockOutItems||[],ins=t.stockInItems||[];const salesValue=Number(t.totalStockOut??outs.reduce((s,i)=>s+Number(i.price||0)*Number(i.qty||1),0));const cogs=outs.reduce((s,i)=>s+tradeOutUnitCost(i)*Number(i.qty||1),0);const buy=Number(t.totalTradeValue??ins.reduce((s,i)=>s+Number(i.tradeValue||0),0));return{salesValue,cogs,profit:salesValue-cogs,buy}}
@@ -293,7 +303,7 @@ function render(){
   renderExpenses(f.expenses);renderCash();renderReceipts();
 }
 function renderExpenses(expenses){
-  $("expenseBody").innerHTML=expenses.length?[...expenses].sort((a,b)=>(toDate(b.expenseDate||b.createdAt)||0)-(toDate(a.expenseDate||a.createdAt)||0)).map(e=>`<tr><td>${localISO(toDate(e.expenseDate||e.createdAt)||new Date())}</td><td><span class="badge blue">${esc(e.category||"-")}</span></td><td><strong>${esc(e.description||"-")}</strong>${e.notes?`<div class="muted" style="font-size:10px">${esc(e.notes)}</div>`:""}</td><td>${esc(e.paymentMethod||"-")}</td><td>${e.cashMoveId?'<span class="badge green">POS Cash</span>':'<span class="badge amber">Manual</span>'}</td><td><strong>${money(e.amount)}</strong></td><td>${esc(e.createdByName||"-")}</td><td><button class="btn btn-light" onclick="editExpense('${e.id}')">Edit</button> <button class="btn btn-red" onclick="deleteExpense('${e.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="8" class="empty">Belum ada expense.</td></tr>'
+  $("expenseBody").innerHTML=expenses.length?[...expenses].sort((a,b)=>(paymentDateOfExpense(b)||0)-(paymentDateOfExpense(a)||0)).map(e=>`<tr><td><strong>${esc(expensePeriodKey(e)||"-")}</strong></td><td>${localISO(paymentDateOfExpense(e)||new Date())}</td><td><span class="badge blue">${esc(e.category||"-")}</span></td><td><strong>${esc(e.description||"-")}</strong>${e.notes?`<div class="muted" style="font-size:10px">${esc(e.notes)}</div>`:""}</td><td>${esc(e.paymentMethod||"-")}</td><td>${e.cashMoveId?'<span class="badge green">POS Cash</span>':'<span class="badge amber">Manual</span>'}</td><td><strong>${money(e.amount)}</strong></td><td>${esc(e.createdByName||"-")}</td><td><button class="btn btn-light" onclick="editExpense('${e.id}')">Edit</button> <button class="btn btn-red" onclick="deleteExpense('${e.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="9" class="empty">Belum ada expense.</td></tr>'
 }
 function renderCash(){
   const rows=state.cashMoves.filter(inMonthCash).sort((a,b)=>(toDate(b.transactionDate||b.createdAt)||0)-(toDate(a.transactionDate||a.createdAt)||0));
@@ -302,16 +312,17 @@ function renderCash(){
 function openExpense(data={}){
   $("expenseModalTitle").textContent=data.id?"Edit Expense":data.cashMoveId?"Convert Cash Out to Expense":"Add Expense";
   $("modalExpenseId").value=data.id||"";$("modalCashMoveId").value=data.cashMoveId||"";
-  $("modalDate").value=data.expenseDate?localISO(toDate(data.expenseDate)||new Date()):localISO(new Date());
+  $("modalExpensePeriod").value=data.expensePeriod||expensePeriodKey(data)||state.month;
+  $("modalDate").value=localISO(paymentDateOfExpense(data)||new Date());
   $("modalCategory").value=data.category||"Miscellaneous";$("modalDescription").value=data.description||"";$("modalAmount").value=Number(data.amount||0)||"";$("modalPayment").value=data.paymentMethod||"Cash";$("modalNotes").value=data.notes||"";
   $("expenseModal").classList.remove("hidden")
 }
 window.editExpense=id=>{const e=state.accountingExpenses.find(x=>x.id===id);if(e)openExpense(e)}
 window.deleteExpense=async id=>{if(!confirm("Delete expense ini?"))return;try{await deleteDoc(doc(db,"accountingExpenses",id));toast("Expense deleted")}catch(e){toast("Delete gagal: "+e.message)}}
-window.convertCash=id=>{const c=state.cashMoves.find(x=>x.id===id);if(!c)return;openExpense({cashMoveId:id,expenseDate:c.transactionDate||c.createdAt,description:c.note||c.reason||"Cash Out",amount:Number(c.amount||0),paymentMethod:"Cash",notes:"Converted from POS Cash Movement"})}
+window.convertCash=id=>{const c=state.cashMoves.find(x=>x.id===id);if(!c)return;openExpense({cashMoveId:id,expenseDate:c.transactionDate||c.createdAt,expensePeriod:(()=>{const d=toDate(c.transactionDate||c.createdAt)||new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`})(),description:c.note||c.reason||"Cash Out",amount:Number(c.amount||0),paymentMethod:"Cash",notes:"Converted from POS Cash Movement"})}
 async function saveExpense(payload,id=""){if(id)await updateDoc(doc(db,"accountingExpenses",id),{...payload,updatedAt:serverTimestamp(),updatedBy:state.user.uid});else await addDoc(collection(db,"accountingExpenses"),{...payload,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email})}
-$("quickExpenseForm").onsubmit=async e=>{e.preventDefault();try{await saveExpense({outletId:state.outletId,expenseDate:$("expenseDate").value+"T12:00:00",category:$("expenseCategory").value,description:$("expenseDescription").value.trim(),amount:Number($("expenseAmount").value||0),paymentMethod:$("expensePayment").value,notes:"",cashMoveId:null});e.target.reset();$("expenseDate").value=localISO(new Date());toast("Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
-$("expenseModalForm").onsubmit=async e=>{e.preventDefault();const id=$("modalExpenseId").value;try{await saveExpense({outletId:state.outletId,expenseDate:$("modalDate").value+"T12:00:00",category:$("modalCategory").value,description:$("modalDescription").value.trim(),amount:Number($("modalAmount").value||0),paymentMethod:$("modalPayment").value,notes:$("modalNotes").value.trim(),cashMoveId:$("modalCashMoveId").value||null},id);$("expenseModal").classList.add("hidden");toast(id?"Expense updated":"Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
+$("quickExpenseForm").onsubmit=async e=>{e.preventDefault();try{await saveExpense({outletId:state.outletId,expensePeriod:$("expensePeriod").value,paymentDate:$("expenseDate").value+"T12:00:00",expenseDate:$("expenseDate").value+"T12:00:00",category:$("expenseCategory").value,description:$("expenseDescription").value.trim(),amount:Number($("expenseAmount").value||0),paymentMethod:$("expensePayment").value,notes:"",cashMoveId:null});e.target.reset();$("expensePeriod").value=state.month;$("expenseDate").value=localISO(new Date());toast("Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
+$("expenseModalForm").onsubmit=async e=>{e.preventDefault();const id=$("modalExpenseId").value;try{await saveExpense({outletId:state.outletId,expensePeriod:$("modalExpensePeriod").value,paymentDate:$("modalDate").value+"T12:00:00",expenseDate:$("modalDate").value+"T12:00:00",category:$("modalCategory").value,description:$("modalDescription").value.trim(),amount:Number($("modalAmount").value||0),paymentMethod:$("modalPayment").value,notes:$("modalNotes").value.trim(),cashMoveId:$("modalCashMoveId").value||null},id);$("expenseModal").classList.add("hidden");toast(id?"Expense updated":"Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
 $("newExpenseBtn").onclick=()=>openExpense();$("closeExpenseModal").onclick=()=>$("expenseModal").classList.add("hidden");$("expenseModal").onclick=e=>{if(e.target===$("expenseModal"))$("expenseModal").classList.add("hidden")};
 
 function enhancePixels(ctx,w,h,mode){
@@ -360,7 +371,7 @@ $("receiptForm").onsubmit=async e=>{
   try{
     const ref=await addDoc(collection(db,"accountingReceipts"),{outletId:state.outletId,receiptDate:$("receiptDate").value+"T12:00:00",merchant:$("receiptMerchant").value.trim(),amount,filingType,category:$("receiptCategory").value,referenceNo:$("receiptReference").value.trim(),notes:$("receiptNotes").value.trim(),imageData:state.scannedReceipt,imageMime:"image/jpeg",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email,expenseId:null});
     if(filingType==="operating_expense"&&$("createExpenseFromReceipt").checked&&amount>0){
-      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,expenseDate:$("receiptDate").value+"T12:00:00",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
+      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,expensePeriod:$("receiptDate").value.slice(0,7),paymentDate:$("receiptDate").value+"T12:00:00",expenseDate:$("receiptDate").value+"T12:00:00",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
       await updateDoc(ref,{expenseId:er.id});
     }
     state.scannedReceipt=null;receiptSourceImage=null;e.target.reset();$("receiptDate").value=localISO(new Date());$("scanEditor").classList.add("hidden");$("receiptSize").textContent="No scan";$("receiptFile").value="";toast("Receipt filed")
@@ -414,7 +425,7 @@ $("receiptForm").onsubmit=async e=>{
   try{
     const ref=await addDoc(collection(db,"accountingReceipts"),{outletId:state.outletId,receiptDate:$("receiptDate").value+"T12:00:00",merchant:$("receiptMerchant").value.trim(),amount,filingType,category:$("receiptCategory").value,referenceNo:$("receiptReference").value.trim(),notes:$("receiptNotes").value.trim(),imageData:state.scannedReceipt,imageMime:"image/jpeg",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email,expenseId:null});
     if(filingType==="operating_expense"&&$("createExpenseFromReceipt").checked&&amount>0){
-      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,expenseDate:$("receiptDate").value+"T12:00:00",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
+      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,expensePeriod:$("receiptDate").value.slice(0,7),paymentDate:$("receiptDate").value+"T12:00:00",expenseDate:$("receiptDate").value+"T12:00:00",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
       await updateDoc(ref,{expenseId:er.id});
     }
     state.scannedReceipt=null;receiptSourceImage=null;e.target.reset();$("receiptDate").value=localISO(new Date());$("scanEditor").classList.add("hidden");$("receiptSize").textContent="No scan";$("receiptFile").value="";toast("Receipt filed")
@@ -422,7 +433,7 @@ $("receiptForm").onsubmit=async e=>{
 };
 
 document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+b.dataset.page).classList.remove("hidden");const titles={dashboard:"Accounting Overview",pnl:"Monthly P&L",expenses:"Expense Ledger",cash:"Cash Movement Audit",receipts:"Receipt Filing"};$("pageTitle").textContent=titles[b.dataset.page]});
-$("monthPicker").onchange=e=>{state.month=e.target.value;render()};$("outletSelect").onchange=e=>{state.outletId=e.target.value;render()};$("logoutBtn").onclick=()=>signOut(auth);
+$("monthPicker").onchange=e=>{state.month=e.target.value;$("expensePeriod").value=state.month;render()};$("outletSelect").onchange=e=>{state.outletId=e.target.value;render()};$("logoutBtn").onclick=()=>signOut(auth);
 $("loginForm").onsubmit=async e=>{e.preventDefault();$("loginError").classList.add("hidden");try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(err){$("loginError").textContent="Login gagal: "+(err.code?.includes("invalid-credential")?"Email atau password salah.":err.message);$("loginError").classList.remove("hidden")}}
 function sub(name,sort="createdAt"){
   const u=onSnapshot(
@@ -440,7 +451,7 @@ function sub(name,sort="createdAt"){
 }
 function subscribeAll(){state.unsubs.forEach(u=>u());state.unsubs=[];state.unsubs.push(onSnapshot(collection(db,"products"),s=>{state.products=s.docs.map(d=>({id:d.id,...d.data()}));render()}));["sales","buys","trades","repairs","cashMoves","accountingExpenses","accountingReceipts"].forEach(n=>sub(n))}
 onAuthStateChanged(auth,async user=>{state.unsubs.forEach(u=>u());state.unsubs=[];if(!user){state.user=null;$("loginPage").classList.remove("hidden");$("appShell").classList.add("hidden");return}state.user=user;const s=await getDoc(doc(db,"users",user.uid));state.profile=s.exists()?s.data():{};const role=String(state.profile.role||"").toLowerCase();if(!allowedRoles.includes(role)||state.profile.active===false){await signOut(auth);$("loginError").textContent="Akses ditolak. Meney Accounting hanya untuk Owner, Partner atau Manager aktif.";$("loginError").classList.remove("hidden");return}$("userText").textContent=state.profile.name||user.email;$("loginPage").classList.add("hidden");$("appShell").classList.remove("hidden");subscribeAll();render()});
-const now=new Date();state.month=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;$("monthPicker").value=state.month;$("expenseDate").value=localISO(now);$("receiptDate").value=localISO(now);
+const now=new Date();state.month=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;$("monthPicker").value=state.month;$("expensePeriod").value=state.month;$("expenseDate").value=localISO(now);$("receiptDate").value=localISO(now);
 </script>
 </body>
 </html>
