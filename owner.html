@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07110c">
-<title>Meney Empire · Command Centre · Accrual Expense V5</title>
+<title>Meney Empire · Command Centre · Range-Aware Financials V6</title>
 <link rel="manifest" href="manifest-owner.json?v=3">
 <link rel="icon" type="image/png" href="empire-favicon.png?v=3">
 <link rel="apple-touch-icon" href="empire-apple-touch-icon.png?v=3">
@@ -89,11 +89,11 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}.shell{opacity:1}.shell.launc
 <div class="mini"><span>Stock Cost Value</span><strong id="stockCost">RM0</strong><div class="sub" id="stockCostSub">0 units</div></div><div class="mini"><span>Retail Value</span><strong id="stockRetail">RM0</strong><div class="sub" id="stockMargin">Potential margin RM0</div></div><div class="mini"><span>Cost Data Coverage</span><strong id="costCoverage">0%</strong><div class="coverage"><div id="coverageBar" style="width:0%"></div></div></div>
 </div></section>
 <section class="card">
-  <div class="section-head"><h3>Profitability · This Month</h3><span>POS + Meney Accounting</span></div>
+  <div class="section-head"><h3>Profitability · Selected Period</h3><span>POS + Meney Accounting</span></div>
   <div class="finance-grid">
-    <div class="finance-mini"><span>Gross Profit MTD</span><strong id="finGross">RM0</strong><div class="sub" id="finGrossMargin">Gross margin 0%</div></div>
-    <div class="finance-mini"><span>Operating Expenses MTD</span><strong id="finOpex">RM0</strong><div class="sub" id="finExpenseCount">0 expense records</div></div>
-    <div class="finance-mini"><span>Operating Profit MTD</span><strong id="finOperatingProfit">RM0</strong><div class="sub" id="finOperatingMargin">Operating margin 0%</div></div>
+    <div class="finance-mini"><span>Gross Profit</span><strong id="finGross">RM0</strong><div class="sub" id="finGrossMargin">Gross margin 0%</div></div>
+    <div class="finance-mini"><span>Operating Expenses</span><strong id="finOpex">RM0</strong><div class="sub" id="finExpenseCount">0 expense records</div></div>
+    <div class="finance-mini"><span>Operating Profit</span><strong id="finOperatingProfit">RM0</strong><div class="sub" id="finOperatingMargin">Operating margin 0%</div></div>
     <div class="finance-mini"><span>Current Net Profit*</span><strong id="finNet">RM0</strong><div class="sub">*Same as operating profit until non-operating items are tracked</div></div>
   </div>
   <div class="section-head" style="margin-top:18px;margin-bottom:8px"><h3 style="font-size:14px">Expense Breakdown</h3><span id="finExpensePeriod">This month</span></div>
@@ -101,7 +101,7 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}.shell{opacity:1}.shell.launc
 </section>
 
 <section class="card">
-  <div class="section-head"><h3>Revenue Mix · This Month</h3><span>Channel contribution & margin</span></div>
+  <div class="section-head"><h3>Revenue Mix · Selected Period</h3><span>Channel contribution & margin</span></div>
   <div class="channel-grid">
     <div class="channel-card"><div class="channel-head"><h4>Direct Product</h4><span id="chDirectShare" class="channel-share">0%</span></div><div id="chDirectRevenue" class="channel-revenue">RM0</div><div class="channel-meta"><span id="chDirectGP">GP RM0</span><span id="chDirectMargin">0% margin</span></div><div class="channel-track"><div id="chDirectBar" style="width:0%"></div></div></div>
     <div class="channel-card"><div class="channel-head"><h4>Trade-In</h4><span id="chTradeShare" class="channel-share">0%</span></div><div id="chTradeRevenue" class="channel-revenue">RM0</div><div class="channel-meta"><span id="chTradeGP">GP RM0</span><span id="chTradeMargin">0% margin</span></div><div class="channel-track"><div id="chTradeBar" style="width:0%"></div></div></div>
@@ -110,30 +110,30 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}.shell{opacity:1}.shell.launc
 </section>
 
 <section class="card">
-  <div class="section-head"><h3>Business Health · This Month</h3><span>Automatic management signals</span></div>
+  <div class="section-head"><h3>Business Health · Selected Period</h3><span>Automatic management signals</span></div>
   <div id="businessHealth" class="health-list"><div class="empty">Calculating business signals...</div></div>
 </section>
 
 <section class="card">
-  <div class="section-head"><h3>Inventory & Cash Context · This Month</h3><span>Management indicators · not P&amp;L expenses</span></div>
+  <div class="section-head"><h3>Inventory & Cash Context · Selected Period</h3><span>Management indicators · not P&amp;L expenses</span></div>
   <div class="mgmt-grid">
     <div class="mgmt-mini"><span>Current Inventory Cost</span><strong id="mgInventoryCost">RM0</strong><div class="sub" id="mgInventoryUnits">0 units · product master value</div></div>
-    <div class="mgmt-mini"><span>Stock Purchases MTD</span><strong id="mgStockPurchases">RM0</strong><div class="sub" id="mgStockPurchaseCount">0 purchase orders</div></div>
-    <div class="mgmt-mini"><span>Stock Purchase Paid MTD</span><strong id="mgStockPaid">RM0</strong><div class="sub">Inventory acquisition cash/payment, not OpEx</div></div>
+    <div class="mgmt-mini"><span>Stock Purchases</span><strong id="mgStockPurchases">RM0</strong><div class="sub" id="mgStockPurchaseCount">0 purchase orders</div></div>
+    <div class="mgmt-mini"><span>Stock Purchase Paid</span><strong id="mgStockPaid">RM0</strong><div class="sub">Inventory acquisition cash/payment, not OpEx</div></div>
     <div class="mgmt-mini"><span>Supplier Outstanding</span><strong id="mgSupplierOutstanding">RM0</strong><div class="sub">Outstanding balance on active purchase orders</div></div>
-    <div class="mgmt-mini"><span>Buy From Customer MTD</span><strong id="mgBuyCustomer">RM0</strong><div class="sub">Inventory acquisition · excluded from OpEx</div></div>
-    <div class="mgmt-mini"><span>Operating Expenses MTD</span><strong id="mgOpex">RM0</strong><div class="sub">From Meney Accounting only</div></div>
-    <div class="mgmt-mini"><span>Manual Cash In MTD</span><strong id="mgCashIn">RM0</strong><div class="sub">POS cashMoves · movement, not revenue</div></div>
-    <div class="mgmt-mini"><span>Manual Cash Out MTD</span><strong id="mgCashOut">RM0</strong><div class="sub">POS cashMoves · movement, not automatically expense</div></div>
+    <div class="mgmt-mini"><span>Buy From Customer</span><strong id="mgBuyCustomer">RM0</strong><div class="sub">Inventory acquisition · excluded from OpEx</div></div>
+    <div class="mgmt-mini"><span>Operating Expenses</span><strong id="mgOpex">RM0</strong><div class="sub">From Meney Accounting only</div></div>
+    <div class="mgmt-mini"><span>Manual Cash In</span><strong id="mgCashIn">RM0</strong><div class="sub">POS cashMoves · movement, not revenue</div></div>
+    <div class="mgmt-mini"><span>Manual Cash Out</span><strong id="mgCashOut">RM0</strong><div class="sub">POS cashMoves · movement, not automatically expense</div></div>
   </div>
   <div class="cash-audit">
-    <div><span>Known Inventory Acquisition MTD</span><strong id="mgInventoryAcquisition">RM0</strong></div>
-    <div><span>Operating Expenses Paid MTD</span><strong id="mgOperatingOutflow">RM0</strong></div>
+    <div><span>Known Inventory Acquisition</span><strong id="mgInventoryAcquisition">RM0</strong></div>
+    <div><span>Operating Expenses Paid</span><strong id="mgOperatingOutflow">RM0</strong></div>
     <div><span>Non-P&amp;L Cash Movement Net</span><strong id="mgCashMoveNet">RM0</strong></div>
   </div>
 </section>
 
-<section class="card"><div class="section-head"><h3>Sales Target</h3><span>Synced across devices</span></div><div class="target-row"><div><div id="targetCurrent" class="target-amount">RM0</div><div class="muted" style="font-size:12px">Current performance</div></div><div class="target-edit"><input id="targetInput" type="number" min="1" step="100"><button id="saveTarget" class="btn btn-light">Save</button></div></div><div class="progress"><div id="targetBar"></div></div><div class="target-meta"><span id="targetPercent">0% achieved</span><span id="targetTotal">Target RM0</span></div><div class="target-insights"><div class="target-insight"><span>Baki Target</span><strong id="targetRemaining">RM0</strong></div><div class="target-insight"><span>Hari Operasi Berbaki</span><strong id="targetDaysLeft">0 hari</strong></div><div class="target-insight"><span>Purata Sales Diperlukan / Hari</span><strong id="targetDailyNeeded">RM0</strong></div></div></section>
+<section class="card"><div class="section-head"><h3>Monthly Sales Target</h3><span>Always current month · synced across devices</span></div><div class="target-row"><div><div id="targetCurrent" class="target-amount">RM0</div><div class="muted" style="font-size:12px">Current performance</div></div><div class="target-edit"><input id="targetInput" type="number" min="1" step="100"><button id="saveTarget" class="btn btn-light">Save</button></div></div><div class="progress"><div id="targetBar"></div></div><div class="target-meta"><span id="targetPercent">0% achieved</span><span id="targetTotal">Target RM0</span></div><div class="target-insights"><div class="target-insight"><span>Baki Target</span><strong id="targetRemaining">RM0</strong></div><div class="target-insight"><span>Hari Operasi Berbaki</span><strong id="targetDaysLeft">0 hari</strong></div><div class="target-insight"><span>Purata Sales Diperlukan / Hari</span><strong id="targetDailyNeeded">RM0</strong></div></div></section>
 <section class="card"><div class="section-head"><h3>Total Revenue · Last 7 Days</h3><span>Direct + Trade-In + Repair</span></div><div id="chart" class="chart"></div></section>
 <section class="card"><div class="section-head"><h3>Recent Activity</h3><span id="activityCount">0 records</span></div><div id="activity" class="activity"></div></section>
 </div><aside class="stack">
@@ -178,45 +178,68 @@ function tradeOutUnitCost(item){if(Number.isFinite(Number(item.cost)))return Num
 function tradeAccounting(trade){const stockOutItems=trade.stockOutItems||[],stockInItems=trade.stockInItems||[];const salesValue=Number(trade.totalStockOut??stockOutItems.reduce((sum,i)=>sum+Number(i.price||0)*Number(i.qty||1),0));const cogs=stockOutItems.reduce((sum,i)=>sum+tradeOutUnitCost(i)*Number(i.qty||1),0);const stockBuyValue=Number(trade.totalTradeValue??stockInItems.reduce((sum,i)=>sum+Number(i.tradeValue||0),0));return{salesValue,cogs,profit:salesValue-cogs,stockBuyValue}}
 function revenueSummary(rangeFn=inRangeRecord){const sales=state.sales.filter(x=>isActiveRecord(x)&&rangeFn(x)),buys=state.buys.filter(x=>isActiveRecord(x)&&rangeFn(x)),trades=state.trades.filter(x=>isActiveRecord(x)&&rangeFn(x)),repairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&rangeFn(x));const directSales=sales.reduce((sum,x)=>sum+Number(x.total||0),0);const directProfit=sales.reduce((sum,x)=>sum+saleProfit(x),0);const tradeTotals=trades.reduce((acc,t)=>{const a=tradeAccounting(t);acc.sales+=a.salesValue;acc.profit+=a.profit;return acc},{sales:0,profit:0});const repairRevenue=repairs.reduce((sum,x)=>sum+Number(x.finalPrice||x.estimate||0),0);const repairProfit=repairs.reduce((sum,x)=>sum+Number(x.netProfit??(Number(x.finalPrice||x.estimate||0)-Number(x.totalCost||0))),0);const buyOutflow=buys.reduce((sum,x)=>sum+Number(x.totalAmount??x.offer??0),0);return{sales,buys,trades,repairs,directSales,directProfit,tradeSales:tradeTotals.sales,tradeProfit:tradeTotals.profit,repairRevenue,repairProfit,buyOutflow,revenue:directSales+tradeTotals.sales+repairRevenue,profit:directProfit+tradeTotals.profit+repairProfit,transactions:sales.length+buys.length+trades.length+repairs.length}}
 function monthBoundsNow(){const n=new Date();return{start:new Date(n.getFullYear(),n.getMonth(),1),end:new Date(n.getFullYear(),n.getMonth()+1,1)}}
+function selectedRangeBounds(){
+  const now=new Date();
+  if(state.range==="custom"&&state.from&&state.to){
+    const start=new Date(state.from+"T00:00:00"),end=new Date(state.to+"T00:00:00");end.setDate(end.getDate()+1);
+    return{start,end,label:`${state.from} → ${state.to}`};
+  }
+  if(state.range==="today"){
+    const start=startOfDay(now),end=new Date(start);end.setDate(end.getDate()+1);
+    return{start,end,label:"Today"};
+  }
+  if(state.range==="week"){
+    const start=new Date(startOfDay(now).getTime()-6*86400000),end=new Date(startOfDay(now));end.setDate(end.getDate()+1);
+    return{start,end,label:"Last 7 Days"};
+  }
+  return{start:new Date(now.getFullYear(),now.getMonth(),1),end:new Date(now.getFullYear(),now.getMonth()+1,1),label:new Intl.DateTimeFormat("ms-MY",{month:"long",year:"numeric"}).format(now)};
+}
 function expensePeriodKey(e){
   if(e?.expensePeriod)return String(e.expensePeriod).slice(0,7);
   const d=toDate(e?.expenseDate||e?.paymentDate||e?.createdAt);
   return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`:"";
 }
 function expensePaymentDate(e){return toDate(e?.paymentDate||e?.expenseDate||e?.createdAt)}
-function isCurrentMonthExpense(e){
-  const n=new Date(),key=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
-  return expensePeriodKey(e)===key&&e.status!=="void"&&(e.outletId===undefined||e.outletId===null||e.outletId===""||e.outletId==="pasir_tumboh");
+function accountingMonthOverlapsSelectedRange(periodKey){
+  if(!periodKey)return false;
+  const [y,m]=periodKey.split("-").map(Number);
+  const monthStart=new Date(y,m-1,1),monthEnd=new Date(y,m,1),b=selectedRangeBounds();
+  return monthStart<b.end&&monthEnd>b.start;
+}
+function isExpenseInSelectedRange(e){
+  return e.status!=="void"
+    && (e.outletId===undefined||e.outletId===null||e.outletId===""||e.outletId==="pasir_tumboh")
+    && accountingMonthOverlapsSelectedRange(expensePeriodKey(e));
 }
 function accountingSummary(){
-  const b=monthBoundsNow();
-  const monthSummary=revenueSummary(r=>{const v=effectiveTransactionValue(r);if(!v)return false;const d=toDate(v);return d>=b.start&&d<b.end});
-  const expenses=state.accountingExpenses.filter(isCurrentMonthExpense);
-  const opex=expenses.reduce((s,e)=>s+Number(e.amount||0),0);
+  const summary=revenueSummary(inRangeRecord);
+  const expenses=state.accountingExpenses.filter(isExpenseInSelectedRange);
+  const opex=expenses.reduce((sum,e)=>sum+Number(e.amount||0),0);
   const categoryMap={};
   expenses.forEach(e=>{const k=e.category||"Miscellaneous";categoryMap[k]=(categoryMap[k]||0)+Number(e.amount||0)});
   const categories=Object.entries(categoryMap).sort((a,b)=>b[1]-a[1]);
-  const operatingProfit=monthSummary.profit-opex;
-  return{...monthSummary,expenses,opex,categories,operatingProfit,operatingMargin:monthSummary.revenue?operatingProfit/monthSummary.revenue*100:0,grossMargin:monthSummary.revenue?monthSummary.profit/monthSummary.revenue*100:0};
+  const operatingProfit=summary.profit-opex;
+  return{...summary,expenses,opex,categories,operatingProfit,operatingMargin:summary.revenue?operatingProfit/summary.revenue*100:0,grossMargin:summary.revenue?summary.profit/summary.revenue*100:0,rangeLabel:selectedRangeBounds().label};
 }
 
-function inCurrentMonthByValue(v){
+function inSelectedRangeByValue(v){
   if(!v)return false;
-  const d=toDate(v),b=monthBoundsNow();
+  const d=toDate(v),b=selectedRangeBounds();
   return d>=b.start&&d<b.end;
 }
+
 function managementSummary(fin){
-  const stockPurchases=state.stockPurchases.filter(p=>p.purchaseStatus!=="cancelled"&&inCurrentMonthByValue(p.transactionDate||p.createdAt));
+  const stockPurchases=state.stockPurchases.filter(p=>p.purchaseStatus!=="cancelled"&&inSelectedRangeByValue(p.transactionDate||p.createdAt));
   const stockPurchaseTotal=stockPurchases.reduce((s,p)=>s+Number(p.totalAmount||0),0);
   const stockPaid=stockPurchases.reduce((s,p)=>s+Number(p.amountPaid||0),0);
   const supplierOutstanding=state.stockPurchases
     .filter(p=>p.purchaseStatus!=="cancelled")
     .reduce((s,p)=>s+Number(p.outstandingAmount||0),0);
 
-  const monthBuys=state.buys.filter(x=>isActiveRecord(x)&&inCurrentMonthByValue(effectiveTransactionValue(x)));
+  const monthBuys=state.buys.filter(x=>isActiveRecord(x)&&inSelectedRangeByValue(effectiveTransactionValue(x)));
   const buyFromCustomer=monthBuys.reduce((s,x)=>s+Number(x.totalAmount??x.offer??0),0);
 
-  const monthCashMoves=state.cashMoves.filter(c=>inCurrentMonthByValue(c.transactionDate||c.createdAt));
+  const monthCashMoves=state.cashMoves.filter(c=>inSelectedRangeByValue(c.transactionDate||c.createdAt));
   const manualCashIn=monthCashMoves.filter(c=>String(c.type||"").toLowerCase()==="in").reduce((s,c)=>s+Number(c.amount||0),0);
   const manualCashOut=monthCashMoves.filter(c=>String(c.type||"").toLowerCase()==="out").reduce((s,c)=>s+Number(c.amount||0),0);
 
@@ -229,7 +252,7 @@ function managementSummary(fin){
   const ownedUnitCost=ownedInventoryUnits.reduce((s,u)=>s+Number(u.unitCost??u.cost??0),0);
   const consignmentSupplierValue=consignmentUnits.reduce((s,u)=>s+Number(u.supplierUnitCost??u.unitCost??u.cost??0),0);
 
-  const b=monthBoundsNow();
+  const b=selectedRangeBounds();
   const operatingCashPaid=state.accountingExpenses
     .filter(e=>e.status!=="void"&&(e.outletId===undefined||e.outletId===null||e.outletId===""||e.outletId==="pasir_tumboh"))
     .filter(e=>{const d=expensePaymentDate(e);return d&&d>=b.start&&d<b.end})
@@ -264,7 +287,7 @@ $("finExpenseCount").textContent=`${fin.expenses.length} expense records`;
 $("finOperatingProfit").textContent=money(fin.operatingProfit);
 $("finOperatingMargin").textContent=`Operating margin ${fin.operatingMargin.toFixed(1)}%`;
 $("finNet").textContent=money(fin.operatingProfit);
-$("finExpensePeriod").textContent=new Intl.DateTimeFormat("ms-MY",{month:"long",year:"numeric"}).format(monthBoundsNow().start);
+$("finExpensePeriod").textContent=fin.rangeLabel;
 const maxExp=Math.max(1,...fin.categories.map(x=>x[1]));
 $("finExpenseBreakdown").innerHTML=fin.categories.length?fin.categories.map(([k,v])=>`<div class="expense-row"><strong>${esc(k)}</strong><div class="expense-track"><div class="expense-fill" style="width:${v/maxExp*100}%"></div></div><strong style="text-align:right">${money(v)}</strong></div>`).join(""):'<div class="empty">Belum ada operating expense untuk bulan ini.</div>';
 
@@ -313,7 +336,7 @@ if(mg.inventoryCost>0&&fin.revenue>0){
 }
 if(mg.consignmentUnits>0)health.push(["good","Consignment stock separated",`${mg.consignmentUnits} consignment units dikenal pasti; supplier value ${money(mg.consignmentSupplierValue)} tidak patut dianggap owned inventory Meney.`]);
 const monthTarget=Number(state.target||5000),targetPct=monthTarget?fin.revenue/monthTarget*100:0;
-if(targetPct<50&&new Date().getDate()>15)health.push(["warn","Sales target pace rendah",`Revenue MTD baru ${targetPct.toFixed(1)}% daripada target ${money(monthTarget)}.`]);
+if(state.range==="month"&&targetPct<50&&new Date().getDate()>15)health.push(["warn","Sales target pace rendah",`Revenue MTD baru ${targetPct.toFixed(1)}% daripada target ${money(monthTarget)}.`]);
 $("businessHealth").innerHTML=health.length?health.map(([cls,title,txt])=>`<div class="health-item ${cls}"><strong>${esc(title)}</strong><span>${esc(txt)}</span></div>`).join(""):'<div class="empty">Tiada signal material untuk bulan ini.</div>';
 
 const stockCost=state.products.reduce((a,p)=>a+Number(p.cost||0)*Number(p.stock||0),0),stockRetail=state.products.reduce((a,p)=>a+Number(p.price||0)*Number(p.stock||0),0);$("stockCost").textContent=money(stockCost);$("stockRetail").textContent=money(stockRetail);$("stockCostSub").textContent=units+" units";$("stockMargin").textContent="Potential margin "+money(stockRetail-stockCost);
