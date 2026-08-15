@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07110c">
-<title>Meney Empire · Command Centre · Export Snapshot V4</title>
+<title>Meney Empire · Command Centre · Accrual Expense V5</title>
 <link rel="manifest" href="manifest-owner.json?v=3">
 <link rel="icon" type="image/png" href="empire-favicon.png?v=3">
 <link rel="apple-touch-icon" href="empire-apple-touch-icon.png?v=3">
@@ -128,7 +128,7 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}.shell{opacity:1}.shell.launc
   </div>
   <div class="cash-audit">
     <div><span>Known Inventory Acquisition MTD</span><strong id="mgInventoryAcquisition">RM0</strong></div>
-    <div><span>Known Operating Outflow MTD</span><strong id="mgOperatingOutflow">RM0</strong></div>
+    <div><span>Operating Expenses Paid MTD</span><strong id="mgOperatingOutflow">RM0</strong></div>
     <div><span>Non-P&amp;L Cash Movement Net</span><strong id="mgCashMoveNet">RM0</strong></div>
   </div>
 </section>
@@ -178,10 +178,15 @@ function tradeOutUnitCost(item){if(Number.isFinite(Number(item.cost)))return Num
 function tradeAccounting(trade){const stockOutItems=trade.stockOutItems||[],stockInItems=trade.stockInItems||[];const salesValue=Number(trade.totalStockOut??stockOutItems.reduce((sum,i)=>sum+Number(i.price||0)*Number(i.qty||1),0));const cogs=stockOutItems.reduce((sum,i)=>sum+tradeOutUnitCost(i)*Number(i.qty||1),0);const stockBuyValue=Number(trade.totalTradeValue??stockInItems.reduce((sum,i)=>sum+Number(i.tradeValue||0),0));return{salesValue,cogs,profit:salesValue-cogs,stockBuyValue}}
 function revenueSummary(rangeFn=inRangeRecord){const sales=state.sales.filter(x=>isActiveRecord(x)&&rangeFn(x)),buys=state.buys.filter(x=>isActiveRecord(x)&&rangeFn(x)),trades=state.trades.filter(x=>isActiveRecord(x)&&rangeFn(x)),repairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&rangeFn(x));const directSales=sales.reduce((sum,x)=>sum+Number(x.total||0),0);const directProfit=sales.reduce((sum,x)=>sum+saleProfit(x),0);const tradeTotals=trades.reduce((acc,t)=>{const a=tradeAccounting(t);acc.sales+=a.salesValue;acc.profit+=a.profit;return acc},{sales:0,profit:0});const repairRevenue=repairs.reduce((sum,x)=>sum+Number(x.finalPrice||x.estimate||0),0);const repairProfit=repairs.reduce((sum,x)=>sum+Number(x.netProfit??(Number(x.finalPrice||x.estimate||0)-Number(x.totalCost||0))),0);const buyOutflow=buys.reduce((sum,x)=>sum+Number(x.totalAmount??x.offer??0),0);return{sales,buys,trades,repairs,directSales,directProfit,tradeSales:tradeTotals.sales,tradeProfit:tradeTotals.profit,repairRevenue,repairProfit,buyOutflow,revenue:directSales+tradeTotals.sales+repairRevenue,profit:directProfit+tradeTotals.profit+repairProfit,transactions:sales.length+buys.length+trades.length+repairs.length}}
 function monthBoundsNow(){const n=new Date();return{start:new Date(n.getFullYear(),n.getMonth(),1),end:new Date(n.getFullYear(),n.getMonth()+1,1)}}
-function expenseDateValue(e){return toDate(e?.expenseDate||e?.createdAt)}
+function expensePeriodKey(e){
+  if(e?.expensePeriod)return String(e.expensePeriod).slice(0,7);
+  const d=toDate(e?.expenseDate||e?.paymentDate||e?.createdAt);
+  return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`:"";
+}
+function expensePaymentDate(e){return toDate(e?.paymentDate||e?.expenseDate||e?.createdAt)}
 function isCurrentMonthExpense(e){
-  const d=expenseDateValue(e),b=monthBoundsNow();
-  return Boolean(d)&&d>=b.start&&d<b.end&&e.status!=="void"&&(e.outletId===undefined||e.outletId===null||e.outletId===""||e.outletId==="pasir_tumboh");
+  const n=new Date(),key=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
+  return expensePeriodKey(e)===key&&e.status!=="void"&&(e.outletId===undefined||e.outletId===null||e.outletId===""||e.outletId==="pasir_tumboh");
 }
 function accountingSummary(){
   const b=monthBoundsNow();
@@ -224,13 +229,19 @@ function managementSummary(fin){
   const ownedUnitCost=ownedInventoryUnits.reduce((s,u)=>s+Number(u.unitCost??u.cost??0),0);
   const consignmentSupplierValue=consignmentUnits.reduce((s,u)=>s+Number(u.supplierUnitCost??u.unitCost??u.cost??0),0);
 
+  const b=monthBoundsNow();
+  const operatingCashPaid=state.accountingExpenses
+    .filter(e=>e.status!=="void"&&(e.outletId===undefined||e.outletId===null||e.outletId===""||e.outletId==="pasir_tumboh"))
+    .filter(e=>{const d=expensePaymentDate(e);return d&&d>=b.start&&d<b.end})
+    .reduce((sum,e)=>sum+Number(e.amount||0),0);
+
   return{
     stockPurchases,stockPurchaseTotal,stockPaid,supplierOutstanding,
     buyFromCustomer,manualCashIn,manualCashOut,
     inventoryCost,inventoryUnits,ownedInventoryUnits:ownedInventoryUnits.length,
     consignmentUnits:consignmentUnits.length,ownedUnitCost,consignmentSupplierValue,
     inventoryAcquisition:stockPaid+buyFromCustomer,
-    operatingOutflow:fin.opex,
+    operatingOutflow:operatingCashPaid,
     cashMoveNet:manualCashIn-manualCashOut
   };
 }
@@ -471,7 +482,7 @@ function buildMeneySnapshot(){
       manualCashOutMTD:round2(mg.manualCashOut),
       manualCashMovementNetMTD:round2(mg.cashMoveNet),
       knownInventoryAcquisitionMTD:round2(mg.inventoryAcquisition),
-      knownOperatingOutflowMTD:round2(mg.operatingOutflow),
+      operatingExpensesPaidMTD:round2(mg.operatingOutflow),
       note:"Cash movement is not automatically treated as revenue or operating expense."
     },
     operations:{
