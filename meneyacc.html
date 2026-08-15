@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07110c">
-<title>Meney Accounting</title>
+<title>Meney Accounting · Expense UI Fix V2</title>
 <style>
 :root{
   --bg:#f4f7f5;--panel:#fff;--ink:#0f1712;--muted:#718078;--line:#dfe7e2;
@@ -243,7 +243,7 @@ import{getFirestore,doc,getDoc,collection,onSnapshot,query,orderBy,addDoc,update
 
 const firebaseConfig={apiKey:"AIzaSyD9PmyvzlzIQqygQYz1i6eqS0gwJ-tKG6g",authDomain:"meney-daily-mission.firebaseapp.com",databaseURL:"https://meney-daily-mission-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"meney-daily-mission",storageBucket:"meney-daily-mission.firebasestorage.app",messagingSenderId:"1035705938755",appId:"1:1035705938755:web:a9ec6c7ea9c9b91f4a35f6"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
-const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],cashMoves:[],expenses:[],accountingReceipts:[],scannedReceipt:null,outletId:"pasir_tumboh",month:"",unsubs:[]};
+const state={user:null,profile:null,products:[],sales:[],buys:[],trades:[],repairs:[],cashMoves:[],accountingExpenses:[],accountingReceipts:[],scannedReceipt:null,outletId:"pasir_tumboh",month:"",unsubs:[]};
 const allowedRoles=["owner","partner","manager"];
 const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR",minimumFractionDigits:2}).format(Number(n||0));
 const esc=s=>String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
@@ -272,7 +272,7 @@ function financials(){
   const revenue=directSales+trade.sales+repairSales;
   const cogs=directCogs+trade.cogs+repairCogs;
   const gross=directProfit+trade.profit+repairProfit;
-  const expenses=state.expenses.filter(x=>x.status!=="void"&&x.outletId===state.outletId&&inMonthExpense(x));
+  const expenses=state.accountingExpenses.filter(x=>x.status!=="void"&&x.outletId===state.outletId&&inMonthExpense(x));
   const opex=expenses.reduce((s,x)=>s+Number(x.amount||0),0);
   return{sales,trades,repairs,directSales,directCogs,directProfit,trade,repairSales,repairProfit,repairCogs,revenue,cogs,gross,expenses,opex,net:gross-opex};
 }
@@ -297,7 +297,7 @@ function renderExpenses(expenses){
 }
 function renderCash(){
   const rows=state.cashMoves.filter(inMonthCash).sort((a,b)=>(toDate(b.transactionDate||b.createdAt)||0)-(toDate(a.transactionDate||a.createdAt)||0));
-  $("cashBody").innerHTML=rows.length?rows.map(c=>{const linked=state.expenses.find(e=>e.cashMoveId===c.id&&e.status!=="void");const isOut=String(c.type||"").toLowerCase()==="out";return `<tr><td>${localISO(toDate(c.transactionDate||c.createdAt)||new Date())}</td><td><span class="badge ${isOut?"red":"green"}">${isOut?"CASH OUT":"CASH IN"}</span></td><td><strong>${isOut?"−":"+"}${money(c.amount)}</strong></td><td>${esc(c.note||c.reason||"-")}</td><td>${esc(c.staffName||c.createdByName||"-")}</td><td>${linked?`<span class="badge green">Expense: ${esc(linked.category)}</span>`:'<span class="badge amber">Unclassified</span>'}</td><td>${isOut&&!linked?`<button class="btn btn-light" onclick="convertCash('${c.id}')">Convert to Expense</button>`:"—"}</td></tr>`}).join(""):'<tr><td colspan="7" class="empty">Tiada manual cash movement untuk bulan ini.</td></tr>'
+  $("cashBody").innerHTML=rows.length?rows.map(c=>{const linked=state.accountingExpenses.find(e=>e.cashMoveId===c.id&&e.status!=="void");const isOut=String(c.type||"").toLowerCase()==="out";return `<tr><td>${localISO(toDate(c.transactionDate||c.createdAt)||new Date())}</td><td><span class="badge ${isOut?"red":"green"}">${isOut?"CASH OUT":"CASH IN"}</span></td><td><strong>${isOut?"−":"+"}${money(c.amount)}</strong></td><td>${esc(c.note||c.reason||"-")}</td><td>${esc(c.staffName||c.createdByName||"-")}</td><td>${linked?`<span class="badge green">Expense: ${esc(linked.category)}</span>`:'<span class="badge amber">Unclassified</span>'}</td><td>${isOut&&!linked?`<button class="btn btn-light" onclick="convertCash('${c.id}')">Convert to Expense</button>`:"—"}</td></tr>`}).join(""):'<tr><td colspan="7" class="empty">Tiada manual cash movement untuk bulan ini.</td></tr>'
 }
 function openExpense(data={}){
   $("expenseModalTitle").textContent=data.id?"Edit Expense":data.cashMoveId?"Convert Cash Out to Expense":"Add Expense";
@@ -306,7 +306,7 @@ function openExpense(data={}){
   $("modalCategory").value=data.category||"Miscellaneous";$("modalDescription").value=data.description||"";$("modalAmount").value=Number(data.amount||0)||"";$("modalPayment").value=data.paymentMethod||"Cash";$("modalNotes").value=data.notes||"";
   $("expenseModal").classList.remove("hidden")
 }
-window.editExpense=id=>{const e=state.expenses.find(x=>x.id===id);if(e)openExpense(e)}
+window.editExpense=id=>{const e=state.accountingExpenses.find(x=>x.id===id);if(e)openExpense(e)}
 window.deleteExpense=async id=>{if(!confirm("Delete expense ini?"))return;try{await deleteDoc(doc(db,"accountingExpenses",id));toast("Expense deleted")}catch(e){toast("Delete gagal: "+e.message)}}
 window.convertCash=id=>{const c=state.cashMoves.find(x=>x.id===id);if(!c)return;openExpense({cashMoveId:id,expenseDate:c.transactionDate||c.createdAt,description:c.note||c.reason||"Cash Out",amount:Number(c.amount||0),paymentMethod:"Cash",notes:"Converted from POS Cash Movement"})}
 async function saveExpense(payload,id=""){if(id)await updateDoc(doc(db,"accountingExpenses",id),{...payload,updatedAt:serverTimestamp(),updatedBy:state.user.uid});else await addDoc(collection(db,"accountingExpenses"),{...payload,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email})}
@@ -424,7 +424,20 @@ $("receiptForm").onsubmit=async e=>{
 document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+b.dataset.page).classList.remove("hidden");const titles={dashboard:"Accounting Overview",pnl:"Monthly P&L",expenses:"Expense Ledger",cash:"Cash Movement Audit",receipts:"Receipt Filing"};$("pageTitle").textContent=titles[b.dataset.page]});
 $("monthPicker").onchange=e=>{state.month=e.target.value;render()};$("outletSelect").onchange=e=>{state.outletId=e.target.value;render()};$("logoutBtn").onclick=()=>signOut(auth);
 $("loginForm").onsubmit=async e=>{e.preventDefault();$("loginError").classList.add("hidden");try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(err){$("loginError").textContent="Login gagal: "+(err.code?.includes("invalid-credential")?"Email atau password salah.":err.message);$("loginError").classList.remove("hidden")}}
-function sub(name,sort="createdAt"){const u=onSnapshot(query(collection(db,name),orderBy(sort,"desc")),s=>{state[name]=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.warn(name,e));state.unsubs.push(u)}
+function sub(name,sort="createdAt"){
+  const u=onSnapshot(
+    query(collection(db,name),orderBy(sort,"desc")),
+    snap=>{
+      state[name]=snap.docs.map(d=>({id:d.id,...d.data()}));
+      render();
+    },
+    err=>{
+      console.error("Firestore subscription failed:",name,err);
+      toast(`Gagal load ${name}: ${err.message}`);
+    }
+  );
+  state.unsubs.push(u);
+}
 function subscribeAll(){state.unsubs.forEach(u=>u());state.unsubs=[];state.unsubs.push(onSnapshot(collection(db,"products"),s=>{state.products=s.docs.map(d=>({id:d.id,...d.data()}));render()}));["sales","buys","trades","repairs","cashMoves","accountingExpenses","accountingReceipts"].forEach(n=>sub(n))}
 onAuthStateChanged(auth,async user=>{state.unsubs.forEach(u=>u());state.unsubs=[];if(!user){state.user=null;$("loginPage").classList.remove("hidden");$("appShell").classList.add("hidden");return}state.user=user;const s=await getDoc(doc(db,"users",user.uid));state.profile=s.exists()?s.data():{};const role=String(state.profile.role||"").toLowerCase();if(!allowedRoles.includes(role)||state.profile.active===false){await signOut(auth);$("loginError").textContent="Akses ditolak. Meney Accounting hanya untuk Owner, Partner atau Manager aktif.";$("loginError").classList.remove("hidden");return}$("userText").textContent=state.profile.name||user.email;$("loginPage").classList.add("hidden");$("appShell").classList.remove("hidden");subscribeAll();render()});
 const now=new Date();state.month=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;$("monthPicker").value=state.month;$("expenseDate").value=localISO(now);$("receiptDate").value=localISO(now);
