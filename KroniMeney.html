@@ -32,8 +32,62 @@
 .bottom-nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:#080a08;border-top:1px solid #202720;z-index:20}.bottom-inner{width:min(390px,100%);display:grid;grid-template-columns:repeat(5,1fr);padding:7px 8px max(7px,env(safe-area-inset-bottom))}.nav-btn{border:0;background:transparent;color:#969c95;font-size:7px;padding:3px}.nav-btn span{display:block;font-size:14px;margin-bottom:2px}.nav-btn.active{color:var(--green)}.nav-main span{width:44px;height:44px;border:2px solid var(--green);border-radius:50%;display:grid;place-items:center;margin:-20px auto 1px;background:#0a0d0a;color:var(--green);font-size:18px;font-weight:1000;box-shadow:0 0 12px #5f930b}
 .empty{padding:22px;text-align:center;color:#848c83;font-size:8px;border:1px dashed #273027;border-radius:10px}.toast{position:fixed;left:50%;bottom:75px;transform:translate(-50%,12px);opacity:0;transition:.2s;background:#eaffdf;color:#071006;padding:8px 12px;border-radius:20px;font-size:8px;font-weight:900;z-index:30}.toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="512x512" href="kront-icon-512.png">
+<link rel="apple-touch-icon" href="kront-icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style id="krontSplashStyles">
+#krontSplash{position:fixed;inset:0;z-index:99999;background:
+radial-gradient(circle at 50% 43%,rgba(129,255,0,.09),transparent 27%),
+linear-gradient(180deg,#050805,#020402);display:grid;place-items:center;overflow:hidden;transition:opacity .42s ease,visibility .42s ease}
+#krontSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
+#krontSplash:before{content:"";position:absolute;inset:0;background:
+linear-gradient(115deg,transparent 0 47%,rgba(150,255,20,.035) 48%,transparent 49% 100%);background-size:80px 80px;opacity:.55}
+.kront-stage{width:min(92vw,430px);height:min(86vh,760px);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.kront-frame{width:78%;max-width:330px;aspect-ratio:0.67;border-radius:28px;overflow:hidden;position:relative;border:1px solid rgba(154,255,24,.55);box-shadow:0 0 0 1px rgba(154,255,24,.06),0 28px 80px #000,0 0 50px rgba(128,255,0,.07);background:#030603}
+.kront-frame img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.02);transition:opacity .16s ease}
+.kront-frame.sleep img{animation:krontBreathe 1.15s ease-in-out infinite}
+.kront-frame.wake img{animation:krontWake .58s ease-out both}
+.kront-frame.hi img{animation:krontWave .55s ease-in-out both}
+.kront-frame.go img{animation:krontRun .55s ease-in-out both}
+.kront-frame.excited img{animation:krontJump .6s cubic-bezier(.2,.8,.3,1) both}
+.kront-frame.reward img{animation:krontPop .5s ease-out both}
+.kront-frame.loading img{animation:krontFloat .8s ease-in-out infinite alternate}
+.kront-frame.ready img{animation:krontGlow .8s ease-in-out both}
+@keyframes krontBreathe{50%{transform:scale(1.045) translateY(3px)}}
+@keyframes krontWake{0%{transform:scale(.94) translateY(16px)}70%{transform:scale(1.05) translateY(-5px)}100%{transform:scale(1.02)}}
+@keyframes krontWave{0%{transform:rotate(-2deg) scale(.98)}45%{transform:rotate(3deg) scale(1.04)}100%{transform:scale(1.02)}}
+@keyframes krontRun{0%{transform:translateX(-18px) rotate(-3deg) scale(1.02)}70%{transform:translateX(8px) rotate(2deg) scale(1.04)}100%{transform:scale(1.02)}}
+@keyframes krontJump{0%{transform:translateY(16px) scale(.96)}55%{transform:translateY(-18px) scale(1.05)}100%{transform:translateY(0) scale(1.02)}}
+@keyframes krontPop{0%{transform:scale(.88)}70%{transform:scale(1.07)}100%{transform:scale(1.02)}}
+@keyframes krontFloat{to{transform:translateY(-7px) scale(1.025)}}
+@keyframes krontGlow{50%{filter:brightness(1.18) drop-shadow(0 0 14px rgba(154,255,24,.3))}}
+.kront-status{position:absolute;left:0;right:0;bottom:25px;text-align:center;padding:0 24px;text-shadow:0 2px 14px #000}
+.kront-status strong{display:block;color:#a7ff18;font-size:17px;letter-spacing:.02em}
+.kront-status span{display:block;color:#f2f5ef;font-size:11px;line-height:1.45;margin-top:5px}
+.kront-brand{margin-top:17px;text-align:center}
+.kront-brand b{font-size:24px;letter-spacing:.08em}.kront-brand b em{font-style:normal;color:#a7ff18}
+.kront-brand small{display:block;margin-top:4px;color:#8c9788;font-size:8px;letter-spacing:.22em}
+.kront-loader{width:78%;max-width:330px;margin-top:16px;height:4px;border-radius:99px;background:#172016;overflow:hidden}
+.kront-loader i{display:block;height:100%;width:0;background:#a7ff18;box-shadow:0 0 12px #8dff13;transition:width .34s ease}
+@media (prefers-reduced-motion:reduce){.kront-frame img{animation:none!important}}
+</style>
 </head>
 <body>
+<div id="krontSplash" aria-label="KroniMeney loading">
+  <div class="kront-stage">
+    <div id="krontFrame" class="kront-frame sleep">
+      <img id="krontSplashImg" src="kront-sleep.jpg" alt="Kront">
+      <div class="kront-status"><strong id="krontSplashTitle">Kront sedang tidur</strong><span id="krontSplashText">Sabar... kejap lagi dia bangun 😴</span></div>
+    </div>
+    <div class="kront-brand"><b>KRONT <em>×</em> KRONIMENEY</b><small>SATU ID. SEMUA KELEBIHAN.</small></div>
+    <div class="kront-loader"><i id="krontLoader"></i></div>
+  </div>
+</div>
+
 
 <section id="authView">
   <div class="auth-phone">
@@ -291,5 +345,41 @@ $("copyReferral").onclick=async()=>{try{await navigator.clipboard.writeText($("r
 </script>
 <script>
 setInterval(()=>{const a=document.getElementById("pointsValue"),b=document.getElementById("rewardPointsMirror");if(a&&b)b.textContent=a.textContent},400);
+</script>
+
+<script>
+(()=>{
+ const splash=document.getElementById('krontSplash'), frame=document.getElementById('krontFrame'),
+ img=document.getElementById('krontSplashImg'), title=document.getElementById('krontSplashTitle'),
+ text=document.getElementById('krontSplashText'), loader=document.getElementById('krontLoader');
+ const all=[
+  ['sleep','kront-sleep.jpg','Kront sedang tidur','Sabar... kejap lagi dia bangun 😴'],
+  ['wake','kront-wake.jpg','Bangun, Kront!','KroniMeney sedang bersedia.'],
+  ['hi','kront-hi.jpg','Hai, Kroni!','Kront dah ready 👋'],
+  ['go','kront-go.jpg',"Let's go!",'Jom kumpul mata dan unlock rewards.'],
+  ['excited','kront-excited.jpg','Kront excited!','Ganjaran menanti ✨'],
+  ['reward','kront-reward.jpg','Unlock rewards','Kumpul mata. Naik level. Menang bersama.'],
+  ['loading','kront-loading.jpg','Loading...','Menyiapkan pengalaman KroniMeney.'],
+  ['ready','kront-ready.jpg','Ready!','Selamat datang ke dunia Kront Meney 💚']
+ ];
+ // Random 4-scene movement each launch, always beginning sleepy and ending ready.
+ const middle=all.slice(1,7).sort(()=>Math.random()-.5).slice(0,2);
+ const seq=[all[0],...middle,all[7]];
+ let i=0;
+ function show(){
+   const [cls,src,t,tx]=seq[i];
+   frame.className='kront-frame '+cls;
+   img.style.opacity='.15';
+   setTimeout(()=>{img.src=src;title.textContent=t;text.textContent=tx;img.style.opacity='1'},90);
+   loader.style.width=((i+1)/seq.length*100)+'%';
+   i++;
+   if(i<seq.length)setTimeout(show,760);
+   else setTimeout(()=>splash.classList.add('hide'),900);
+ }
+ window.addEventListener('load',()=>setTimeout(show,120),{once:true});
+ // Safety: never block app if a resource is slow.
+ setTimeout(()=>splash.classList.add('hide'),5200);
+ if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.warn));
+})();
 </script>
 </body></html>
