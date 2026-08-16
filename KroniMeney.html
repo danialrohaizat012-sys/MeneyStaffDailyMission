@@ -37,14 +37,18 @@
 <style id="krontSplashStyles">
 #krontSplash{position:fixed;inset:0;z-index:99999;background:#000;display:grid;place-items:center;overflow:hidden;transition:opacity .65s ease,visibility .65s ease}
 #krontSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
-.kront-final-art{position:absolute;inset:0;background:url("kront-splash-final.jpg") center center/contain no-repeat;background-color:#000;transform:scale(1.012);animation:krontSplashFloat 5.8s ease-in-out infinite}
-.kront-final-glow{position:absolute;left:50%;top:57%;width:min(68vw,360px);height:min(26vh,220px);transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(154,255,20,.11),transparent 68%);filter:blur(12px);animation:krontGlow 3.2s ease-in-out infinite;pointer-events:none}
-.kront-final-loader{position:absolute;left:50%;bottom:max(8.8vh,56px);transform:translateX(-50%);width:min(49vw,245px);height:5px;border-radius:99px;overflow:hidden;background:rgba(20,25,18,.72);opacity:.92}
-.kront-final-loader i{display:block;height:100%;width:0;border-radius:99px;background:#a7ff18;box-shadow:0 0 14px #9cff17;transition:none;animation:krontLoadBar 5.4s cubic-bezier(.18,.72,.18,1) .35s forwards}
-@keyframes krontLoadBar{0%{width:0}18%{width:16%}42%{width:39%}67%{width:65%}86%{width:87%}100%{width:100%}}
-@keyframes krontSplashFloat{0%,100%{transform:scale(1.012) translateY(0)}50%{transform:scale(1.025) translateY(-7px)}}
-@keyframes krontGlow{0%,100%{opacity:.42;transform:translate(-50%,-50%) scale(.96)}50%{opacity:.9;transform:translate(-50%,-50%) scale(1.08)}}
-@media (max-aspect-ratio:9/16){.kront-final-art{background-size:cover}}
+.kront-splash-canvas{position:relative;width:min(100vw,calc(100vh * 0.5628));aspect-ratio:941/1672;background:#000}
+.kront-final-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;animation:krontSplashFloat 5.8s ease-in-out infinite}
+.kront-final-glow{position:absolute;left:50%;top:57%;width:64%;height:18%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(154,255,20,.10),transparent 68%);filter:blur(10px);animation:krontGlow 3.2s ease-in-out infinite;pointer-events:none}
+.kront-live-loading{position:absolute;left:25.5%;right:25.5%;top:81.1%;z-index:4;text-align:center}
+.kront-live-loading .label{font-size:clamp(11px,2.2vw,16px);letter-spacing:.42em;color:#fff;margin-bottom:12px;text-shadow:0 0 9px rgba(255,255,255,.15)}
+.kront-live-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.kront-live-track{height:clamp(18px,3.5vw,27px);border:2px solid #8bd900;border-radius:999px;padding:3px;background:#070a06;box-shadow:0 0 12px rgba(154,255,24,.11)}
+.kront-live-fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#6fe600,#a7ff18 72%,#fff 100%);box-shadow:0 0 14px #9cff17;transition:width .08s linear}
+.kront-live-percent{min-width:44px;color:#a7ff18;font-size:clamp(12px,2.8vw,19px);font-weight:900;text-align:right;text-shadow:0 0 10px rgba(154,255,24,.32)}
+@keyframes krontSplashFloat{0%,100%{transform:scale(1.006) translateY(0)}50%{transform:scale(1.014) translateY(-5px)}}
+@keyframes krontGlow{0%,100%{opacity:.38;transform:translate(-50%,-50%) scale(.97)}50%{opacity:.8;transform:translate(-50%,-50%) scale(1.06)}}
+@media(max-width:420px){.kront-live-loading{left:24.8%;right:24.8%;top:81.0%}.kront-live-loading .label{margin-bottom:8px;letter-spacing:.34em}.kront-live-row{gap:7px}.kront-live-percent{min-width:35px}}
 @media(prefers-reduced-motion:reduce){.kront-final-art,.kront-final-glow{animation:none!important}}
 </style>
 
@@ -61,9 +65,17 @@
 </head>
 <body>
 <div id="krontSplash" aria-label="KroniMeney loading">
-  <div class="kront-final-art"></div>
-  <div class="kront-final-glow"></div>
-  <div class="kront-final-loader"><i id="krontLoader"></i></div>
+  <div class="kront-splash-canvas">
+    <img class="kront-final-art" src="kront-splash-final.jpg" alt="Kront">
+    <div class="kront-final-glow"></div>
+    <div class="kront-live-loading">
+      <div class="label">LOADING...</div>
+      <div class="kront-live-row">
+        <div class="kront-live-track"><div id="krontLoader" class="kront-live-fill"></div></div>
+        <div id="krontPercent" class="kront-live-percent">0%</div>
+      </div>
+    </div>
+  </div>
 </div>
 <section id="authView">
   <div class="auth-phone">
@@ -328,25 +340,49 @@ setInterval(()=>{const a=document.getElementById("pointsValue"),b=document.getEl
 <script>
 (()=>{
   const splash=document.getElementById("krontSplash");
+  const loader=document.getElementById("krontLoader");
+  const percent=document.getElementById("krontPercent");
   if(!splash) return;
 
+  const duration=5600;
+  let startedAt=null;
   let finished=false;
+
   function finishSplash(){
     if(finished) return;
     finished=true;
-    splash.classList.add("hide");
-    setTimeout(()=>splash.remove(),800);
+    if(loader) loader.style.width="100%";
+    if(percent) percent.textContent="100%";
+    setTimeout(()=>{
+      splash.classList.add("hide");
+      setTimeout(()=>splash.remove(),800);
+    },350);
   }
 
-  // Let the visible loading animation complete before entering the app.
-  if(document.readyState==="complete"){
-    setTimeout(finishSplash,6000);
-  }else{
-    window.addEventListener("load",()=>setTimeout(finishSplash,6000),{once:true});
+  function tick(ts){
+    if(finished) return;
+    if(startedAt===null) startedAt=ts;
+    const elapsed=ts-startedAt;
+    // Ease-out feel but still genuinely tracks the splash duration.
+    const raw=Math.min(1,elapsed/duration);
+    const eased=1-Math.pow(1-raw,1.55);
+    const value=Math.min(100,Math.floor(eased*100));
+
+    if(loader) loader.style.width=value+"%";
+    if(percent) percent.textContent=value+"%";
+
+    if(raw<1) requestAnimationFrame(tick);
+    else finishSplash();
   }
 
-  // Absolute failsafe.
-  setTimeout(finishSplash,7500);
+  function start(){
+    requestAnimationFrame(tick);
+  }
+
+  if(document.readyState==="complete") setTimeout(start,250);
+  else window.addEventListener("load",()=>setTimeout(start,250),{once:true});
+
+  setTimeout(finishSplash,7200);
 })();
 </script>
 

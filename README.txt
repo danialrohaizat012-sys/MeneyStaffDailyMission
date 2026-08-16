@@ -1,8 +1,11 @@
-KroniMeney V12 — Splash Loader Cosmetic Fix
+KroniMeney V13 — Functional Loading Bar Fix
 
-- Keeps V11 A2HS routing and splash stability fixes.
-- Loading bar now visibly animates from 0% to 100%.
-- Smooth ~5.4 second progress animation.
-- Splash exits after the progress finishes.
-- Hard failsafe remains.
+This fixes the exact issue in the approved splash image:
+- The baked/static 'LOADING... 73%' artwork has been removed from the JPG.
+- A real live loading bar is overlaid in the same location.
+- Percentage updates continuously from 0% to 100%.
+- Splash exits only after the live progress completes.
+- V10/V11 A2HS routing and standalone fixes remain intact.
 - Flat/root deployment structure retained.
+
+Upload all files to the root of MeneyStaffDailyMission repo and replace previous KroniMeney files.
