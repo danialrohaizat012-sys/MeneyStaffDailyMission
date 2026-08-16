@@ -1,8 +1,8 @@
 {
   "name": "KroniMeney",
   "short_name": "KroniMeney",
-  "description": "KroniMeney \u2014 Satu ID, semua kelebihan.",
-  "start_url": "./",
+  "description": "KroniMeney — Satu ID, semua kelebihan.",
+  "start_url": "./index.html?source=kronimeney-pwa",
   "scope": "./",
   "display": "standalone",
   "background_color": "#050705",
@@ -21,5 +21,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "id": "./kronimeney-app"
 }

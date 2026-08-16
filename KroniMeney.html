@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#070a07">
 <title>KroniMeney · V4</title>
 <style>
 :root{--bg:#070907;--panel:#0d100d;--panel2:#111511;--line:#273126;--text:#f7f8f5;--muted:#8b9489;--green:#a7ff18;--green2:#74d600;--purple:#9b58ff;--blue:#29b8ff;--orange:#ff971b;--pink:#ff5d9e;--gold:#ffd14d;}
@@ -36,11 +35,6 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="512x512" href="kront-icon-512.png">
 <link rel="apple-touch-icon" href="kront-icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-
-
 <style id="krontSplashStyles">
 #krontSplash{position:fixed;inset:0;z-index:99999;background:#000;display:grid;place-items:center;overflow:hidden;transition:opacity .65s ease,visibility .65s ease}
 #krontSplash.hide{opacity:0;visibility:hidden;pointer-events:none}
@@ -53,6 +47,14 @@
 @media (max-aspect-ratio:9/16){.kront-final-art{background-size:cover}}
 @media(prefers-reduced-motion:reduce){.kront-final-art,.kront-final-glow{animation:none!important}}
 </style>
+
+<meta name="application-name" content="KroniMeney">
+<meta name="apple-mobile-web-app-title" content="KroniMeney">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#050705">
+
 </head>
 <body>
 <div id="krontSplash" aria-label="KroniMeney loading">
@@ -336,8 +338,28 @@ setInterval(()=>{const a=document.getElementById("pointsValue"),b=document.getEl
   window.addEventListener("load",()=>setTimeout(advance,300),{once:true});
   setTimeout(()=>splash?.classList.add("hide"),6500);
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.warn));
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(console.warn));
   }
 })();
 </script>
+
+<script>
+(async()=>{
+  if(!("serviceWorker" in navigator)) return;
+  try{
+    const regs = await navigator.serviceWorker.getRegistrations();
+    const here = new URL("./", location.href).href;
+    for(const reg of regs){
+      const scope = reg.scope;
+      const activeScript = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || "";
+      if(scope === here && !activeScript.endsWith("/sw.js")){
+        await reg.unregister();
+      }
+    }
+  }catch(e){
+    console.warn("KroniMeney PWA scope check", e);
+  }
+})();
+</script>
+
 </body></html>
