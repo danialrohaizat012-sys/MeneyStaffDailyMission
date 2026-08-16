@@ -1,6 +1,5 @@
-KroniMeney V5 — KRONT PWA FLAT
-Semua file berada dalam SATU folder/root. Tiada folder assets.
-
-Upload semua file ini terus ke root GitHub Pages repository.
-Pastikan index.html, manifest.webmanifest, sw.js dan semua imej KRONT berada sebelah-sebelah.
-Selepas deploy, hard refresh. Jika icon PWA lama masih cached, remove app lama dan install semula.
+KroniMeney V6 — KRONT Splash Sharp
+Semua file flat/root, tiada folder assets.
+Splash kini guna kront-master.png resolusi tinggi daripada locked KRONT brand sheet.
+Animation lebih perlahan (~6–8 saat bergantung random intro) dan menggunakan smooth CSS movement, bukan crop storyboard bertukar-tukar.
+Upload semua file terus ke root GitHub Pages. Hard refresh selepas deploy.
