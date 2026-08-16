@@ -1,16 +1,22 @@
-KroniMeney V9 — PWA Identity Fix
+KroniMeney V10 — A2HS FIX
 
-Masalah yang dibaiki:
-- Add to Home Screen / install PWA tersalah buka Meney DM.
-- KroniMeney kini mempunyai unique manifest ID, start_url, app title,
-  cache name dan service-worker scope sendiri.
+Punca bug:
+V9 start_url menunjuk ./index.html.
+Dalam repo MeneyStaffDailyMission, index.html ialah Daily Mission.
 
-Deploy:
-1. Upload SEMUA file dalam folder ini ke root repo KroniMeney.
-2. Replace file lama.
-3. Buka URL KroniMeney di browser dan hard refresh.
-4. DELETE shortcut/PWA KroniMeney lama yang tersalah buka DM.
-5. Tutup browser sepenuhnya, buka semula URL KroniMeney.
-6. Add to Home Screen / Install semula.
+Fix:
+- KroniMeney.html menggunakan KroniMeney.webmanifest sendiri.
+- start_url absolute = /MeneyStaffDailyMission/KroniMeney.html
+- manifest ID unique.
+- Package ini TIDAK mengandungi sw.js atau manifest.webmanifest,
+  jadi ia tidak overwrite PWA Daily Mission.
 
-Semua file kekal flat/root. Tiada folder assets.
+DEPLOY
+1. Upload SEMUA file V10 ini ke root repo MeneyStaffDailyMission.
+2. Pastikan nama utama kekal KroniMeney.html.
+3. Jangan delete/replace index.html Daily Mission.
+4. Delete home-screen shortcut KroniMeney lama.
+5. Safari: buka
+   https://danialrohaizat012-sys.github.io/MeneyStaffDailyMission/KroniMeney.html
+6. Refresh sekali.
+7. Add to Home Screen semula.

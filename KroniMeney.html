@@ -32,7 +32,6 @@
 .empty{padding:22px;text-align:center;color:#848c83;font-size:8px;border:1px dashed #273027;border-radius:10px}.toast{position:fixed;left:50%;bottom:75px;transform:translate(-50%,12px);opacity:0;transition:.2s;background:#eaffdf;color:#071006;padding:8px 12px;border-radius:20px;font-size:8px;font-weight:900;z-index:30}.toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
 
-<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="512x512" href="kront-icon-512.png">
 <link rel="apple-touch-icon" href="kront-icon-192.png">
 <style id="krontSplashStyles">
@@ -48,12 +47,15 @@
 @media(prefers-reduced-motion:reduce){.kront-final-art,.kront-final-glow{animation:none!important}}
 </style>
 
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#050705">
+
+
+<link rel="manifest" href="/MeneyStaffDailyMission/KroniMeney.webmanifest">
 <meta name="application-name" content="KroniMeney">
 <meta name="apple-mobile-web-app-title" content="KroniMeney">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#050705">
 
 </head>
 <body>
@@ -337,27 +339,21 @@ setInterval(()=>{const a=document.getElementById("pointsValue"),b=document.getEl
   }
   window.addEventListener("load",()=>setTimeout(advance,300),{once:true});
   setTimeout(()=>splash?.classList.add("hide"),6500);
-  if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(console.warn));
-  }
-})();
+  
 </script>
 
+
 <script>
-(async()=>{
-  if(!("serviceWorker" in navigator)) return;
-  try{
-    const regs = await navigator.serviceWorker.getRegistrations();
-    const here = new URL("./", location.href).href;
-    for(const reg of regs){
-      const scope = reg.scope;
-      const activeScript = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || "";
-      if(scope === here && !activeScript.endsWith("/sw.js")){
-        await reg.unregister();
-      }
+(()=>{
+  const isStandalone =
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone === true;
+
+  if(isStandalone){
+    const expected="/MeneyStaffDailyMission/KroniMeney.html";
+    if(location.pathname !== expected){
+      location.replace(expected);
     }
-  }catch(e){
-    console.warn("KroniMeney PWA scope check", e);
   }
 })();
 </script>
