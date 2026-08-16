@@ -328,18 +328,45 @@ setInterval(()=>{const a=document.getElementById("pointsValue"),b=document.getEl
 (()=>{
   const splash=document.getElementById("krontSplash");
   const loader=document.getElementById("krontLoader");
+
+  if(!splash) return;
+
   const steps=[18,39,61,82,100];
   let i=0;
-  function advance(){
-    if(!loader)return;
-    loader.style.width=steps[i]+"%";
-    i++;
-    if(i<steps.length)setTimeout(advance,900);
-    else setTimeout(()=>splash?.classList.add("hide"),1050);
+  let finished=false;
+
+  function finishSplash(){
+    if(finished) return;
+    finished=true;
+    if(loader) loader.style.width="100%";
+    splash.classList.add("hide");
+    setTimeout(()=>splash.remove(),800);
   }
-  window.addEventListener("load",()=>setTimeout(advance,300),{once:true});
-  setTimeout(()=>splash?.classList.add("hide"),6500);
-  
+
+  function advance(){
+    if(finished) return;
+
+    if(loader && i<steps.length){
+      loader.style.width=steps[i]+"%";
+    }
+
+    i++;
+
+    if(i<steps.length){
+      setTimeout(advance,900);
+    }else{
+      setTimeout(finishSplash,1050);
+    }
+  }
+
+  if(document.readyState==="complete"){
+    setTimeout(advance,300);
+  }else{
+    window.addEventListener("load",()=>setTimeout(advance,300),{once:true});
+  }
+
+  setTimeout(finishSplash,6500);
+})();
 </script>
 
 
