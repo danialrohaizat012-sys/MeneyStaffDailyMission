@@ -1,9 +1,8 @@
-KroniMeney V11 — A2HS + Splash Fix
+KroniMeney V12 — Splash Loader Cosmetic Fix
 
-- V10 A2HS routing fix preserved.
-- Splash controller syntax repaired.
-- Splash now fades and removes itself.
-- Hard failsafe after 6.5 seconds.
-- No shared root service worker added.
-
-Upload all files to the root of the MeneyStaffDailyMission repository and replace the old KroniMeney.html.
+- Keeps V11 A2HS routing and splash stability fixes.
+- Loading bar now visibly animates from 0% to 100%.
+- Smooth ~5.4 second progress animation.
+- Splash exits after the progress finishes.
+- Hard failsafe remains.
+- Flat/root deployment structure retained.
