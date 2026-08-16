@@ -1,4 +1,4 @@
-const CACHE='kronimeney-kront-v6-sharp';
+const CACHE='kronimeney-kront-v7-motion';
 const CORE=['./','./index.html','./manifest.webmanifest',
 './kront-icon-192.png','./kront-icon-512.png',
 './kront-master.png','./kront-face.png'];
