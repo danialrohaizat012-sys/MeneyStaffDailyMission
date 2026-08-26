@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Legacy Cash Buy Shift Fix · 2026-08-11</title>
-  <meta name="meney-build" content="POS-LEGACY-BUY-SHIFT-FIX-REPAIR-CUSTOMER-20260812" />
+  <title>Meney POS Enterprise · Shift Cash Continuity · 2026-08-26</title>
+  <meta name="meney-build" content="POS-SHIFT-CASH-CONTINUITY-20260826" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -454,6 +454,20 @@
     .consignment-product-fields{display:grid;grid-template-columns:1.4fr .7fr .7fr .7fr;gap:10px}
     @media(max-width:1050px){.consignment-layout{grid-template-columns:1fr}.consignment-summary{position:static}.consignment-metrics{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:650px){.consignment-product-fields,.consignment-metrics{grid-template-columns:1fr}}
+
+
+    /* ===== Shift Cash Continuity V1 · 2026-08-26 ===== */
+    .shift-flow-box{border:1px solid var(--line);border-radius:14px;padding:14px;background:#f8faf9;margin-bottom:13px}
+    .shift-flow-box strong{display:block;font-size:12px}.shift-flow-box span{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.5}
+    .shift-flow-box.good{background:#ecfdf3;border-color:#bbf7d0;color:#166534}
+    .shift-flow-box.warn{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+    .shift-flow-box.bad{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
+    .shift-reference{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:13px}
+    .shift-reference .summary-mini{margin:0}
+    .shift-owner-reconcile{margin-top:12px;padding:13px;border-radius:13px;border:1px solid #fecaca;background:#fff7f7}
+    .shift-owner-reconcile h4{margin:0 0 5px;font-size:12px;color:#991b1b}
+    .shift-owner-reconcile p{margin:0 0 10px;color:#7f1d1d;font-size:10px;line-height:1.5}
+    @media(max-width:590px){.shift-reference{grid-template-columns:1fr}}
 
 </style>
 </head>
@@ -1051,26 +1065,72 @@
         <section id="page-shift" class="page hidden">
           <div class="grid overview-grid">
             <div class="card section">
-              <div class="section-head"><div><h3>Current Shift</h3><p>Open, cash movement dan close shift.</p></div></div>
-              <div class="two">
-                <div class="field"><label>Opening Cash</label><input id="shiftOpening" type="number" min="0" step=".01" value="0"></div>
-                <div class="field"><label>Actual Cash (Close)</label><input id="shiftActual" type="number" min="0" step=".01" value="0"></div>
+              <div class="section-head"><div><h3>Current Shift</h3><p>Cash drawer continuity dari closing shift sebelumnya ke opening shift seterusnya.</p></div></div>
+
+              <div id="shiftOpenPanel">
+                <div class="shift-reference">
+                  <div class="summary-mini"><span>Previous Shift</span><strong id="previousShiftText">No previous shift</strong></div>
+                  <div class="summary-mini"><span>Previous Closing Cash</span><strong id="previousClosingCashText">—</strong></div>
+                </div>
+
+                <div id="openingContinuityBox" class="shift-flow-box">
+                  <strong>Opening Cash</strong>
+                  <span>Jika ada previous closed shift, Opening Cash mesti sama dengan Closing Cash shift tersebut.</span>
+                </div>
+
+                <div class="field">
+                  <label>Opening Cash</label>
+                  <input id="shiftOpening" type="number" min="0" step=".01" value="0" inputmode="decimal">
+                  <span class="field-help">Kira duit fizikal dalam drawer dan masukkan jumlah di sini.</span>
+                </div>
+
+                <div id="ownerReconcileBox" class="shift-owner-reconcile hidden">
+                  <h4>Owner · Resolve Cash Discrepancy</h4>
+                  <p>Gunakan hanya jika cash fizikal memang tidak sama dengan closing sebelumnya. Rekod closing lama tidak akan diubah.</p>
+                  <div class="field">
+                    <label>Mandatory Reconciliation Reason</label>
+                    <textarea id="openingReconcileReason" rows="3" placeholder="Contoh: cash diambil selepas closing / counting error sebelumnya / physical shortage"></textarea>
+                  </div>
+                  <button id="resolveOpeningBtn" type="button" class="btn btn-danger btn-block">Resolve Discrepancy & Open Shift</button>
+                </div>
+
+                <button id="openShiftBtn" class="btn btn-green btn-block" style="margin-top:12px">Open New Shift</button>
               </div>
-              <div id="shiftVarianceBox" class="variance-box">
-                <strong>Masukkan actual cash</strong><span>Sistem akan membandingkan dengan expected cash.</span>
-              </div>
-              <div id="varianceNoteField" class="field hidden" style="margin-top:12px"><label>Variance Reason / Note <span style="color:#dc2626">*</span></label><textarea id="shiftVarianceNote" rows="3" placeholder="Contoh: tersalah baki customer, cash refund belum direkod atau counting error"></textarea></div>
-              <div class="two">
-                <button id="openShiftBtn" class="btn btn-green">Open New Shift</button>
-                <button id="closeShiftBtn" class="btn btn-purple">Close Shift</button>
+
+              <div id="shiftClosePanel" class="hidden">
+                <div class="shift-reference">
+                  <div class="summary-mini"><span>Opening Cash</span><strong id="currentOpeningCashText">RM0.00</strong></div>
+                  <div class="summary-mini"><span>Expected Closing Cash</span><strong id="currentExpectedClosingText">RM0.00</strong></div>
+                </div>
+
+                <div class="field">
+                  <label>Closing Cash</label>
+                  <input id="shiftActual" type="number" min="0" step=".01" value="" inputmode="decimal" placeholder="Masukkan cash selepas kira drawer">
+                  <span class="field-help">Jumlah tunai fizikal sebenar ketika shift ditutup.</span>
+                </div>
+
+                <div id="shiftVarianceBox" class="variance-box">
+                  <strong>Masukkan Closing Cash</strong><span>Sistem akan membandingkan dengan Expected Closing Cash.</span>
+                </div>
+
+                <div id="varianceNoteField" class="field hidden" style="margin-top:12px">
+                  <label>Variance Reason / Note <span style="color:#dc2626">*</span></label>
+                  <textarea id="shiftVarianceNote" rows="3" placeholder="Isi hanya jika Closing Cash tidak sama dengan Expected Closing Cash"></textarea>
+                </div>
+
+                <button id="closeShiftBtn" class="btn btn-purple btn-block" style="margin-top:12px">Close Shift</button>
               </div>
             </div>
+
             <div class="card section">
-              <div class="section-head"><div><h3>Cash In / Out</h3><p>Rekod pergerakan tunai.</p></div></div>
-              <div class="field"><label>Type</label><select id="cashMoveType"><option value="in">Cash In</option><option value="out">Cash Out</option></select></div>
-              <div class="field"><label>Amount</label><input id="cashMoveAmount" type="number" min="0" step=".01"></div>
-              <div class="field"><label>Note</label><input id="cashMoveNote"></div>
-              <button id="saveCashMove" class="btn btn-dark btn-block">Save Cash Movement</button>
+              <div class="section-head"><div><h3>Cash In / Out</h3><p>Hanya untuk pergerakan tunai semasa shift sedang open.</p></div></div>
+              <div id="cashMoveClosedNotice" class="notice">Open shift dahulu sebelum merekod Cash In / Out.</div>
+              <div id="cashMoveFields">
+                <div class="field"><label>Type</label><select id="cashMoveType"><option value="in">Cash In</option><option value="out">Cash Out</option></select></div>
+                <div class="field"><label>Amount</label><input id="cashMoveAmount" type="number" min="0" step=".01"></div>
+                <div class="field"><label>Note</label><input id="cashMoveNote" placeholder="Contoh: bank deposit / petty cash"></div>
+                <button id="saveCashMove" class="btn btn-dark btn-block">Save Cash Movement</button>
+              </div>
             </div>
           </div>
         </section>
@@ -2869,23 +2929,221 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   $("exportCollectionBtn").onclick=async()=>{try{await exportOne($("exportCollection").value,$("exportFormat").value);toast("Export siap")}catch(e){toast(e.message)}};
   $("fullBackupBtn").onclick=async()=>{if(!isOwner())return toast("Owner sahaja boleh export full backup.");try{$("fullBackupBtn").disabled=true;$("fullBackupBtn").textContent="Preparing backup...";await fullBackup($("backupFormat").value);toast("Full backup siap")}catch(e){toast(e.message)}finally{$("fullBackupBtn").disabled=false;$("fullBackupBtn").textContent="⬇ Export Full Backup"}};
 
-  $("openShiftBtn").onclick=async()=>{if(currentShift())return toast("Masih ada shift yang terbuka.");try{let shiftNo=await reserveDocumentNumber("shift","SHF");const ref=doc(collection(db,"shifts"));await runTransaction(db,async tx=>{tx.set(ref,{shiftNo,status:"open",openingCash:Number($("shiftOpening").value||0),staffId:state.user.uid,staffName:state.profile.name||state.user.email,openedAt:serverTimestamp(),createdAt:serverTimestamp()})});$("shiftActual").value="";$("shiftVarianceNote").value="";toast("Shift opened · "+shiftNo)}catch(e){toast(e.message)}};
+  function currentShift(){return state.shifts.find(s=>s.status==="open")}
+
+  function shiftTimestampMs(s){
+    const candidates=[s?.closedAt,s?.openedAt,s?.createdAt];
+    for(const v of candidates){
+      if(!v)continue;
+      if(v?.toDate instanceof Function)return v.toDate().getTime();
+      if(v?.seconds)return Number(v.seconds)*1000;
+      const n=new Date(v).getTime();
+      if(Number.isFinite(n))return n;
+    }
+    return 0;
+  }
+
+  function latestClosedShift(){
+    return state.shifts
+      .filter(s=>s.status==="closed")
+      .sort((a,b)=>shiftTimestampMs(b)-shiftTimestampMs(a))[0]||null;
+  }
+
+  function closingCashOfShift(s){
+    if(!s)return null;
+    if(s.closingCash!==undefined&&s.closingCash!==null&&Number.isFinite(Number(s.closingCash)))return Number(s.closingCash);
+    if(s.actualCash!==undefined&&s.actualCash!==null&&Number.isFinite(Number(s.actualCash)))return Number(s.actualCash);
+    // Legacy fallback only when an old closed record has no actual/closing cash.
+    if(s.expectedCash!==undefined&&s.expectedCash!==null&&Number.isFinite(Number(s.expectedCash)))return Number(s.expectedCash);
+    return null;
+  }
+
+  function openingContinuity(){
+    const previous=latestClosedShift();
+    const previousClosing=closingCashOfShift(previous);
+    return {previous,previousClosing,hasPrevious:!!previous&&previousClosing!==null};
+  }
+
+  function openingDifference(){
+    const c=openingContinuity(),entered=Number($("shiftOpening")?.value||0);
+    return {...c,entered,difference:c.hasPrevious?Number((entered-c.previousClosing).toFixed(2)):0};
+  }
+
+  function renderOpeningContinuity(){
+    const c=openingDifference(),box=$("openingContinuityBox"),ownerBox=$("ownerReconcileBox");
+    $("previousShiftText").textContent=c.previous?.shiftNo||"No previous closed shift";
+    $("previousClosingCashText").textContent=c.hasPrevious?money(c.previousClosing):"—";
+
+    if(currentShift()){
+      ownerBox.classList.add("hidden");
+      return;
+    }
+
+    if(!c.hasPrevious){
+      box.className="shift-flow-box";
+      box.innerHTML="<strong>First / legacy opening</strong><span>Tiada previous Closing Cash yang boleh digunakan. Opening Cash boleh dimasukkan secara manual untuk shift ini.</span>";
+      ownerBox.classList.add("hidden");
+      return;
+    }
+
+    if(Math.abs(c.difference)<0.01){
+      box.className="shift-flow-box good";
+      box.innerHTML=`<strong>✓ Cash Continuity Matched</strong><span>Previous Closing ${money(c.previousClosing)} → Opening ${money(c.entered)}</span>`;
+      ownerBox.classList.add("hidden");
+    }else{
+      box.className="shift-flow-box bad";
+      box.innerHTML=`<strong>⚠ Opening Cash Mismatch ${c.difference<0?"−":"+"}${money(Math.abs(c.difference))}</strong><span>Previous Closing ialah ${money(c.previousClosing)}, tetapi cash yang dimasukkan ialah ${money(c.entered)}. Shift tidak boleh dibuka sehingga discrepancy diselesaikan.</span>`;
+      ownerBox.classList.toggle("hidden",!isOwner());
+    }
+  }
+
+  async function createShift({reconciliation=null}={}){
+    if(currentShift())throw new Error("Masih ada shift yang terbuka.");
+
+    const c=openingDifference();
+    if(c.entered<0)throw new Error("Opening Cash tidak sah.");
+
+    if(c.hasPrevious&&Math.abs(c.difference)>=0.01&&!reconciliation){
+      throw new Error(isOwner()
+        ?"Opening Cash tidak sama dengan Previous Closing Cash. Gunakan Resolve Cash Discrepancy jika angka fizikal memang berbeza."
+        :"Opening Cash mesti sama dengan Previous Closing Cash.");
+    }
+
+    if(reconciliation&&!isOwner())throw new Error("Owner sahaja boleh resolve cash discrepancy.");
+    if(reconciliation&&!String(reconciliation.reason||"").trim())throw new Error("Reconciliation reason wajib diisi.");
+
+    let shiftNo=await reserveDocumentNumber("shift","SHF");
+    const ref=doc(collection(db,"shifts"));
+
+    const payload={
+      shiftNo,
+      status:"open",
+      openingCash:Number(c.entered.toFixed(2)),
+      staffId:state.user.uid,
+      staffName:state.profile.name||state.user.email,
+      previousShiftId:c.previous?.id||null,
+      previousShiftNo:c.previous?.shiftNo||null,
+      previousClosingCash:c.hasPrevious?Number(c.previousClosing.toFixed(2)):null,
+      openingContinuityStatus:reconciliation?"reconciled":c.hasPrevious?"matched":"baseline",
+      openingVariance:c.hasPrevious?Number(c.difference.toFixed(2)):0,
+      openedAt:serverTimestamp(),
+      createdAt:serverTimestamp()
+    };
+
+    if(reconciliation){
+      payload.openingReconciliation={
+        previousClosingCash:Number(c.previousClosing.toFixed(2)),
+        physicalOpeningCash:Number(c.entered.toFixed(2)),
+        difference:Number(c.difference.toFixed(2)),
+        reason:String(reconciliation.reason).trim(),
+        approvedBy:state.user.uid,
+        approvedByName:state.profile.name||state.user.email,
+        approvedByRole:currentRole(),
+        recordedAtISO:new Date().toISOString()
+      };
+    }
+
+    await runTransaction(db,async tx=>tx.set(ref,payload));
+    $("shiftActual").value="";
+    $("shiftVarianceNote").value="";
+    $("openingReconcileReason").value="";
+    toast(reconciliation?`Shift opened · ${shiftNo} · discrepancy reconciled`:`Shift opened · ${shiftNo}`);
+  }
+
+  $("shiftOpening").addEventListener("input",renderOpeningContinuity);
+
+  $("openShiftBtn").onclick=async()=>{
+    try{await createShift()}
+    catch(e){toast(e.message);renderOpeningContinuity()}
+  };
+
+  $("resolveOpeningBtn").onclick=async()=>{
+    if(!isOwner())return toast("Owner sahaja boleh resolve cash discrepancy.");
+    const c=openingDifference(),reason=$("openingReconcileReason").value.trim();
+    if(!c.hasPrevious)return toast("Tiada previous shift untuk reconciliation.");
+    if(Math.abs(c.difference)<0.01)return toast("Opening Cash sudah sama dengan Previous Closing Cash.");
+    if(!reason)return toast("Reconciliation reason wajib diisi.");
+    const msg=`Previous Closing: ${money(c.previousClosing)}\nPhysical Opening: ${money(c.entered)}\nDifference: ${c.difference<0?"-":"+"}${money(Math.abs(c.difference))}\n\nRekod closing lama TIDAK akan diubah. Teruskan reconciliation dan buka shift?`;
+    if(!confirm(msg))return;
+    try{await createShift({reconciliation:{reason}})}
+    catch(e){toast(e.message)}
+  };
+
   $("shiftActual").oninput=renderShiftVariance;
+
   $("closeShiftBtn").onclick=async()=>{
     const s=currentShift();if(!s)return toast("Tiada shift terbuka.");
-    if($("shiftActual").value==="")return toast("Masukkan actual cash dahulu.");
-    const actual=Number($("shiftActual").value||0),expected=getShiftCashSummary(s).expected,variance=Number((actual-expected).toFixed(2)),status=Math.abs(variance)<0.01?"balanced":variance<0?"shortage":"excess",note=$("shiftVarianceNote").value.trim();
-    if(status!=="balanced"&&!note)return toast("Variance reason wajib diisi jika cash tidak seimbang.");
-    const message=status==="shortage"?`Cash shortage ${money(Math.abs(variance))} dikesan. Pastikan cash drawer telah dikira semula. Teruskan close shift?`:status==="excess"?`Cash excess ${money(variance)} dikesan. Pastikan cash drawer telah dikira semula. Teruskan close shift?`:"Cash drawer balanced. Close shift sekarang?";
+    if($("shiftActual").value==="")return toast("Masukkan Closing Cash dahulu.");
+
+    const closing=Number($("shiftActual").value||0),
+      expected=getShiftCashSummary(s).expected,
+      variance=Number((closing-expected).toFixed(2)),
+      status=Math.abs(variance)<0.01?"balanced":variance<0?"shortage":"excess",
+      note=$("shiftVarianceNote").value.trim();
+
+    if(status!=="balanced"&&!note)return toast("Variance reason wajib diisi jika Closing Cash tidak seimbang.");
+
+    const message=status==="shortage"
+      ?`Cash shortage ${money(Math.abs(variance))} dikesan. Kira drawer sekali lagi. Teruskan Close Shift?`
+      :status==="excess"
+        ?`Cash excess ${money(variance)} dikesan. Kira drawer sekali lagi. Teruskan Close Shift?`
+        :"Cash drawer balanced. Close shift sekarang?";
+
     if(!confirm(message))return;
-    try{await updateDoc(doc(db,"shifts",s.id),{status:"closed",expectedCash:Number(expected.toFixed(2)),actualCash:Number(actual.toFixed(2)),cashVariance:variance,varianceStatus:status,varianceNote:note,closedAt:serverTimestamp(),closedBy:state.user.uid});$("shiftActual").value="";$("shiftVarianceNote").value="";toast(status==="balanced"?"Shift closed · Cash balanced":`Shift closed · ${status} ${money(Math.abs(variance))}`)}catch(e){toast(e.message)}
+
+    try{
+      await updateDoc(doc(db,"shifts",s.id),{
+        status:"closed",
+        expectedCash:Number(expected.toFixed(2)),
+        // Keep legacy field for all existing reports/integrations:
+        actualCash:Number(closing.toFixed(2)),
+        // New semantic alias for future integrations:
+        closingCash:Number(closing.toFixed(2)),
+        cashVariance:variance,
+        varianceStatus:status,
+        varianceNote:note,
+        closedAt:serverTimestamp(),
+        closedBy:state.user.uid,
+        closedByName:state.profile.name||state.user.email
+      });
+      $("shiftActual").value="";
+      $("shiftVarianceNote").value="";
+      toast(status==="balanced"?"Shift closed · Cash balanced":`Shift closed · ${status} ${money(Math.abs(variance))}`);
+    }catch(e){toast(e.message)}
   };
-  $("saveCashMove").onclick=async()=>{const s=currentShift();if(!s)return toast("Open shift dahulu.");const amount=Number($("cashMoveAmount").value||0);if(amount<=0)return toast("Masukkan amount yang sah.");try{let cashMoveNo=await reserveDocumentNumber("cashMove","CSH");const ref=doc(collection(db,"cashMoves"));await runTransaction(db,async tx=>{tx.set(ref,{cashMoveNo,shiftId:s.id,shiftNo:s.shiftNo||null,type:$("cashMoveType").value,amount,note:$("cashMoveNote").value.trim(),createdAt:serverTimestamp(),staffId:state.user.uid,staffName:state.profile.name||state.user.email})});$("cashMoveAmount").value="";$("cashMoveNote").value="";toast("Cash movement saved · "+cashMoveNo)}catch(e){toast(e.message)}};
-  function currentShift(){return state.shifts.find(s=>s.status==="open")}
+
+  $("saveCashMove").onclick=async()=>{
+    const s=currentShift();if(!s)return toast("Open shift dahulu.");
+    const amount=Number($("cashMoveAmount").value||0);
+    if(amount<=0)return toast("Masukkan amount yang sah.");
+    const note=$("cashMoveNote").value.trim();
+    if(!note)return toast("Masukkan note untuk Cash In / Out.");
+    try{
+      let cashMoveNo=await reserveDocumentNumber("cashMove","CSH");
+      const ref=doc(collection(db,"cashMoves"));
+      await runTransaction(db,async tx=>tx.set(ref,{
+        cashMoveNo,
+        shiftId:s.id,
+        shiftNo:s.shiftNo||null,
+        type:$("cashMoveType").value,
+        amount,
+        note,
+        transactionDate:new Date().toISOString(),
+        createdAt:serverTimestamp(),
+        staffId:state.user.uid,
+        staffName:state.profile.name||state.user.email
+      }));
+      $("cashMoveAmount").value="";
+      $("cashMoveNote").value="";
+      toast("Cash movement saved · "+cashMoveNo);
+    }catch(e){toast(e.message)}
+  };
+
   function saleCashAmount(sale){
     if(Array.isArray(sale.payments))return sale.payments.filter(p=>p.method==="Cash").reduce((sum,p)=>sum+Number(p.amount||0),0);
     return sale.paymentMethod==="Cash"?Number(sale.total||0):0;
   }
+
   function timestampMs(v){
     if(!v)return 0;
     if(v?.toDate instanceof Function)return v.toDate().getTime();
@@ -2979,17 +3237,73 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       expected:opening+cashSales-cashBuys+tradeCash+repairCash-stockPurchaseCash+cin-cout
     };
   }
+
   function renderShiftVariance(){
     const s=currentShift(),box=$("shiftVarianceBox"),noteField=$("varianceNoteField");
-    if(!s||$("shiftActual").value===""){box.className="variance-box";box.innerHTML="<strong>Masukkan actual cash</strong><span>Sistem akan membandingkan dengan expected cash.</span>";noteField.classList.add("hidden");return}
-    const expected=getShiftCashSummary(s).expected,actual=Number($("shiftActual").value||0),variance=Number((actual-expected).toFixed(2));
-    if(Math.abs(variance)<0.01){box.className="variance-box balanced";box.innerHTML=`<strong>✓ Cash Drawer Balanced</strong><span>Expected ${money(expected)} · Actual ${money(actual)} · Variance ${money(0)}</span>`;noteField.classList.add("hidden")}
-    else if(variance<0){box.className="variance-box shortage";box.innerHTML=`<strong>⚠ Cash Shortage: -${money(Math.abs(variance))}</strong><span>Expected ${money(expected)} tetapi actual cash hanya ${money(actual)}. Sila kira semula dan beri sebab.</span>`;noteField.classList.remove("hidden")}
-    else{box.className="variance-box excess";box.innerHTML=`<strong>⚠ Cash Excess: +${money(variance)}</strong><span>Expected ${money(expected)} tetapi actual cash ialah ${money(actual)}. Sila kira semula dan beri sebab.</span>`;noteField.classList.remove("hidden")}
+    if(!s)return;
+    if($("shiftActual").value===""){
+      box.className="variance-box";
+      box.innerHTML="<strong>Masukkan Closing Cash</strong><span>Sistem akan membandingkan dengan Expected Closing Cash.</span>";
+      noteField.classList.add("hidden");
+      return;
+    }
+    const expected=getShiftCashSummary(s).expected,
+      closing=Number($("shiftActual").value||0),
+      variance=Number((closing-expected).toFixed(2));
+
+    if(Math.abs(variance)<0.01){
+      box.className="variance-box balanced";
+      box.innerHTML=`<strong>✓ Cash Drawer Balanced</strong><span>Expected ${money(expected)} · Closing ${money(closing)} · Variance ${money(0)}</span>`;
+      noteField.classList.add("hidden");
+    }else if(variance<0){
+      box.className="variance-box shortage";
+      box.innerHTML=`<strong>⚠ Cash Shortage: -${money(Math.abs(variance))}</strong><span>Expected ${money(expected)} tetapi Closing Cash hanya ${money(closing)}. Kira semula dan beri sebab jika benar.</span>`;
+      noteField.classList.remove("hidden");
+    }else{
+      box.className="variance-box excess";
+      box.innerHTML=`<strong>⚠ Cash Excess: +${money(variance)}</strong><span>Expected ${money(expected)} tetapi Closing Cash ialah ${money(closing)}. Kira semula dan beri sebab jika benar.</span>`;
+      noteField.classList.remove("hidden");
+    }
   }
+
   function renderShift(){
     const s=currentShift(),x=getShiftCashSummary(s);
-    $("shiftChip").textContent=s?"● SHIFT OPEN":"○ SHIFT CLOSED";$("shiftStatus").textContent=s?"OPEN":"CLOSED";$("openingCashText").textContent=money(x.opening);$("cashSalesText").textContent=money(x.cashSales);if($("cashBuyText"))$("cashBuyText").textContent="-"+money(x.cashBuys);if($("cashTradeText")){$("cashTradeText").textContent=(x.tradeCash<0?"-":"+")+money(Math.abs(x.tradeCash));$("cashTradeText").classList.toggle("redtxt",x.tradeCash<0)}if($("cashRepairText"))$("cashRepairText").textContent="+"+money(x.repairCash);if($("cashStockPurchaseText"))$("cashStockPurchaseText").textContent="-"+money(x.stockPurchaseCash);$("cashInText").textContent=money(x.cin);$("cashOutText").textContent="-"+money(x.cout);$("expectedCashText").textContent=money(x.expected);renderShiftVariance()
+
+    $("shiftChip").textContent=s?"● SHIFT OPEN":"○ SHIFT CLOSED";
+    $("shiftStatus").textContent=s?"OPEN":"CLOSED";
+    $("openingCashText").textContent=money(x.opening);
+    $("cashSalesText").textContent=money(x.cashSales);
+    if($("cashBuyText"))$("cashBuyText").textContent="-"+money(x.cashBuys);
+    if($("cashTradeText")){
+      $("cashTradeText").textContent=(x.tradeCash<0?"-":"+")+money(Math.abs(x.tradeCash));
+      $("cashTradeText").classList.toggle("redtxt",x.tradeCash<0);
+    }
+    if($("cashRepairText"))$("cashRepairText").textContent="+"+money(x.repairCash);
+    if($("cashStockPurchaseText"))$("cashStockPurchaseText").textContent="-"+money(x.stockPurchaseCash);
+    $("cashInText").textContent=money(x.cin);
+    $("cashOutText").textContent="-"+money(x.cout);
+    $("expectedCashText").textContent=money(x.expected);
+
+    $("shiftOpenPanel").classList.toggle("hidden",!!s);
+    $("shiftClosePanel").classList.toggle("hidden",!s);
+    $("cashMoveFields").classList.toggle("hidden",!s);
+    $("cashMoveClosedNotice").classList.toggle("hidden",!!s);
+
+    if(s){
+      $("currentOpeningCashText").textContent=money(Number(s.openingCash||0));
+      $("currentExpectedClosingText").textContent=money(x.expected);
+      $("ownerReconcileBox").classList.add("hidden");
+      renderShiftVariance();
+    }else{
+      const c=openingContinuity();
+      // Prefill from previous closing only when user is not actively editing.
+      if(c.hasPrevious && document.activeElement!==$("shiftOpening")){
+        $("shiftOpening").value=Number(c.previousClosing.toFixed(2));
+      }
+      renderOpeningContinuity();
+      $("shiftVarianceBox").className="variance-box";
+      $("varianceNoteField").classList.add("hidden");
+    }
   }
   resetSplitPayments();
 
