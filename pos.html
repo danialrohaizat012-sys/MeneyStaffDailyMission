@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Shift Cash Continuity · 2026-08-26</title>
-  <meta name="meney-build" content="POS-SHIFT-CASH-CONTINUITY-20260826" />
+  <title>Meney POS Enterprise · Merchandise Preorder & Variant · 2026-08-26</title>
+  <meta name="meney-build" content="POS-MERCHANDISE-PREORDER-VARIANT-20260826" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -469,6 +469,14 @@
     .shift-owner-reconcile p{margin:0 0 10px;color:#7f1d1d;font-size:10px;line-height:1.5}
     @media(max-width:590px){.shift-reference{grid-template-columns:1fr}}
 
+
+    /* ===== Merchandise / Preorder V1 ===== */
+    .merch-box{margin-top:12px;padding:13px;border:1px solid #cfe8d6;border-radius:13px;background:#f3fbf5}
+    .merch-box h4{margin:0 0 8px;font-size:12px;color:#166534}
+    .merch-chip{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:#ecfdf3;color:#166534;font-size:9px;font-weight:900}
+    .preorder-chip{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:#fff7ed;color:#9a3412;font-size:9px;font-weight:900}
+    .reserved-chip{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:9px;font-weight:900}
+
 </style>
 </head>
 <body>
@@ -917,7 +925,7 @@
                 <div id="tradeInExistingInfo" class="sp-product-status existing hidden"></div>
                 <div id="tradeInNewBox" class="sp-create-box hidden">
                   <div class="field"><label>New Item Name</label><input id="tradeItem" placeholder="Contoh: PS4 Slim 500GB"></div>
-                  <div class="form-grid cols-2"><div class="field"><label>Category</label><select id="tradeCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div><div class="field"><label>Item Type</label><select id="tradeItemType"><option value="Used" selected>Used</option><option value="New">New</option></select></div></div>
+                  <div class="form-grid cols-2"><div class="field"><label>Category</label><select id="tradeCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Merchandise</option><option>Repair Parts</option><option>Others</option></select></div><div class="field"><label>Item Type</label><select id="tradeItemType"><option value="Used" selected>Used</option><option value="New">New</option></select></div></div>
                   <div class="sp-product-status new">SKU baharu hanya akan dicipta apabila transaksi Trade-In berjaya diselesaikan.</div>
                 </div>
                 <div class="form-grid cols-2"><div class="field"><label>Serial Number</label><input id="tradeSerial" placeholder="Kosongkan jika tiada"></div><div class="field"><label>Quantity</label><input id="tradeInQty" type="number" min="1" step="1" value="1"></div></div>
@@ -1227,8 +1235,20 @@
           <div class="field"><label>SKU</label><div class="sku-row"><input id="productSku" class="auto-field" readonly value="Auto-generated upon save"><button type="button" id="unlockSkuBtn" class="btn btn-light" style="padding:10px">Unlock</button></div><span id="skuHelp" class="field-help">SKU dijana automatik mengikut kategori. Owner boleh unlock untuk override.</span></div>
         </div>
         <div class="two">
-          <div class="field"><label>Category</label><select id="productCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Repair Parts</option><option>Others</option></select></div>
+          <div class="field"><label>Category</label><select id="productCategory"><option>Console</option><option>Controller</option><option>Games</option><option>Accessories</option><option>Merchandise</option><option>Repair Parts</option><option>Others</option></select></div>
           <div class="field"><label>Item Type</label><select id="productItemType"><option value="New">New</option><option value="Used" selected>Used</option></select></div>
+        </div>
+        <div id="merchProductFields" class="merch-box hidden">
+          <h4>Merchandise Details</h4>
+          <div class="two">
+            <div class="field"><label>Variant / Size</label><input id="productVariant" placeholder="Contoh: S / M / L / XL / Black"></div>
+            <div class="field"><label>Sales Mode</label><select id="productSalesMode"><option value="ready_stock">Ready Stock</option><option value="preorder">Pre-Order</option></select></div>
+          </div>
+          <div class="two">
+            <div class="field"><label>Reserved / Preorder Qty</label><input id="productReservedQty" type="number" min="0" step="1" value="0"></div>
+            <div class="field"><label>Expected Arrival</label><input id="productExpectedArrival" type="date"></div>
+          </div>
+          <span class="field-help">Untuk merchandise, setiap variant disimpan sebagai SKU berasingan supaya stock S/M/L/XL tidak bercampur.</span>
         </div>
         <div class="three">
           <div class="field"><label>Cost Price</label><input id="productCost" type="number" min="0" step=".01" required></div>
@@ -1412,7 +1432,16 @@
   }
   const normalizeText=v=>String(v||"").trim().toLowerCase().replace(/\s+/g," ");
   const normalizeSerial=v=>String(v||"").trim().toUpperCase().replace(/\s+/g,"");
-  const skuPrefixes={Console:"CON",Controller:"CTR",Games:"GAM",Accessories:"ACC","Repair Parts":"RPT",Others:"OTH"};
+  const skuPrefixes={Console:"CON",Controller:"CTR",Games:"GAM",Accessories:"ACC",Merchandise:"MER","Repair Parts":"RPT",Others:"OTH"};
+
+  function productAvailableQty(p){return Math.max(0,Number(p?.stock||0)-Number(p?.reservedQty||0))}
+  function syncMerchProductFields(){
+    const isMerch=$("productCategory")?.value==="Merchandise";
+    $("merchProductFields")?.classList.toggle("hidden",!isMerch);
+    if(isMerch&&$("productItemType"))$("productItemType").value="New";
+  }
+  $("productCategory")?.addEventListener("change",syncMerchProductFields);
+
   const skuPrefix=category=>skuPrefixes[category]||"OTH";
   async function nextCounter(tx,key){
     const ref=doc(db,"counters",key),snap=await tx.get(ref),next=(snap.exists()?Number(snap.data().value||0):0)+1;
@@ -1437,9 +1466,9 @@
     const key=normalizeSerial(serial);if(!key)return null;
     return state.products.find(p=>p.id!==excludeId&&normalizeSerial(p.serial)===key)||null;
   }
-  function mergeCandidate({name,category,itemType="Used",serial},excludeId=null){
+  function mergeCandidate({name,category,itemType="Used",serial,variant=""},excludeId=null){
     if(normalizeSerial(serial))return null;
-    return state.products.find(p=>p.id!==excludeId&&!normalizeSerial(p.serial)&&normalizeText(p.name)===normalizeText(name)&&p.category===category&&(p.itemType||"Used")===itemType)||null;
+    return state.products.find(p=>p.id!==excludeId&&!normalizeSerial(p.serial)&&normalizeText(p.name)===normalizeText(name)&&p.category===category&&(p.itemType||"Used")===itemType&&(category!=="Merchandise"||normalizeText(p.variant||"")===normalizeText(variant||"")))||null;
   }
   function weightedAverageCost(oldQty,oldCost,inQty,inCost){
     oldQty=Number(oldQty||0);oldCost=Number(oldCost||0);inQty=Number(inQty||0);inCost=Number(inCost||0);
@@ -1928,16 +1957,21 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   $("posSearch").oninput=renderProducts;$("posCategory").onchange=renderProducts;
   function renderProducts(){
     const t=$("posSearch").value.toLowerCase(),c=$("posCategory").value;
-    const arr=state.products.filter(p=>(!t||`${p.name} ${p.sku} ${p.serial}`.toLowerCase().includes(t))&&(!c||p.category===c)&&Number(p.stock)>0);
-    $("productList").innerHTML=arr.length?arr.map(p=>`<div class="product-row"><div><h4>${esc(p.name)}</h4><p>${esc(p.sku)}${p.category?` · ${esc(p.category)}`:""}</p><div class="product-meta"><span class="product-chip ${(p.itemType||"Used").toLowerCase()}">${esc(p.itemType||"Used")}</span><span class="product-chip stock">Stock ${Number(p.stock||0)}</span>${p.ownershipType==="consignment"?'<span class="product-chip consignment-badge">Consignment</span>':""}</div></div><div style="display:flex;align-items:center;gap:10px"><span class="price">${money(p.price)}</span><button class="add-mini" onclick="window.addCart('${p.id}')">Add</button></div></div>`).join(""):'<div class="muted" style="padding:25px;text-align:center">Tiada produk.</div>' 
+    const arr=state.products.filter(p=>(!t||`${p.name} ${p.sku} ${p.serial} ${p.variant||""}`.toLowerCase().includes(t))&&(!c||p.category===c)&&(Number(p.stock)>0||(p.category==="Merchandise"&&p.salesMode==="preorder")));
+    $("productList").innerHTML=arr.length?arr.map(p=>`<div class="product-row"><div><h4>${esc(p.name)}</h4><p>${esc(p.sku)}${p.category?` · ${esc(p.category)}`:""}</p><div class="product-meta"><span class="product-chip ${(p.itemType||"Used").toLowerCase()}">${esc(p.itemType||"Used")}</span><span class="product-chip stock">Physical ${Number(p.stock||0)}</span>${p.category==="Merchandise"&&p.variant?`<span class="merch-chip">${esc(p.variant)}</span>`:""}${p.category==="Merchandise"&&p.salesMode==="preorder"?`<span class="preorder-chip">PRE-ORDER</span><span class="reserved-chip">Reserved ${Number(p.reservedQty||0)}</span>`:""}${p.ownershipType==="consignment"?'<span class="product-chip consignment-badge">Consignment</span>':""}</div></div><div style="display:flex;align-items:center;gap:10px"><span class="price">${money(p.price)}</span><button class="add-mini" onclick="window.addCart('${p.id}')">Add</button></div></div>`).join(""):'<div class="muted" style="padding:25px;text-align:center">Tiada produk.</div>' 
   }
 
   window.addCart=id=>{
-    const p=state.products.find(x=>x.id===id);if(!p)return;const item=state.cart.find(x=>x.productId===id);
-    if(item){if(item.qty>=Number(p.stock))return toast("Stok tak cukup.");item.qty++}else state.cart.push({productId:id,name:p.name,sku:p.sku,price:Number(p.price),cost:Number(p.cost||0),qty:1,stock:Number(p.stock),warranty:"No Warranty",warrantyDays:0,warrantyCustomDays:30,warrantyStartDate:"",warrantyExpiry:"",warrantyStatus:"none",ownershipType:p.ownershipType||"owned",consignmentSupplierId:p.consignmentSupplierId||null,consignmentSupplierName:p.consignmentSupplierName||"",consignmentAgreementId:p.consignmentAgreementId||null,supplierUnitCost:Number(p.supplierUnitCost??p.cost??0)});
+    const p=state.products.find(x=>x.id===id);if(!p)return;
+    const preorder=p.category==="Merchandise"&&p.salesMode==="preorder";
+    const item=state.cart.find(x=>x.productId===id);
+    if(item){
+      if(!preorder&&item.qty>=Number(p.stock))return toast("Stok tak cukup.");
+      item.qty++;
+    }else state.cart.push({productId:id,name:p.name,sku:p.sku,category:p.category||"",variant:p.variant||"",salesMode:p.salesMode||"ready_stock",isPreorder:preorder,price:Number(p.price),cost:Number(p.cost||0),qty:1,stock:Number(p.stock),reservedQty:Number(p.reservedQty||0),warranty:"No Warranty",warrantyDays:0,warrantyCustomDays:30,warrantyStartDate:"",warrantyExpiry:"",warrantyStatus:"none",ownershipType:p.ownershipType||"owned",consignmentSupplierId:p.consignmentSupplierId||null,consignmentSupplierName:p.consignmentSupplierName||"",consignmentAgreementId:p.consignmentAgreementId||null,supplierUnitCost:Number(p.supplierUnitCost??p.cost??0)});
     renderCart()
   };
-  window.cartQty=(id,d)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;const n=i.qty+d;if(n<1)state.cart=state.cart.filter(x=>x.productId!==id);else if(n<=i.stock)i.qty=n;renderCart()};
+  window.cartQty=(id,d)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;const n=i.qty+d;if(n<1)state.cart=state.cart.filter(x=>x.productId!==id);else if(i.isPreorder||n<=i.stock)i.qty=n;else toast("Stok tak cukup.");renderCart()};
   window.removeCart=id=>{state.cart=state.cart.filter(x=>x.productId!==id);renderCart()};
   window.cartWarrantyDays=(id,value)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;i.warrantyDays=Number(value);if(i.warrantyDays!==-1){i.warrantyCustomDays=i.warrantyDays;i.warranty=warrantyLabel(i.warrantyDays)}renderCart()};
   window.cartWarrantyCustom=(id,value)=>{const i=state.cart.find(x=>x.productId===id);if(!i)return;i.warrantyCustomDays=Math.max(1,Number(value||1));i.warranty=warrantyLabel(i.warrantyCustomDays)};
@@ -1978,7 +2012,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function totals(){const sub=state.cart.reduce((s,i)=>s+i.price*i.qty,0),disc=Math.min(Math.max(Number($("saleDiscount").value||0),0),sub);return{sub,disc,total:sub-disc}}
   function renderCart(){
     $("cartCount").textContent=state.cart.reduce((s,i)=>s+i.qty,0)+" item";
-    $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div><div class="field" style="margin-top:10px">
+    $("cartItems").innerHTML=state.cart.length?state.cart.map(i=>`<div class="cart-line"><div class="cart-top"><div><h4>${esc(i.name)}</h4><span class="muted" style="font-size:10px">${money(i.price)} each${i.variant?` · ${esc(i.variant)}`:""}${i.isPreorder?" · PRE-ORDER":""}</span></div><strong>${money(i.price*i.qty)}</strong></div><div class="qty"><button onclick="window.cartQty('${i.productId}',-1)">−</button><span>${i.qty}</span><button onclick="window.cartQty('${i.productId}',1)">+</button><button class="remove" onclick="window.removeCart('${i.productId}')">Remove</button></div><div class="field" style="margin-top:10px">
   <label>Warranty Period</label>
   <select class="cart-warranty-select" data-product-id="${esc(i.productId)}" onchange="window.cartWarrantyDays('${i.productId}',this.value)">
     ${warrantyPresets.map(w=>`<option value="${w.days}" ${Number(i.warrantyDays??0)===w.days?"selected":""}>${w.label}</option>`).join("")}
@@ -2017,7 +2051,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         // Read and validate all product stocks first.
         const refs=state.cart.map(i=>doc(db,"products",i.productId)),snaps=[];
         for(const r of refs)snaps.push(await tx.get(r));
-        snaps.forEach((s,k)=>{if(!s.exists()||Number(s.data().stock)<state.cart[k].qty)throw new Error("Stok tidak mencukupi")});
+        snaps.forEach((snap,k)=>{if(!snap.exists())throw new Error("Produk tidak ditemui");const d=snap.data(),preorder=d.category==="Merchandise"&&d.salesMode==="preorder";if(!preorder&&Number(d.stock)<state.cart[k].qty)throw new Error("Stok tidak mencukupi")});
         const agreementMap=new Map();
         snaps.forEach(s=>{const d=s.data();if(d.ownershipType==="consignment"&&d.consignmentAgreementId)agreementMap.set(d.consignmentAgreementId,doc(db,"consignmentAgreements",d.consignmentAgreementId))});
         const agreementSnaps=new Map();for(const [id,r] of agreementMap){const a=await tx.get(r);if(!a.exists())throw new Error("Consignment agreement tidak ditemui");agreementSnaps.set(id,a)}
@@ -2026,7 +2060,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         receipt=await nextDocumentNumber(tx,"invoice","INV");
 
         const agreementDeltas=new Map();
-        refs.forEach((r,k)=>{const data=snaps[k].data(),cartItem=state.cart[k],newStock=Number(data.stock)-cartItem.qty;tx.update(r,{stock:newStock,status:newStock>0?"Available":"No Stock",updatedAt:serverTimestamp()});if(data.ownershipType==="consignment"&&data.consignmentAgreementId){const agreement=agreementSnaps.get(data.consignmentAgreementId),supplierCost=Number(data.supplierUnitCost??data.cost??0)*cartItem.qty,payRef=doc(collection(db,"consignmentPayables")),delta=agreementDeltas.get(data.consignmentAgreementId)||{qty:0,amount:0};delta.qty+=cartItem.qty;delta.amount+=supplierCost;agreementDeltas.set(data.consignmentAgreementId,delta);tx.set(payRef,{saleId:saleRef.id,receiptNo:receipt,agreementId:data.consignmentAgreementId,supplierId:data.consignmentSupplierId||agreement.data().supplierId,supplierName:data.consignmentSupplierName||agreement.data().supplierName,productId:r.id,productName:data.name,sku:data.sku,quantity:cartItem.qty,supplierUnitCost:Number(data.supplierUnitCost??data.cost??0),payableAmount:supplierCost,paidAmount:0,status:"unpaid",transactionDate:entry.transactionDate,createdAt:serverTimestamp(),createdBy:state.user.uid})}});
+        refs.forEach((r,k)=>{const data=snaps[k].data(),cartItem=state.cart[k],isPreorder=data.category==="Merchandise"&&data.salesMode==="preorder";if(isPreorder){tx.update(r,{reservedQty:Number(data.reservedQty||0)+cartItem.qty,preorderSoldQty:Number(data.preorderSoldQty||0)+cartItem.qty,status:"Pre-Order",updatedAt:serverTimestamp()})}else{const newStock=Number(data.stock)-cartItem.qty;tx.update(r,{stock:newStock,status:newStock>0?"Available":"No Stock",updatedAt:serverTimestamp()})}if(data.ownershipType==="consignment"&&data.consignmentAgreementId){const agreement=agreementSnaps.get(data.consignmentAgreementId),supplierCost=Number(data.supplierUnitCost??data.cost??0)*cartItem.qty,payRef=doc(collection(db,"consignmentPayables")),delta=agreementDeltas.get(data.consignmentAgreementId)||{qty:0,amount:0};delta.qty+=cartItem.qty;delta.amount+=supplierCost;agreementDeltas.set(data.consignmentAgreementId,delta);tx.set(payRef,{saleId:saleRef.id,receiptNo:receipt,agreementId:data.consignmentAgreementId,supplierId:data.consignmentSupplierId||agreement.data().supplierId,supplierName:data.consignmentSupplierName||agreement.data().supplierName,productId:r.id,productName:data.name,sku:data.sku,quantity:cartItem.qty,supplierUnitCost:Number(data.supplierUnitCost??data.cost??0),payableAmount:supplierCost,paidAmount:0,status:"unpaid",transactionDate:entry.transactionDate,createdAt:serverTimestamp(),createdBy:state.user.uid})}});
         for(const [agreementId,delta] of agreementDeltas){const agreement=agreementSnaps.get(agreementId);tx.update(agreement.ref,{soldQuantity:Number(agreement.data().soldQuantity||0)+delta.qty,payableAmount:Number(agreement.data().payableAmount||0)+delta.amount,updatedAt:serverTimestamp()})}
         tx.set(saleRef,{receiptNo:receipt,items:state.cart.map(i=>({...i,warranty:warrantyDisplay(i),lineTotal:i.price*i.qty,consignmentPayable:i.ownershipType==="consignment"?Number(i.supplierUnitCost||i.cost||0)*i.qty:0})),itemCount:state.cart.reduce((s,i)=>s+i.qty,0),subtotal:t.sub,discount:t.disc,total:t.total,totalPaid:Number(totalPaid.toFixed(2)),
           paymentType:isSplit?"split":"single",paymentMethod:isSplit?"Split Payment":payments[0].method,payments,...getCustomerPayload("sale"),staffId:state.user.uid,staffName:state.profile.name||state.user.email,status:"completed",saleDate:entry.transactionDateOnly,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,shiftId:entry.isBackdated?null:(currentShift()?.id||null),createdAt:serverTimestamp()})
@@ -2050,6 +2084,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     Controller:["Left Analog","Right Analog","L1 / R1","L2 / R2","D-Pad","Face Buttons","Touchpad / Home Button","Vibration","Charging","Wireless Connection","Stick Drift","Cosmetic Condition"],
     Games:["Original Disc / Cartridge","Surface Condition","Read Successfully","Game Launch Test","Cover Included","Manual Included"],
     Accessories:["Physical Condition","Function Test","Cable Complete","Charger Included","Connection Test","Cosmetic Condition"],
+    Merchandise:["Correct Size / Variant","Physical Condition","Print / Embroidery Condition","Stain / Defect Check","Packaging Complete"],
     "Repair Parts":["Correct Part","Physical Condition","Continuity / Function Test","Connector Condition"],
     Others:["Physical Condition","Function Test","Accessories Complete"]
   };
@@ -2075,8 +2110,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       return `<div class="buy-item-card" data-buy-card="${item.id}">
         <div class="buy-item-head"><div><h4>Item ${index+1}</h4><p>${selected?`Existing SKU · ${esc(selected.sku||"")}`:"New product if no existing product is selected"}</p></div>${state.buyItems.length>1?`<button class="btn btn-danger" type="button" data-remove-buy="${item.id}">Remove</button>`:""}</div>
         <div class="two">
-          <div class="field buy-product-search"><label>Search Product / SKU</label><input data-buy-name="${item.id}" value="${esc(item.name)}" autocomplete="off" placeholder="Contoh: PS4 Slim 1TB"><div class="buy-suggestions ${item.showSuggestions?"":"hidden"}">${results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")}${results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${item.id}"><strong>＋ Create New Product</strong><span>Produk tiada dalam Product Master</span></button>`}</div></div>
-          <div class="field"><label>Category</label><select data-buy-category="${item.id}" ${selected?"disabled":""}>${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===item.category?"selected":""}>${c}</option>`).join("")}</select></div>
+          <div class="field buy-product-search"><label>Search Product / SKU</label><input data-buy-name="${item.id}" value="${esc(item.name)}" autocomplete="off" placeholder="Contoh: PS4 Slim 1TB"><div class="buy-suggestions ${item.showSuggestions?"":"hidden"}">${results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}${p.category==="Merchandise"&&p.variant?` · ${esc(p.variant)}`:""}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")}${results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${item.id}"><strong>＋ Create New Product</strong><span>Produk tiada dalam Product Master</span></button>`}</div></div>
+          <div class="field"><label>Category</label><select data-buy-category="${item.id}" ${selected?"disabled":""}>${["Console","Controller","Games","Accessories","Merchandise","Repair Parts","Others"].map(c=>`<option ${c===item.category?"selected":""}>${c}</option>`).join("")}</select></div>
         </div>
         ${selected?`<div class="selected-product"><div><strong>${esc(selected.name)}</strong><span>Using existing product · ${esc(selected.sku||"")}</span></div><button type="button" class="btn btn-light" data-clear-buy-product="${item.id}">Change</button></div>`:`<div class="new-product-note">Produk baru akan dicipta hanya jika tiada produk sedia ada dipilih. Sistem akan jana SKU automatik.</div>`}
         <div class="three" style="margin-top:12px">
@@ -2092,7 +2127,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   function bindBuyItemEvents(){
     document.querySelectorAll("[data-buy-name]").forEach(el=>{
-      const refreshSuggestions=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyName);if(!i)return;i.name=el.value;i.productId="";i.showSuggestions=true;const box=el.parentElement.querySelector(".buy-suggestions"),results=productSearchResults(i);if(!box)return;box.classList.remove("hidden");box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")+(results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${i.id}"><strong>＋ Create New Product</strong><span>Produk tiada dalam Product Master</span></button>`);box.querySelectorAll("[data-select-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.selectBuyProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!item||!product)return;item.productId=product.id;item.name=product.name;item.category=product.category||"Others";item.itemType=product.itemType||"Used";item.qc=defaultQc(item.category);item.showSuggestions=false;renderBuyItems()});box.querySelectorAll("[data-create-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.createBuyProduct);if(item){item.productId="";item.showSuggestions=false;renderBuyItems()}})};
+      const refreshSuggestions=()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyName);if(!i)return;i.name=el.value;i.productId="";i.showSuggestions=true;const box=el.parentElement.querySelector(".buy-suggestions"),results=productSearchResults(i);if(!box)return;box.classList.remove("hidden");box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-buy-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}${p.category==="Merchandise"&&p.variant?` · ${esc(p.variant)}`:""}</strong><span>${esc(p.sku||"")} · ${esc(p.category||"")} · Stock ${Number(p.stock||0)}</span></button>`).join("")+(results.length?"":`<button type="button" class="buy-suggestion" data-create-buy-product="${i.id}"><strong>＋ Create New Product</strong><span>Produk tiada dalam Product Master</span></button>`);box.querySelectorAll("[data-select-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.selectBuyProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!item||!product)return;item.productId=product.id;item.name=product.name;item.category=product.category||"Others";item.itemType=product.itemType||"Used";item.qc=defaultQc(item.category);item.showSuggestions=false;renderBuyItems()});box.querySelectorAll("[data-create-buy-product]").forEach(btn=>btn.onclick=()=>{const item=state.buyItems.find(x=>x.id===btn.dataset.createBuyProduct);if(item){item.productId="";item.showSuggestions=false;renderBuyItems()}})};
       el.oninput=refreshSuggestions;
       el.onfocus=refreshSuggestions;
       el.onblur=()=>setTimeout(()=>{const i=state.buyItems.find(x=>x.id===el.dataset.buyName);if(i){i.showSuggestions=false;const box=el.parentElement.querySelector(".buy-suggestions");if(box)box.classList.add("hidden")}},180);
@@ -2346,7 +2381,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     $("tradeInNewBox").classList.toggle("hidden",!newMode);
     $("tradeInExistingInfo").classList.toggle("hidden",!p);
     if(p){
-      $("tradeInExistingInfo").innerHTML=`Selected: <strong>${esc(p.name)}</strong> · SKU ${esc(p.sku||"No SKU")} · Current stock ${Number(p.stock||0)}`;
+      $("tradeInExistingInfo").innerHTML=`Selected: <strong>${esc(p.name)}${p.category==="Merchandise"&&p.variant?` · ${esc(p.variant)}`:""}</strong> · SKU ${esc(p.sku||"No SKU")} · Current stock ${Number(p.stock||0)}`;
       $("tradeItem").value=p.name||"";$("tradeCategory").value=p.category||"Others";$("tradeItemType").value=p.itemType||"Used";$("tradeSellPrice").value=Number(p.price||0).toFixed(2);
     }else if(newMode){
       $("tradeItem").value="";$("tradeCategory").value="Console";$("tradeItemType").value="Used";$("tradeSellPrice").value="";
@@ -2549,7 +2584,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function renderInventory(){
     const t=$("inventorySearch").value.toLowerCase(),c=$("inventoryCategory").value;
     const arr=state.products.filter(p=>(!t||`${p.name} ${p.sku} ${p.serial}`.toLowerCase().includes(t))&&(!c||p.category===c));
-    $("inventoryBody").innerHTML=arr.length?arr.map(p=>`<tr><td><strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.sku)} · ${esc(p.category||"—")}</span></td><td><span class="badge ${(p.itemType||"Used")==="New"?"blue":"orange"}">${esc(p.itemType||"Used")}</span></td><td>${esc(p.serial||"—")}</td><td>${isOwner()?money(p.cost):"Restricted"}</td><td><strong>${money(p.price)}</strong></td><td><span class="badge ${Number(p.stock||0)>0?"green":"gray"}">${Number(p.stock||0)>0?"Available":"No Stock"}</span></td><td>${Number(p.stock||0)}</td><td>${isOwner()?`<button class="btn btn-light" style="padding:7px 9px" onclick="window.editProduct('${p.id}')">Edit</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="window.deleteProduct('${p.id}')">Delete</button>`:"—"}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Belum ada produk.</td></tr>'
+    $("inventoryBody").innerHTML=arr.length?arr.map(p=>`<tr><td><strong>${esc(p.name)}${p.category==="Merchandise"&&p.variant?` · ${esc(p.variant)}`:""}</strong><br><span class="muted">${esc(p.sku)} · ${esc(p.category||"—")}</span></td><td><span class="badge ${(p.itemType||"Used")==="New"?"blue":"orange"}">${esc(p.itemType||"Used")}</span></td><td>${esc(p.serial||"—")}</td><td>${isOwner()?money(p.cost):"Restricted"}</td><td><strong>${money(p.price)}</strong></td><td><span class="badge ${Number(p.stock||0)>0?"green":"gray"}">${Number(p.stock||0)>0?"Available":"No Stock"}</span></td><td>${Number(p.stock||0)}</td><td>${isOwner()?`<button class="btn btn-light" style="padding:7px 9px" onclick="window.editProduct('${p.id}')">Edit</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="window.deleteProduct('${p.id}')">Delete</button>`:"—"}</td></tr>`).join(""):'<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Belum ada produk.</td></tr>'
   }
 
   $("addProductBtn").onclick=()=>openProduct();
@@ -2561,7 +2596,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     state.editingProduct=p?.id||null;$("productModalTitle").textContent=p?"Edit Product":"Add Product";
     $("productName").value=p?.name||"";$("productCategory").value=p?.category||"Console";$("productItemType").value=p?.itemType||"Used";
     $("productCost").value=p?.cost??"";$("productPrice").value=p?.price??"";$("productStock").value=p?.stock??1;
-    $("productSerial").value=p?.serial||"";$("productLowStock").value=p?.lowStock??1;lockSku(p?.sku||"");$("productModal").classList.remove("hidden")
+    $("productSerial").value=p?.serial||"";$("productLowStock").value=p?.lowStock??1;$("productVariant").value=p?.variant||"";$("productSalesMode").value=p?.salesMode||"ready_stock";$("productReservedQty").value=Number(p?.reservedQty||0);$("productExpectedArrival").value=p?.expectedArrival||"";syncMerchProductFields();lockSku(p?.sku||"");$("productModal").classList.remove("hidden")
   }
   $("productCategory").onchange=()=>{if(!state.editingProduct&&$("productSku").readOnly)lockSku()};
   $("unlockSkuBtn").onclick=()=>{
@@ -2575,31 +2610,79 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   window.deleteProduct=async id=>{if(!confirm("Delete product?"))return;try{await deleteDoc(doc(db,"products",id));toast("Product deleted")}catch(e){toast(e.message)}};
   $("productForm").onsubmit=async e=>{
     e.preventDefault();
-    const name=$("productName").value.trim(),category=$("productCategory").value,itemType=$("productItemType").value,serial=$("productSerial").value.trim(),stock=Number($("productStock").value);
-    const duplicate=duplicateSerial(serial,state.editingProduct);if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
+    const name=$("productName").value.trim(),
+      category=$("productCategory").value,
+      itemType=category==="Merchandise"?"New":$("productItemType").value,
+      serial=$("productSerial").value.trim(),
+      stock=Number($("productStock").value||0),
+      variant=category==="Merchandise"?$("productVariant").value.trim():"",
+      salesMode=category==="Merchandise"?$("productSalesMode").value:"ready_stock",
+      reservedQty=category==="Merchandise"?Math.max(0,Number($("productReservedQty").value||0)):0,
+      expectedArrival=category==="Merchandise"?$("productExpectedArrival").value:"";
+
+    if(category==="Merchandise"&&!variant)return toast("Masukkan Variant / Size untuk merchandise.");
+    if(reservedQty>0&&salesMode!=="preorder")return toast("Reserved / Preorder Qty hanya digunakan untuk Pre-Order.");
+
+    const duplicate=duplicateSerial(serial,state.editingProduct);
+    if(duplicate)return toast(`Serial number sudah wujud pada ${duplicate.name} (${duplicate.sku}).`);
+
     const manualSku=!$("productSku").readOnly?$("productSku").value.trim().toUpperCase():"";
     if(!$("productSku").readOnly&&!manualSku)return toast("Masukkan SKU atau lock semula untuk auto-generate.");
-    const merge=!state.editingProduct?mergeCandidate({name,category,itemType,serial}):null;let finalSku="";
+
+    const merge=!state.editingProduct?mergeCandidate({name,category,itemType,serial,variant}):null;
+    let finalSku="";
     try{
       if(!state.editingProduct&&!merge&&!manualSku)finalSku=await reserveSku(category);
       await runTransaction(db,async tx=>{
         if(state.editingProduct){
-          const ref=doc(db,"products",state.editingProduct),snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk tidak ditemui");
+          const ref=doc(db,"products",state.editingProduct),snap=await tx.get(ref);
+          if(!snap.exists())throw new Error("Produk tidak ditemui");
           finalSku=manualSku||snap.data().sku;
-          tx.update(ref,{name,sku:finalSku,category,itemType,status:stock>0?"Available":"No Stock",cost:Number($("productCost").value),price:Number($("productPrice").value),stock,serial,lowStock:Number($("productLowStock").value||1),updatedAt:serverTimestamp(),updatedBy:state.user.uid});
+          tx.update(ref,{
+            name,sku:finalSku,category,itemType,
+            variant,salesMode,reservedQty,expectedArrival,
+            status:salesMode==="preorder"?"Pre-Order":stock>0?"Available":"No Stock",
+            cost:Number($("productCost").value),
+            price:Number($("productPrice").value),
+            stock,serial,
+            lowStock:Number($("productLowStock").value||1),
+            updatedAt:serverTimestamp(),updatedBy:state.user.uid
+          });
         }else if(merge){
-          const ref=doc(db,"products",merge.id),snap=await tx.get(ref);if(!snap.exists())throw new Error("Produk sedia ada tidak ditemui");
+          const ref=doc(db,"products",merge.id),snap=await tx.get(ref);
+          if(!snap.exists())throw new Error("Produk sedia ada tidak ditemui");
           finalSku=snap.data().sku;
-          const oldQty=Number(snap.data().stock||0),incomingCost=Number($("productCost").value),averageCost=weightedAverageCost(oldQty,snap.data().cost,stock,incomingCost);
-          const mergedQty=oldQty+stock;
-          tx.update(ref,{itemType,stock:mergedQty,cost:averageCost,lastIncomingCost:incomingCost,lastIncomingQty:stock,previousCost:Number(snap.data().cost||0),price:Number($("productPrice").value),status:mergedQty>0?"Available":"No Stock",lowStock:Number($("productLowStock").value||1),updatedAt:serverTimestamp(),updatedBy:state.user.uid});
+          const oldQty=Number(snap.data().stock||0),incomingCost=Number($("productCost").value),
+            averageCost=weightedAverageCost(oldQty,snap.data().cost,stock,incomingCost),
+            mergedQty=oldQty+stock;
+          tx.update(ref,{
+            itemType,variant,salesMode,
+            stock:mergedQty,
+            reservedQty:Math.max(Number(snap.data().reservedQty||0),reservedQty),
+            expectedArrival,
+            cost:averageCost,lastIncomingCost:incomingCost,lastIncomingQty:stock,
+            previousCost:Number(snap.data().cost||0),
+            price:Number($("productPrice").value),
+            status:salesMode==="preorder"?"Pre-Order":mergedQty>0?"Available":"No Stock",
+            lowStock:Number($("productLowStock").value||1),
+            updatedAt:serverTimestamp(),updatedBy:state.user.uid
+          });
         }else{
           finalSku=manualSku||finalSku;
           const ref=doc(collection(db,"products"));
-          tx.set(ref,{name,sku:finalSku,category,itemType,status:stock>0?"Available":"No Stock",cost:Number($("productCost").value),price:Number($("productPrice").value),stock,serial,lowStock:Number($("productLowStock").value||1),createdAt:serverTimestamp(),createdBy:state.user.uid,updatedAt:serverTimestamp()});
+          tx.set(ref,{
+            name,sku:finalSku,category,itemType,variant,salesMode,reservedQty,expectedArrival,
+            status:salesMode==="preorder"?"Pre-Order":stock>0?"Available":"No Stock",
+            cost:Number($("productCost").value),price:Number($("productPrice").value),
+            stock,serial,lowStock:Number($("productLowStock").value||1),
+            preorderSoldQty:reservedQty,
+            createdAt:serverTimestamp(),createdBy:state.user.uid,updatedAt:serverTimestamp()
+          });
         }
       });
-      closeModal("productModal");e.target.reset();toast(state.editingProduct?`Product updated · ${finalSku}`:merge?`Stock merged · ${finalSku}`:`Product created · ${finalSku}`);state.editingProduct=null
+      closeModal("productModal");e.target.reset();
+      toast(state.editingProduct?`Product updated · ${finalSku}`:merge?`Stock merged · ${finalSku}`:`Product created · ${finalSku}`);
+      state.editingProduct=null;
     }catch(err){toast("Save gagal: "+err.message)}
   };
 
@@ -2852,7 +2935,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function newConsignmentItem(){return{id:conUid(),mode:"new",productId:"",name:"",category:"Console",itemType:"New",qty:1,supplierCost:0,sellingPrice:0}}
   function resetConsignmentDraft(){state.consignmentItems=[newConsignmentItem()];if($("conSupplier"))$("conSupplier").value="";if($("conNewSupplierName"))$("conNewSupplierName").value="";if($("conNewSupplierBox"))$("conNewSupplierBox").classList.add("hidden");if($("conReference"))$("conReference").value="";if($("conExpiry"))$("conExpiry").value="";if($("conNotes"))$("conNotes").value="";renderConsignmentItems()}
   function consignmentProductOptions(selected=""){return '<option value="">Select existing consignment SKU</option><option value="__new__">＋ Create New Consignment Item</option>'+state.products.filter(p=>p.ownershipType==="consignment").sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""))).map(p=>{const active=Number(p.stock||0)>0;return `<option value="${p.id}" ${p.id===selected?"selected":""} ${active?"disabled":""}>${esc(p.name)} · ${esc(p.sku)} · Stock ${Number(p.stock||0)} · ${esc(p.consignmentSupplierName||"Supplier")}${active?" · ACTIVE STOCK":""}</option>`}).join("")}
-  function renderConsignmentItems(){if(!$("conItemList"))return;$("conItemList").innerHTML=state.consignmentItems.map((i,k)=>`<div class="consignment-item-card"><div class="buy-item-head"><div><h4>Product ${k+1}</h4><p>Use a dedicated consignment SKU to keep ownership accounting clean.</p></div>${state.consignmentItems.length>1?`<button type="button" class="btn btn-danger" data-con-remove="${i.id}">Remove</button>`:""}</div><div class="field"><label>Product</label><select data-con-product="${i.id}">${consignmentProductOptions(i.mode==="existing"?i.productId:"__new__")}</select></div><div class="${i.mode==="new"?"":"hidden"}" data-con-new-box="${i.id}"><div class="consignment-product-fields"><div class="field"><label>New Product Name</label><input data-con-name="${i.id}" value="${esc(i.name)}" placeholder="Contoh: PS5 Slim Consignment"></div><div class="field"><label>Category</label><select data-con-category="${i.id}">${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(x=>`<option ${x===i.category?"selected":""}>${x}</option>`).join("")}</select></div><div class="field"><label>Item Type</label><select data-con-type="${i.id}"><option ${i.itemType==="New"?"selected":""}>New</option><option ${i.itemType==="Used"?"selected":""}>Used</option></select></div><div class="field"><label>Quantity</label><input data-con-qty="${i.id}" type="number" min="1" step="1" value="${i.qty}"></div></div></div><div class="consignment-product-fields"><div class="field"><label>Selected Product</label><input value="${esc(i.name||"Create/select product")}" disabled></div><div class="field"><label>Quantity</label><input data-con-qty2="${i.id}" type="number" min="1" step="1" value="${i.qty}"></div><div class="field"><label>Supplier Cost / Unit</label><input data-con-cost="${i.id}" type="number" min="0" step=".01" value="${i.supplierCost}"></div><div class="field"><label>Selling Price</label><input data-con-price="${i.id}" type="number" min="0" step=".01" value="${i.sellingPrice}"></div></div></div>`).join("");
+  function renderConsignmentItems(){if(!$("conItemList"))return;$("conItemList").innerHTML=state.consignmentItems.map((i,k)=>`<div class="consignment-item-card"><div class="buy-item-head"><div><h4>Product ${k+1}</h4><p>Use a dedicated consignment SKU to keep ownership accounting clean.</p></div>${state.consignmentItems.length>1?`<button type="button" class="btn btn-danger" data-con-remove="${i.id}">Remove</button>`:""}</div><div class="field"><label>Product</label><select data-con-product="${i.id}">${consignmentProductOptions(i.mode==="existing"?i.productId:"__new__")}</select></div><div class="${i.mode==="new"?"":"hidden"}" data-con-new-box="${i.id}"><div class="consignment-product-fields"><div class="field"><label>New Product Name</label><input data-con-name="${i.id}" value="${esc(i.name)}" placeholder="Contoh: PS5 Slim Consignment"></div><div class="field"><label>Category</label><select data-con-category="${i.id}">${["Console","Controller","Games","Accessories","Merchandise","Repair Parts","Others"].map(x=>`<option ${x===i.category?"selected":""}>${x}</option>`).join("")}</select></div><div class="field"><label>Item Type</label><select data-con-type="${i.id}"><option ${i.itemType==="New"?"selected":""}>New</option><option ${i.itemType==="Used"?"selected":""}>Used</option></select></div><div class="field"><label>Quantity</label><input data-con-qty="${i.id}" type="number" min="1" step="1" value="${i.qty}"></div></div></div><div class="consignment-product-fields"><div class="field"><label>Selected Product</label><input value="${esc(i.name||"Create/select product")}" disabled></div><div class="field"><label>Quantity</label><input data-con-qty2="${i.id}" type="number" min="1" step="1" value="${i.qty}"></div><div class="field"><label>Supplier Cost / Unit</label><input data-con-cost="${i.id}" type="number" min="0" step=".01" value="${i.supplierCost}"></div><div class="field"><label>Selling Price</label><input data-con-price="${i.id}" type="number" min="0" step=".01" value="${i.sellingPrice}"></div></div></div>`).join("");
     document.querySelectorAll("[data-con-product]").forEach(el=>el.onchange=()=>{const i=state.consignmentItems.find(x=>x.id===el.dataset.conProduct);if(!i)return;if(el.value==="__new__"||!el.value){i.mode="new";i.productId="";if(!el.value)i.name=""}else{const p=state.products.find(x=>x.id===el.value);if(!p)return;i.mode="existing";i.productId=p.id;i.name=p.name;i.category=p.category;i.itemType=p.itemType||"New";i.supplierCost=Number(p.supplierUnitCost??p.cost??0);i.sellingPrice=Number(p.price||0)}renderConsignmentItems()});
     document.querySelectorAll("[data-con-name]").forEach(el=>el.oninput=()=>{const i=state.consignmentItems.find(x=>x.id===el.dataset.conName);if(i){i.name=el.value;renderConsignmentSummary()}});
     document.querySelectorAll("[data-con-category]").forEach(el=>el.onchange=()=>{const i=state.consignmentItems.find(x=>x.id===el.dataset.conCategory);if(i)i.category=el.value});
@@ -3337,7 +3420,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   // ==========================
   // STOCK PURCHASE V1
   // ==========================
-  const newStockPurchaseItem=()=>({id:crypto.randomUUID(),mode:"existing",productId:"",name:"",category:"Console",itemType:"New",qty:1,unitCost:0,showSuggestions:false});
+  const newStockPurchaseItem=()=>({id:crypto.randomUUID(),mode:"existing",productId:"",name:"",category:"Console",itemType:"New",variant:"",salesMode:"ready_stock",qty:1,unitCost:0,showSuggestions:false});
   function resetStockPurchaseDraft(){
     state.editingStockPurchaseId=null;
     state.stockPurchaseItems=[newStockPurchaseItem()];
@@ -3364,12 +3447,12 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         <div class="field buy-product-search"><label>Search Product / SKU</label>
           <input data-sp-search="${i.id}" value="${esc(i.name||"")}" autocomplete="off" placeholder="Contoh: PS5 Slim / CON-000001">
           <div class="buy-suggestions ${i.showSuggestions?"":"hidden"}" data-sp-suggestions="${i.id}">
-            ${results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")}
+            ${results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${i.id}" data-product-id="${p.id}"><strong>${esc(p.name)}${p.category==="Merchandise"&&p.variant?` · ${esc(p.variant)}`:""}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")}
             <button type="button" class="buy-suggestion" data-create-sp-product="${i.id}"><strong>＋ Create New Item${i.name?` · ${esc(i.name)}`:""}</strong><span>Gunakan nama yang ditaip sebagai Product Master baharu</span></button>
           </div>
         </div>
-        ${selected&&i.mode!=="new"?`<div class="selected-product"><div><strong>${esc(selected.name)}</strong><span>Existing SKU · ${esc(selected.sku||"No SKU")} · Current stock ${Number(selected.stock||0)}</span></div><button type="button" class="btn btn-light" data-clear-sp-product="${i.id}">Change</button></div>`:""}
-        ${i.mode==="new"?`<div class="sp-create-box"><div class="three"><div class="field"><label>New Product Name</label><input data-sp-name="${i.id}" value="${esc(i.name)}" placeholder="Contoh: DualShock 4 Midnight Blue"></div><div class="field"><label>Category</label><select data-sp-category="${i.id}">${["Console","Controller","Games","Accessories","Repair Parts","Others"].map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select></div><div class="field"><label>Item Type</label><select data-sp-type="${i.id}"><option value="New" ${i.itemType==="New"?"selected":""}>New</option><option value="Used" ${i.itemType==="Used"?"selected":""}>Used</option></select></div></div><div class="sp-product-status new">Produk baharu akan dicipta terus dengan type yang dipilih. Stok kekal 0 sehingga Stock Received.</div></div>`:(selected?`<div class="sp-product-status existing">SKU sedia ada dipilih. Stock purchase akan dikaitkan dengan Product Master yang sama.</div>`:`<div class="sp-product-status existing">Cari nama produk atau SKU untuk elak duplicate Product Master.</div>`)}
+        ${selected&&i.mode!=="new"?`<div class="selected-product"><div><strong>${esc(selected.name)}</strong><span>Existing SKU · ${esc(selected.sku||"No SKU")}${selected.category==="Merchandise"&&selected.variant?` · ${esc(selected.variant)}`:""} · Physical stock ${Number(selected.stock||0)}${selected.salesMode==="preorder"?` · Reserved ${Number(selected.reservedQty||0)}`:""}</span></div><button type="button" class="btn btn-light" data-clear-sp-product="${i.id}">Change</button></div>`:""}
+        ${i.mode==="new"?`<div class="sp-create-box"><div class="three"><div class="field"><label>New Product Name</label><input data-sp-name="${i.id}" value="${esc(i.name)}" placeholder="Contoh: Meney T-Shirt V1"></div><div class="field"><label>Category</label><select data-sp-category="${i.id}">${["Console","Controller","Games","Accessories","Merchandise","Repair Parts","Others"].map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select></div><div class="field"><label>Item Type</label><select data-sp-type="${i.id}" ${i.category==="Merchandise"?"disabled":""}><option value="New" ${i.itemType==="New"?"selected":""}>New</option><option value="Used" ${i.itemType==="Used"?"selected":""}>Used</option></select></div></div>${i.category==="Merchandise"?`<div class="two" style="margin-top:9px"><div class="field"><label>Variant / Size</label><input data-sp-variant="${i.id}" value="${esc(i.variant||"")}" placeholder="S / M / L / XL / 2XL"></div><div class="field"><label>Sales Mode</label><select data-sp-salesmode="${i.id}"><option value="ready_stock" ${i.salesMode!=="preorder"?"selected":""}>Ready Stock</option><option value="preorder" ${i.salesMode==="preorder"?"selected":""}>Pre-Order</option></select></div></div>`:""}<div class="sp-product-status new">Produk baharu akan dicipta terus. Stok fizikal kekal 0 sehingga Stock Received.</div></div>`:(selected?`<div class="sp-product-status existing">SKU sedia ada dipilih. Stock purchase akan dikaitkan dengan Product Master yang sama.</div>`:`<div class="sp-product-status existing">Cari nama produk atau SKU untuk elak duplicate Product Master.</div>`)}
         <div class="three" style="margin-top:11px"><div class="field"><label>Quantity Ordered</label><input data-sp-qty="${i.id}" type="number" min="1" step="1" value="${Number(i.qty||1)}"></div><div class="field"><label>Unit Cost (RM)</label><input data-sp-cost="${i.id}" type="number" min="0" step=".01" value="${Number(i.unitCost||0)}"></div><div class="summary-mini"><span>Subtotal</span><strong>${money(Number(i.qty||0)*Number(i.unitCost||0))}</strong></div></div>
       </div>`;
     }).join("");
@@ -3378,10 +3461,10 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       const box=document.querySelector(`[data-sp-suggestions="${item.id}"]`);if(!box)return;
       const results=stockPurchaseProductSearchResults(item);
       box.classList.remove('hidden');
-      box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")+`<button type="button" class="buy-suggestion" data-create-sp-product="${item.id}"><strong>＋ Create New Item${item.name?` · ${esc(item.name)}`:""}</strong><span>Gunakan nama yang ditaip sebagai Product Master baharu</span></button>`;
+      box.innerHTML=results.map(p=>`<button type="button" class="buy-suggestion" data-select-sp-product="${item.id}" data-product-id="${p.id}"><strong>${esc(p.name)}${p.category==="Merchandise"&&p.variant?` · ${esc(p.variant)}`:""}</strong><span>${esc(p.sku||"No SKU")} · ${esc(p.category||"Others")} · Stock ${Number(p.stock||0)} · Cost ${money(p.cost||0)}</span></button>`).join("")+`<button type="button" class="buy-suggestion" data-create-sp-product="${item.id}"><strong>＋ Create New Item${item.name?` · ${esc(item.name)}`:""}</strong><span>Gunakan nama yang ditaip sebagai Product Master baharu</span></button>`;
       box.querySelectorAll('[data-select-sp-product]').forEach(btn=>btn.onclick=()=>{
         const row=state.stockPurchaseItems.find(x=>x.id===btn.dataset.selectSpProduct),product=state.products.find(x=>x.id===btn.dataset.productId);if(!row||!product)return;
-        row.mode='existing';row.productId=product.id;row.name=product.name;row.category=product.category||'Others';row.itemType=product.itemType||'New';row.unitCost=Number(product.cost||0);row.showSuggestions=false;renderStockPurchaseItems();
+        row.mode='existing';row.productId=product.id;row.name=product.name;row.category=product.category||'Others';row.itemType=product.itemType||'New';row.variant=product.variant||'';row.salesMode=product.salesMode||'ready_stock';row.unitCost=Number(product.cost||0);row.showSuggestions=false;renderStockPurchaseItems();
       });
       box.querySelectorAll('[data-create-sp-product]').forEach(btn=>btn.onclick=()=>{
         const row=state.stockPurchaseItems.find(x=>x.id===btn.dataset.createSpProduct);if(!row)return;
@@ -3394,13 +3477,15 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       el.oninput=show;el.onfocus=show;
       el.onblur=()=>setTimeout(()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spSearch);if(i){i.showSuggestions=false;document.querySelector(`[data-sp-suggestions="${i.id}"]`)?.classList.add('hidden')}},180);
     });
-    document.querySelectorAll('[data-select-sp-product]').forEach(el=>el.onclick=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.selectSpProduct),p=state.products.find(x=>x.id===el.dataset.productId);if(!i||!p)return;i.mode='existing';i.productId=p.id;i.name=p.name;i.category=p.category||'Others';i.itemType=p.itemType||'New';i.unitCost=Number(p.cost||0);i.showSuggestions=false;renderStockPurchaseItems()});
+    document.querySelectorAll('[data-select-sp-product]').forEach(el=>el.onclick=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.selectSpProduct),p=state.products.find(x=>x.id===el.dataset.productId);if(!i||!p)return;i.mode='existing';i.productId=p.id;i.name=p.name;i.category=p.category||'Others';i.itemType=p.itemType||'New';i.variant=p.variant||'';i.salesMode=p.salesMode||'ready_stock';i.unitCost=Number(p.cost||0);i.showSuggestions=false;renderStockPurchaseItems()});
     document.querySelectorAll('[data-create-sp-product]').forEach(el=>el.onclick=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.createSpProduct);if(i){i.mode='new';i.productId='';i.showSuggestions=false;renderStockPurchaseItems()}});
     document.querySelectorAll('[data-clear-sp-product]').forEach(el=>el.onclick=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.clearSpProduct);if(i){i.mode='existing';i.productId='';i.name='';i.showSuggestions=false;renderStockPurchaseItems()}});
     document.querySelectorAll('[data-sp-remove]').forEach(b=>b.onclick=()=>{state.stockPurchaseItems=state.stockPurchaseItems.filter(i=>i.id!==b.dataset.spRemove);renderStockPurchaseItems()});
     document.querySelectorAll('[data-sp-name]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spName);if(i){i.name=el.value;renderStockPurchaseSummary()}});
-    document.querySelectorAll('[data-sp-category]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spCategory);if(i)i.category=el.value});
+    document.querySelectorAll('[data-sp-category]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spCategory);if(i){i.category=el.value;if(i.category==="Merchandise"){i.itemType="New";i.variant=i.variant||"";i.salesMode=i.salesMode||"ready_stock"}renderStockPurchaseItems()}});
     document.querySelectorAll('[data-sp-type]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spType);if(i)i.itemType=el.value});
+    document.querySelectorAll('[data-sp-variant]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spVariant);if(i)i.variant=el.value});
+    document.querySelectorAll('[data-sp-salesmode]').forEach(el=>el.onchange=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spSalesmode);if(i)i.salesMode=el.value});
     document.querySelectorAll('[data-sp-qty]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spQty);if(i){i.qty=Math.max(1,Number(el.value||1));renderStockPurchaseSummary();const card=el.closest('.sp-item-card');const subtotal=card?.querySelector('.summary-mini strong');if(subtotal)subtotal.textContent=money(Number(i.qty||0)*Number(i.unitCost||0))}});
     document.querySelectorAll('[data-sp-cost]').forEach(el=>el.oninput=()=>{const i=state.stockPurchaseItems.find(x=>x.id===el.dataset.spCost);if(i){i.unitCost=Math.max(0,Number(el.value||0));renderStockPurchaseSummary();const card=el.closest('.sp-item-card');const subtotal=card?.querySelector('.summary-mini strong');if(subtotal)subtotal.textContent=money(Number(i.qty||0)*Number(i.unitCost||0))}});
     renderStockPurchaseSummary();
@@ -3408,7 +3493,7 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   function renderStockPurchaseSummary(){
     if(!$("spSummaryItems"))return;
     $("spItemCount").textContent=`${state.stockPurchaseItems.length} product`;
-    $("spSummaryItems").innerHTML=state.stockPurchaseItems.map(i=>`<div class="sp-summary-row"><strong>${esc(i.name||"Unnamed product")} × ${Number(i.qty||0)}</strong><span>${money(Number(i.qty||0)*Number(i.unitCost||0))}</span></div>`).join("");
+    $("spSummaryItems").innerHTML=state.stockPurchaseItems.map(i=>`<div class="sp-summary-row"><strong>${esc(i.name||"Unnamed product")}${i.variant?` · ${esc(i.variant)}`:""} × ${Number(i.qty||0)}</strong><span>${money(Number(i.qty||0)*Number(i.unitCost||0))}</span></div>`).join("");
     $("spGrandTotal").textContent=money(stockPurchaseTotal());
   }
   function setStockPurchaseTab(name){
@@ -3434,7 +3519,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
         return toast(`Product ${index+1}${i.name?` · ${i.name}`:""}: pilih existing product atau Create New Item.`);
       }
       if(!i.name)return toast(`Product ${index+1}: setiap product mesti ada nama.`);
-      if(i.mode==="new"&&state.products.some(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category&&(p.itemType||"New")===(i.itemType||"New")))return toast(`${i.name} sudah wujud dengan category/type yang sama. Sila pilih SKU sedia ada.`);
+      if(i.category==="Merchandise"&&i.mode==="new"&&!String(i.variant||"").trim())return toast(`Product ${index+1}: masukkan Variant / Size untuk merchandise.`);
+      if(i.mode==="new"&&state.products.some(p=>normalizeText(p.name)===normalizeText(i.name)&&p.category===i.category&&(p.itemType||"New")===(i.itemType||"New")&&(i.category!=="Merchandise"||normalizeText(p.variant||"")===normalizeText(i.variant||""))))return toast(`${i.name}${i.variant?` · ${i.variant}`:""} sudah wujud. Sila pilih SKU sedia ada.`);
       if(i.qty<1)return toast(`Quantity tidak sah: ${i.name}`);
       if(i.unitCost<0)return toast(`Unit cost tidak sah: ${i.name}`);
     }
@@ -3449,8 +3535,8 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
       const prepared=[];for(const i of items){const existing=i.mode!=="new"?state.products.find(p=>p.id===i.productId):null;let productId=existing?.id||"",sku=existing?.sku||"";if(!productId){sku=await reserveSku(i.category);productId=doc(collection(db,"products")).id}prepared.push({...i,productId,sku,isNew:!existing})}
       const purchaseRef=editingPurchase?doc(db,"stockPurchases",editingPurchase.id):doc(collection(db,"stockPurchases"));const subtotal=prepared.reduce((s,i)=>s+i.qty*i.unitCost,0),shipping=Number($("spShipping").value||0),discount=Number($("spDiscount").value||0),total=Math.max(0,subtotal+shipping-discount),amountPaid=Math.min(total,Number($("spAmountPaid").value||0)),paymentMethod=$("spPaymentMethod")?.value||"Bank Transfer",paymentShift=(!entry.isBackdated&&amountPaid>0&&paymentMethod==="Cash")?currentShift():null;
       await runTransaction(db,async tx=>{
-        prepared.filter(i=>i.isNew).forEach(i=>tx.set(doc(db,"products",i.productId),{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType||"New",status:"Awaiting Stock",cost:i.unitCost,price:0,stock:0,lowStock:1,createdFromStockPurchaseId:purchaseRef.id,createdAt:serverTimestamp(),createdBy:state.user.uid}));
-        const payload={purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,itemType:i.itemType||"New",quantityOrdered:i.qty,quantityReceived:0,quantityDamaged:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,paymentMethod,paymentShiftId:paymentMethod==="Cash"&&amountPaid>0?(editingPurchase?.paymentShiftId||paymentShift?.id||null):null,paymentShiftNo:paymentMethod==="Cash"&&amountPaid>0?(editingPurchase?.paymentShiftNo||paymentShift?.shiftNo||null):null,purchaseStatus:"ordered",updatedAt:serverTimestamp(),updatedBy:state.user.uid,updatedByName:state.profile.name||state.user.email};
+        prepared.filter(i=>i.isNew).forEach(i=>tx.set(doc(db,"products",i.productId),{name:i.name,sku:i.sku,category:i.category,itemType:i.itemType||"New",variant:i.variant||"",salesMode:i.salesMode||"ready_stock",reservedQty:0,status:"Awaiting Stock",cost:i.unitCost,price:0,stock:0,lowStock:1,createdFromStockPurchaseId:purchaseRef.id,createdAt:serverTimestamp(),createdBy:state.user.uid}));
+        const payload={purchaseNo:poNo,supplierId:supplier.id,supplierName,supplierInvoiceNo:$("spInvoice").value.trim(),expectedDeliveryDate:$("spExpectedDate").value||"",notes:$("spNotes").value.trim(),items:prepared.map(i=>({productId:i.productId,sku:i.sku,name:i.name,category:i.category,itemType:i.itemType||"New",variant:i.variant||"",salesMode:i.salesMode||"ready_stock",quantityOrdered:i.qty,quantityReceived:0,quantityDamaged:0,unitCost:i.unitCost,subtotal:i.qty*i.unitCost})),subtotal,shippingCost:shipping,discount,totalAmount:total,amountPaid,outstandingAmount:Math.max(0,total-amountPaid),paymentStatus:$("spPaymentStatus").value,paymentMethod,paymentShiftId:paymentMethod==="Cash"&&amountPaid>0?(editingPurchase?.paymentShiftId||paymentShift?.id||null):null,paymentShiftNo:paymentMethod==="Cash"&&amountPaid>0?(editingPurchase?.paymentShiftNo||paymentShift?.shiftNo||null):null,purchaseStatus:"ordered",updatedAt:serverTimestamp(),updatedBy:state.user.uid,updatedByName:state.profile.name||state.user.email};
         if(editingPurchase){tx.update(purchaseRef,payload)}else{tx.set(purchaseRef,{...payload,transactionDate:entry.transactionDate,isBackdated:entry.isBackdated,entryMode:entry.entryMode,backdateReason:entry.backdateReason,createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile.name||state.user.email})}
       });
       toast(editingPurchase?`${poNo} updated`:`${poNo} created`);resetStockPurchaseDraft();setStockPurchaseTab("history");
