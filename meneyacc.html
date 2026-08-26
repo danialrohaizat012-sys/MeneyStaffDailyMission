@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07110c">
-<title>Meney Accounting · Incurred Date V4</title>
+<title>Meney Accounting · Cash Movement Correction V5</title>
 <style>
 :root{
   --bg:#f4f7f5;--panel:#fff;--ink:#0f1712;--muted:#718078;--line:#dfe7e2;
@@ -165,7 +165,7 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
   <section id="page-cash" class="page hidden">
     <div class="card" style="margin-bottom:16px">
       <div class="section-head"><h3>Cash Movement Audit</h3><span>Live from POS cashMoves</span></div>
-      <div class="notice">Cash Out tidak semestinya expense. Contoh cash drop ke bank/safe atau owner withdrawal hanya pergerakan tunai. Tekan <strong>Convert to Expense</strong> hanya bila movement itu benar-benar operating expense.</div>
+      <div class="notice"><strong>Cash Movement Audit = correction layer untuk manual cash movement.</strong><br><br>Cash Out tidak semestinya expense. Refund customer mesti dibuat melalui <strong>After Sales → Refund di Meney POS</strong>, bukan manual Cash Out. Movement yang tersalah key-in boleh <strong>Edit</strong> atau <strong>Delete</strong> di sini. Jika movement sudah linked kepada Accounting Expense, delete akan diblock untuk elakkan rekod orphan.</div>
     </div>
     <div class="card">
       <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th><th>Staff</th><th>Accounting</th><th>Action</th></tr></thead><tbody id="cashBody"></tbody></table></div>
@@ -240,6 +240,22 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
     <button class="btn btn-green" style="width:100%;margin-top:12px">Save Expense</button>
   </form>
 </div></div>
+
+<div id="cashEditModal" class="modal-bg hidden"><div class="modal">
+  <div class="section-head"><div><h3 style="margin:0">Edit Cash Movement</h3><div class="muted" style="font-size:10px;margin-top:4px">Correction untuk manual cash movement</div></div><button id="closeCashEditModal" class="btn btn-light" type="button">✕</button></div>
+  <form id="cashEditForm">
+    <input id="cashEditId" type="hidden">
+    <div class="form-grid">
+      <div class="field"><label>Transaction Date</label><input id="cashEditDate" type="date" required></div>
+      <div class="field"><label>Type</label><select id="cashEditType" required><option value="in">Cash In</option><option value="out">Cash Out</option></select></div>
+    </div>
+    <div class="field"><label>Amount (RM)</label><input id="cashEditAmount" type="number" min="0.01" step=".01" required></div>
+    <div class="field"><label>Note / Reason</label><input id="cashEditNote" required></div>
+    <div id="cashLinkedWarning" class="notice hidden" style="margin-top:12px">Movement ini sudah linked kepada Accounting Expense. Edit cash movement <strong>tidak mengubah expense secara automatik</strong>. Semak Expense Ledger selepas save.</div>
+    <button class="btn btn-green" style="width:100%;margin-top:12px">Save Correction</button>
+  </form>
+</div></div>
+
 <div id="toast" class="toast hidden"></div>
 
 <script type="module">
@@ -318,7 +334,16 @@ function renderExpenses(expenses){
 }
 function renderCash(){
   const rows=state.cashMoves.filter(inMonthCash).sort((a,b)=>(toDate(b.transactionDate||b.createdAt)||0)-(toDate(a.transactionDate||a.createdAt)||0));
-  $("cashBody").innerHTML=rows.length?rows.map(c=>{const linked=state.accountingExpenses.find(e=>e.cashMoveId===c.id&&e.status!=="void");const isOut=String(c.type||"").toLowerCase()==="out";return `<tr><td>${localISO(toDate(c.transactionDate||c.createdAt)||new Date())}</td><td><span class="badge ${isOut?"red":"green"}">${isOut?"CASH OUT":"CASH IN"}</span></td><td><strong>${isOut?"−":"+"}${money(c.amount)}</strong></td><td>${esc(c.note||c.reason||"-")}</td><td>${esc(c.staffName||c.createdByName||"-")}</td><td>${linked?`<span class="badge green">Expense: ${esc(linked.category)}</span>`:'<span class="badge amber">Unclassified</span>'}</td><td>${isOut&&!linked?`<button class="btn btn-light" onclick="convertCash('${c.id}')">Convert to Expense</button>`:"—"}</td></tr>`}).join(""):'<tr><td colspan="7" class="empty">Tiada manual cash movement untuk bulan ini.</td></tr>'
+  $("cashBody").innerHTML=rows.length?rows.map(c=>{
+    const linked=state.accountingExpenses.find(e=>e.cashMoveId===c.id&&e.status!=="void");
+    const isOut=String(c.type||"").toLowerCase()==="out";
+    const actions=[
+      isOut&&!linked?`<button class="btn btn-light" onclick="convertCash('${c.id}')">Convert to Expense</button>`:"",
+      `<button class="btn btn-light" onclick="editCashMove('${c.id}')">Edit</button>`,
+      `<button class="btn btn-red" onclick="deleteCashMove('${c.id}')">Delete</button>`
+    ].filter(Boolean).join(" ");
+    return `<tr><td>${localISO(toDate(c.transactionDate||c.createdAt)||new Date())}</td><td><span class="badge ${isOut?"red":"green"}">${isOut?"CASH OUT":"CASH IN"}</span></td><td><strong>${isOut?"−":"+"}${money(c.amount)}</strong></td><td>${esc(c.note||c.reason||"-")}</td><td>${esc(c.staffName||c.createdByName||"-")}</td><td>${linked?`<span class="badge green">Expense: ${esc(linked.category)}</span>`:'<span class="badge amber">Unclassified</span>'}</td><td style="white-space:nowrap">${actions}</td></tr>`
+  }).join(""):'<tr><td colspan="7" class="empty">Tiada manual cash movement untuk bulan ini.</td></tr>'
 }
 function openExpense(data={}){
   $("expenseModalTitle").textContent=data.id?"Edit Expense":data.cashMoveId?"Convert Cash Out to Expense":"Add Expense";
@@ -332,6 +357,53 @@ function openExpense(data={}){
 window.editExpense=id=>{const e=state.accountingExpenses.find(x=>x.id===id);if(e)openExpense(e)}
 window.deleteExpense=async id=>{if(!confirm("Delete expense ini?"))return;try{await deleteDoc(doc(db,"accountingExpenses",id));toast("Expense deleted")}catch(e){toast("Delete gagal: "+e.message)}}
 window.convertCash=id=>{const c=state.cashMoves.find(x=>x.id===id);if(!c)return;openExpense({cashMoveId:id,incurredDate:c.transactionDate||c.createdAt,expenseDate:c.transactionDate||c.createdAt,expensePeriod:(()=>{const d=toDate(c.transactionDate||c.createdAt)||new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`})(),description:c.note||c.reason||"Cash Out",amount:Number(c.amount||0),paymentMethod:"Cash",notes:"Converted from POS Cash Movement"})}
+
+function linkedExpenseForCashMove(id){
+  return state.accountingExpenses.find(e=>e.cashMoveId===id&&e.status!=="void")||null;
+}
+window.editCashMove=id=>{
+  const c=state.cashMoves.find(x=>x.id===id);if(!c)return;
+  const linked=linkedExpenseForCashMove(id);
+  $("cashEditId").value=id;
+  $("cashEditDate").value=localISO(toDate(c.transactionDate||c.createdAt)||new Date());
+  $("cashEditType").value=String(c.type||"out").toLowerCase()==="in"?"in":"out";
+  $("cashEditAmount").value=Number(c.amount||0)||"";
+  $("cashEditNote").value=c.note||c.reason||"";
+  $("cashLinkedWarning").classList.toggle("hidden",!linked);
+  $("cashEditModal").classList.remove("hidden");
+};
+window.deleteCashMove=async id=>{
+  const c=state.cashMoves.find(x=>x.id===id);if(!c)return;
+  const linked=linkedExpenseForCashMove(id);
+  if(linked)return alert(`Delete diblock. Cash Movement ini sudah linked kepada Accounting Expense "${linked.category||"Expense"}".\n\nBetulkan/unlink expense dahulu supaya rekod accounting tidak orphan.`);
+  const type=String(c.type||"").toLowerCase()==="out"?"Cash Out":"Cash In";
+  if(!confirm(`Delete ${type} ${money(c.amount)}?\n\n${c.note||c.reason||""}\n\nGunakan ini hanya untuk correction rekod yang tersalah key-in.`))return;
+  try{await deleteDoc(doc(db,"cashMoves",id));toast("Cash Movement deleted")}catch(e){toast("Delete gagal: "+e.message)}
+};
+$("cashEditForm").onsubmit=async e=>{
+  e.preventDefault();
+  const id=$("cashEditId").value,c=state.cashMoves.find(x=>x.id===id);if(!c)return toast("Cash Movement tidak dijumpai.");
+  const linked=linkedExpenseForCashMove(id);
+  if(linked&&!confirm("Movement ini linked kepada Accounting Expense. Edit ini tidak akan update expense secara automatik. Teruskan?"))return;
+  try{
+    await updateDoc(doc(db,"cashMoves",id),{
+      type:$("cashEditType").value,
+      amount:Number($("cashEditAmount").value||0),
+      note:$("cashEditNote").value.trim(),
+      reason:$("cashEditNote").value.trim(),
+      transactionDate:$("cashEditDate").value+"T12:00:00",
+      correctedInAccounting:true,
+      correctedAt:serverTimestamp(),
+      correctedBy:state.user.uid,
+      correctedByName:state.profile?.name||state.user.email,
+      updatedAt:serverTimestamp()
+    });
+    $("cashEditModal").classList.add("hidden");toast("Cash Movement updated");
+  }catch(err){toast("Update gagal: "+err.message)}
+};
+$("closeCashEditModal").onclick=()=>$("cashEditModal").classList.add("hidden");
+$("cashEditModal").onclick=e=>{if(e.target===$("cashEditModal"))$("cashEditModal").classList.add("hidden")};
+
 async function saveExpense(payload,id=""){if(id)await updateDoc(doc(db,"accountingExpenses",id),{...payload,updatedAt:serverTimestamp(),updatedBy:state.user.uid});else await addDoc(collection(db,"accountingExpenses"),{...payload,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email})}
 $("quickExpenseForm").onsubmit=async e=>{e.preventDefault();try{await saveExpense({outletId:state.outletId,incurredDate:$("expenseIncurredDate").value+"T12:00:00",expensePeriod:$("expensePeriod").value,paymentDate:$("expenseDate").value+"T12:00:00",expenseDate:$("expenseDate").value+"T12:00:00",category:$("expenseCategory").value,description:$("expenseDescription").value.trim(),amount:Number($("expenseAmount").value||0),paymentMethod:$("expensePayment").value,notes:"",cashMoveId:null});e.target.reset();$("expenseIncurredDate").value=localISO(new Date());$("expensePeriod").value=state.month;$("expenseDate").value=localISO(new Date());toast("Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
 $("expenseModalForm").onsubmit=async e=>{e.preventDefault();const id=$("modalExpenseId").value;try{await saveExpense({outletId:state.outletId,incurredDate:$("modalIncurredDate").value+"T12:00:00",expensePeriod:$("modalExpensePeriod").value,paymentDate:$("modalDate").value+"T12:00:00",expenseDate:$("modalDate").value+"T12:00:00",category:$("modalCategory").value,description:$("modalDescription").value.trim(),amount:Number($("modalAmount").value||0),paymentMethod:$("modalPayment").value,notes:$("modalNotes").value.trim(),cashMoveId:$("modalCashMoveId").value||null},id);$("expenseModal").classList.add("hidden");toast(id?"Expense updated":"Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
