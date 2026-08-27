@@ -62,6 +62,7 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
     <button class="active" data-page="dashboard">Overview</button>
     <button data-page="pnl">Monthly P&L</button>
     <button data-page="expenses">Expenses</button>
+    <button data-page="assets">Assets & Renovation</button>
     <button data-page="cash">Cash Movement</button>
     <button data-page="receipts">Receipt Filing</button>
   </div>
@@ -82,6 +83,12 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
       <div class="card metric"><div class="label">Gross Profit</div><div id="mGross" class="value">RM0</div><div id="mMargin" class="sub">Margin 0%</div></div>
       <div class="card metric"><div class="label">Operating Expenses</div><div id="mExpenses" class="value">RM0</div><div class="sub">Manual + linked cash expenses</div></div>
       <div class="card metric"><div class="label">Net Profit</div><div id="mNet" class="value">RM0</div><div id="mNetMargin" class="sub">Net margin 0%</div></div>
+    </div>
+    <div class="grid4" style="margin-top:12px">
+      <div class="card metric"><div class="label">Capital Investment</div><div id="mCapex" class="value">RM0</div><div class="sub">Asset + Renovation / Fit-Out</div></div>
+      <div class="card metric"><div class="label">Asset Purchases</div><div id="mAssets" class="value">RM0</div><div class="sub">Excluded from current OPEX</div></div>
+      <div class="card metric"><div class="label">Renovation / Fit-Out</div><div id="mRenovation" class="value">RM0</div><div class="sub">Capital improvements</div></div>
+      <div class="card metric"><div class="label">Operating + CapEx Cash</div><div id="mBusinessOutflow" class="value">RM0</div><div class="sub">Performance ≠ cash deployment</div></div>
     </div>
 
     <div class="content2">
@@ -113,9 +120,14 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
               <div class="field"><label>Expense Period</label><input id="expensePeriod" type="month" required></div>
             </div>
             <div class="field"><label>Payment Date</label><input id="expenseDate" type="date" required></div>
+            <div class="field"><label>Transaction Classification</label><select id="expenseClass" required>
+              <option value="opex">Operating Expense (OPEX)</option>
+              <option value="asset">Asset Purchase (CapEx)</option>
+              <option value="renovation">Renovation / Fit-Out (CapEx)</option>
+            </select></div>
             <div class="field"><label>Category</label><select id="expenseCategory" required>
               <option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option>
-              <option>Marketing</option><option>Transport</option><option>Maintenance</option><option>Office & Supplies</option>
+              <option>Marketing</option><option>Transportation / Postage</option><option>Maintenance</option><option>Office & Supplies</option>
               <option>Professional Fees</option><option>Bank Charges</option><option>Miscellaneous</option>
             </select></div>
             <div class="field"><label>Description</label><input id="expenseDescription" required placeholder="Contoh: Bil elektrik Ogos"></div>
@@ -126,7 +138,7 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
         </section>
         <section class="card">
           <div class="section-head"><h3>Accounting Rule</h3></div>
-          <div class="notice"><strong>Gunakan 3 tarikh dengan fungsi berbeza.</strong><br><br><strong>Incurred Date</strong> = bila expense sebenar berlaku. <strong>Expense Period</strong> = bulan P&L. <strong>Payment Date</strong> = bila cash dibayar.<br><br>Contoh: gaji Julai incurred 31 Julai, dibayar 15 Ogos → P&L Julai, cash outflow Ogos.<br><br><strong>Stock purchase / Buy From Customer bukan operating expense.</strong> Ia masuk inventory/COGS.</div>
+          <div class="notice"><strong>Gunakan 3 tarikh dengan fungsi berbeza.</strong><br><br><strong>Incurred Date</strong> = bila expense sebenar berlaku. <strong>Expense Period</strong> = bulan P&L. <strong>Payment Date</strong> = bila cash dibayar.<br><br>Contoh: gaji Julai incurred 31 Julai, dibayar 15 Ogos → P&L Julai, cash outflow Ogos.<br><br><strong>Stock purchase / Buy From Customer bukan operating expense.</strong> Ia masuk inventory/COGS.<br><br><strong>Asset Purchase / Renovation</strong> ialah capital investment dan dipisahkan daripada OPEX. Repair/maintenance kecil yang hanya mengembalikan keadaan asal kekal OPEX.</div>
         </section>
       </aside>
     </div>
@@ -159,6 +171,14 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
     <div class="card">
       <div class="section-head"><h3>Expense Ledger</h3><button id="newExpenseBtn" class="btn btn-green">＋ Add Expense</button></div>
       <div class="table-wrap"><table><thead><tr><th>Incurred Date</th><th>Expense Period</th><th>Payment Date</th><th>Category</th><th>Description</th><th>Payment</th><th>Source</th><th>Amount</th><th>By</th><th>Action</th></tr></thead><tbody id="expenseBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="page-assets" class="page hidden">
+    <div class="card">
+      <div class="section-head"><h3>Asset & Renovation Register</h3><span>CapEx separated from Operating P&amp;L</span></div>
+      <div class="notice"><strong>Asset Purchase</strong> dan <strong>Renovation / Fit-Out</strong> masih merupakan cash outflow, tetapi tidak dicampur sebagai operating expense bulan tersebut. Rekod lama tanpa classification kekal dianggap OPEX untuk backward compatibility.</div>
+      <div class="table-wrap"><table><thead><tr><th>Incurred Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th><th>Payment</th><th>By</th><th>Action</th></tr></thead><tbody id="assetRegisterBody"></tbody></table></div>
     </div>
   </section>
 
@@ -200,7 +220,7 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
           <div class="field"><label>Merchant / Supplier</label><input id="receiptMerchant" required placeholder="Contoh: TNB / Supplier ABC"></div>
           <div class="field"><label>Amount (RM)</label><input id="receiptAmount" type="number" min="0" step=".01"></div>
           <div class="field"><label>Filing Type</label><select id="receiptType"><option value="operating_expense">Operating Expense</option><option value="stock_purchase">Stock Purchase</option><option value="other">Other / Supporting Document</option></select></div>
-          <div class="field"><label>Category</label><select id="receiptCategory"><option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option><option>Marketing</option><option>Transport</option><option>Maintenance</option><option>Office & Supplies</option><option>Professional Fees</option><option>Bank Charges</option><option>Miscellaneous</option><option>Stock Purchase</option></select></div>
+          <div class="field"><label>Category</label><select id="receiptCategory"><option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option><option>Marketing</option><option>Transportation / Postage</option><option>Maintenance</option><option>Office & Supplies</option><option>Professional Fees</option><option>Bank Charges</option><option>Miscellaneous</option><option>Stock Purchase</option></select></div>
           <div class="field"><label>Reference / Invoice No.</label><input id="receiptReference"></div>
           <div class="field"><label>Notes</label><textarea id="receiptNotes" rows="3"></textarea></div>
           <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px"><input id="createExpenseFromReceipt" type="checkbox"> Create linked expense automatically (Operating Expense only)</label>
@@ -226,9 +246,14 @@ button{cursor:pointer}.btn{border:0;border-radius:12px;padding:11px 14px;font-we
       <div class="field"><label>Expense Period</label><input id="modalExpensePeriod" type="month" required></div>
     </div>
     <div class="field"><label>Payment Date</label><input id="modalDate" type="date" required></div>
+    <div class="field"><label>Transaction Classification</label><select id="modalClass" required>
+      <option value="opex">Operating Expense (OPEX)</option>
+      <option value="asset">Asset Purchase (CapEx)</option>
+      <option value="renovation">Renovation / Fit-Out (CapEx)</option>
+    </select></div>
     <div class="field"><label>Category</label><select id="modalCategory" required>
         <option>Rent</option><option>Salary & Wages</option><option>Utilities</option><option>Internet & Telco</option>
-        <option>Marketing</option><option>Transport</option><option>Maintenance</option><option>Office & Supplies</option>
+        <option>Marketing</option><option>Transportation / Postage</option><option>Maintenance</option><option>Office & Supplies</option>
         <option>Professional Fees</option><option>Bank Charges</option><option>Miscellaneous</option>
       </select></div>
     <div class="field"><label>Description</label><input id="modalDescription" required></div>
@@ -295,6 +320,9 @@ function incurredDateOfExpense(e){
 function inMonthCash(c){const d=toDate(c.transactionDate||c.createdAt);if(!d)return false;const{start,end}=monthBounds();return d>=start&&d<end}
 function tradeOutUnitCost(item){if(Number.isFinite(Number(item.cost)))return Number(item.cost||0);const p=state.products.find(x=>x.id===item.productId);return Number(p?.cost||0)}
 function tradeAccounting(t){const outs=t.stockOutItems||[],ins=t.stockInItems||[];const salesValue=Number(t.totalStockOut??outs.reduce((s,i)=>s+Number(i.price||0)*Number(i.qty||1),0));const cogs=outs.reduce((s,i)=>s+tradeOutUnitCost(i)*Number(i.qty||1),0);const buy=Number(t.totalTradeValue??ins.reduce((s,i)=>s+Number(i.tradeValue||0),0));return{salesValue,cogs,profit:salesValue-cogs,buy}}
+function expenseClass(e){return ["asset","renovation"].includes(e?.classification)?e.classification:"opex"}
+function isOpex(e){return expenseClass(e)==="opex"}
+function isCapex(e){return expenseClass(e)!=="opex"}
 function financials(){
   const sales=state.sales.filter(x=>isActive(x)&&inMonthRecord(x));
   const trades=state.trades.filter(x=>isActive(x)&&inMonthRecord(x));
@@ -309,9 +337,16 @@ function financials(){
   const revenue=directSales+trade.sales+repairSales;
   const cogs=directCogs+trade.cogs+repairCogs;
   const gross=directProfit+trade.profit+repairProfit;
-  const expenses=state.accountingExpenses.filter(x=>x.status!=="void"&&x.outletId===state.outletId&&inMonthExpense(x));
-  const opex=expenses.reduce((s,x)=>s+Number(x.amount||0),0);
-  return{sales,trades,repairs,directSales,directCogs,directProfit,trade,repairSales,repairProfit,repairCogs,revenue,cogs,gross,expenses,opex,net:gross-opex};
+  const allExpenses=state.accountingExpenses.filter(x=>x.status!=="void"&&x.outletId===state.outletId&&inMonthExpense(x));
+  const expenses=allExpenses.filter(isOpex);
+  const capexRecords=allExpenses.filter(isCapex);
+  const assetRecords=capexRecords.filter(x=>expenseClass(x)==="asset");
+  const renovationRecords=capexRecords.filter(x=>expenseClass(x)==="renovation");
+  const opex=expenses.reduce((sum,x)=>sum+Number(x.amount||0),0);
+  const assets=assetRecords.reduce((sum,x)=>sum+Number(x.amount||0),0);
+  const renovation=renovationRecords.reduce((sum,x)=>sum+Number(x.amount||0),0);
+  const capex=assets+renovation;
+  return{sales,trades,repairs,directSales,directCogs,directProfit,trade,repairSales,repairProfit,repairCogs,revenue,cogs,gross,allExpenses,expenses,capexRecords,assetRecords,renovationRecords,opex,assets,renovation,capex,businessOutflow:opex+capex,net:gross-opex};
 }
 function categorySummary(expenses){const m={};expenses.forEach(e=>m[e.category||"Miscellaneous"]=(m[e.category||"Miscellaneous"]||0)+Number(e.amount||0));return Object.entries(m).sort((a,b)=>b[1]-a[1])}
 function render(){
@@ -320,6 +355,7 @@ function render(){
   $("periodText").textContent=new Intl.DateTimeFormat("ms-MY",{month:"long",year:"numeric"}).format(monthBounds().start)+" · Meney Pasir Tumboh";
   $("pnlPeriod").textContent=$("periodText").textContent;
   $("mRevenue").textContent=money(f.revenue);$("mGross").textContent=money(f.gross);$("mExpenses").textContent=money(f.opex);$("mNet").textContent=money(f.net);
+  $("mCapex").textContent=money(f.capex);$("mAssets").textContent=money(f.assets);$("mRenovation").textContent=money(f.renovation);$("mBusinessOutflow").textContent=money(f.businessOutflow);
   $("mMargin").textContent=`Margin ${gm.toFixed(1)}%`;$("mNetMargin").textContent=`Net margin ${nm.toFixed(1)}%`;
   $("bDirectSales").textContent=money(f.directSales);$("bDirectProfit").textContent=money(f.directProfit);$("bTradeSales").textContent=money(f.trade.sales);$("bTradeProfit").textContent=money(f.trade.profit);$("bRepairSales").textContent=money(f.repairSales);$("bRepairProfit").textContent=money(f.repairProfit);
   $("expenseCount").textContent=`${f.expenses.length} records`;
@@ -327,10 +363,14 @@ function render(){
   $("categoryBars").innerHTML=cats.length?cats.map(([k,v])=>`<div class="cat-row"><strong>${esc(k)}</strong><div class="bar-track"><div class="bar-fill" style="width:${v/max*100}%"></div></div><strong style="text-align:right">${money(v)}</strong></div>`).join(""):'<div class="empty">Belum ada operating expense untuk bulan ini.</div>';
   $("pRevenue").textContent=money(f.revenue);$("pDirectSales").textContent=money(f.directSales);$("pTradeSales").textContent=money(f.trade.sales);$("pRepairSales").textContent=money(f.repairSales);$("pCogs").textContent=money(f.cogs);$("pGross").textContent=money(f.gross);$("pExpenses").textContent=money(f.opex);$("pNet").textContent=money(f.net);$("pGrossMargin").textContent=gm.toFixed(1)+"%";$("pNetMargin").textContent=nm.toFixed(1)+"%";
   $("pExpenseRows").innerHTML=cats.map(([k,v])=>`<div class="pnl-row indent"><span>${esc(k)}</span><span>${money(v)}</span></div>`).join("");
-  renderExpenses(f.expenses);renderCash();renderReceipts();
+  renderExpenses(f.allExpenses);renderAssetRegister(f.capexRecords);renderCash();renderReceipts();
 }
 function renderExpenses(expenses){
-  $("expenseBody").innerHTML=expenses.length?[...expenses].sort((a,b)=>(incurredDateOfExpense(b)||0)-(incurredDateOfExpense(a)||0)).map(e=>`<tr><td>${localISO(incurredDateOfExpense(e)||new Date())}</td><td><strong>${esc(expensePeriodKey(e)||"-")}</strong></td><td>${localISO(paymentDateOfExpense(e)||new Date())}</td><td><span class="badge blue">${esc(e.category||"-")}</span></td><td><strong>${esc(e.description||"-")}</strong>${e.notes?`<div class="muted" style="font-size:10px">${esc(e.notes)}</div>`:""}</td><td>${esc(e.paymentMethod||"-")}</td><td>${e.cashMoveId?'<span class="badge green">POS Cash</span>':'<span class="badge amber">Manual</span>'}</td><td><strong>${money(e.amount)}</strong></td><td>${esc(e.createdByName||"-")}</td><td><button class="btn btn-light" onclick="editExpense('${e.id}')">Edit</button> <button class="btn btn-red" onclick="deleteExpense('${e.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="10" class="empty">Belum ada expense.</td></tr>'
+  $("expenseBody").innerHTML=expenses.length?[...expenses].sort((a,b)=>(incurredDateOfExpense(b)||0)-(incurredDateOfExpense(a)||0)).map(e=>`<tr><td>${localISO(incurredDateOfExpense(e)||new Date())}</td><td><strong>${esc(expensePeriodKey(e)||"-")}</strong></td><td>${localISO(paymentDateOfExpense(e)||new Date())}</td><td><span class="badge ${expenseClass(e)==="opex"?"blue":expenseClass(e)==="asset"?"green":"amber"}">${expenseClass(e)==="opex"?"OPEX":expenseClass(e)==="asset"?"ASSET":"RENO"}</span><div style="margin-top:4px">${esc(e.category||"-")}</div></td><td><strong>${esc(e.description||"-")}</strong>${e.notes?`<div class="muted" style="font-size:10px">${esc(e.notes)}</div>`:""}</td><td>${esc(e.paymentMethod||"-")}</td><td>${e.cashMoveId?'<span class="badge green">POS Cash</span>':'<span class="badge amber">Manual</span>'}</td><td><strong>${money(e.amount)}</strong></td><td>${esc(e.createdByName||"-")}</td><td><button class="btn btn-light" onclick="editExpense('${e.id}')">Edit</button> <button class="btn btn-red" onclick="deleteExpense('${e.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="10" class="empty">Belum ada expense.</td></tr>'
+}
+function renderAssetRegister(rows){
+  const body=$("assetRegisterBody");if(!body)return;
+  body.innerHTML=rows.length?[...rows].sort((a,b)=>(incurredDateOfExpense(b)||0)-(incurredDateOfExpense(a)||0)).map(e=>`<tr><td>${localISO(incurredDateOfExpense(e)||new Date())}</td><td><span class="badge ${expenseClass(e)==="asset"?"green":"amber"}">${expenseClass(e)==="asset"?"ASSET":"RENOVATION"}</span></td><td>${esc(e.category||"-")}</td><td><strong>${esc(e.description||"-")}</strong>${e.notes?`<div class="muted" style="font-size:10px">${esc(e.notes)}</div>`:""}</td><td><strong>${money(e.amount)}</strong></td><td>${esc(e.paymentMethod||"-")}</td><td>${esc(e.createdByName||"-")}</td><td><button class="btn btn-light" onclick="editExpense('${e.id}')">Edit</button> <button class="btn btn-red" onclick="deleteExpense('${e.id}')">Delete</button></td></tr>`).join(""):'<tr><td colspan="8" class="empty">Belum ada Asset / Renovation untuk bulan ini.</td></tr>';
 }
 function renderCash(){
   const rows=state.cashMoves.filter(inMonthCash).sort((a,b)=>(toDate(b.transactionDate||b.createdAt)||0)-(toDate(a.transactionDate||a.createdAt)||0));
@@ -351,7 +391,7 @@ function openExpense(data={}){
   $("modalIncurredDate").value=localISO(incurredDateOfExpense(data)||new Date());
   $("modalExpensePeriod").value=data.expensePeriod||expensePeriodKey(data)||state.month;
   $("modalDate").value=localISO(paymentDateOfExpense(data)||new Date());
-  $("modalCategory").value=data.category||"Miscellaneous";$("modalDescription").value=data.description||"";$("modalAmount").value=Number(data.amount||0)||"";$("modalPayment").value=data.paymentMethod||"Cash";$("modalNotes").value=data.notes||"";
+  $("modalClass").value=expenseClass(data);$("modalCategory").value=data.category||"Miscellaneous";$("modalDescription").value=data.description||"";$("modalAmount").value=Number(data.amount||0)||"";$("modalPayment").value=data.paymentMethod||"Cash";$("modalNotes").value=data.notes||"";
   $("expenseModal").classList.remove("hidden")
 }
 window.editExpense=id=>{const e=state.accountingExpenses.find(x=>x.id===id);if(e)openExpense(e)}
@@ -405,8 +445,8 @@ $("closeCashEditModal").onclick=()=>$("cashEditModal").classList.add("hidden");
 $("cashEditModal").onclick=e=>{if(e.target===$("cashEditModal"))$("cashEditModal").classList.add("hidden")};
 
 async function saveExpense(payload,id=""){if(id)await updateDoc(doc(db,"accountingExpenses",id),{...payload,updatedAt:serverTimestamp(),updatedBy:state.user.uid});else await addDoc(collection(db,"accountingExpenses"),{...payload,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email})}
-$("quickExpenseForm").onsubmit=async e=>{e.preventDefault();try{await saveExpense({outletId:state.outletId,incurredDate:$("expenseIncurredDate").value+"T12:00:00",expensePeriod:$("expensePeriod").value,paymentDate:$("expenseDate").value+"T12:00:00",expenseDate:$("expenseDate").value+"T12:00:00",category:$("expenseCategory").value,description:$("expenseDescription").value.trim(),amount:Number($("expenseAmount").value||0),paymentMethod:$("expensePayment").value,notes:"",cashMoveId:null});e.target.reset();$("expenseIncurredDate").value=localISO(new Date());$("expensePeriod").value=state.month;$("expenseDate").value=localISO(new Date());toast("Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
-$("expenseModalForm").onsubmit=async e=>{e.preventDefault();const id=$("modalExpenseId").value;try{await saveExpense({outletId:state.outletId,incurredDate:$("modalIncurredDate").value+"T12:00:00",expensePeriod:$("modalExpensePeriod").value,paymentDate:$("modalDate").value+"T12:00:00",expenseDate:$("modalDate").value+"T12:00:00",category:$("modalCategory").value,description:$("modalDescription").value.trim(),amount:Number($("modalAmount").value||0),paymentMethod:$("modalPayment").value,notes:$("modalNotes").value.trim(),cashMoveId:$("modalCashMoveId").value||null},id);$("expenseModal").classList.add("hidden");toast(id?"Expense updated":"Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
+$("quickExpenseForm").onsubmit=async e=>{e.preventDefault();try{await saveExpense({outletId:state.outletId,incurredDate:$("expenseIncurredDate").value+"T12:00:00",expensePeriod:$("expensePeriod").value,paymentDate:$("expenseDate").value+"T12:00:00",expenseDate:$("expenseDate").value+"T12:00:00",classification:$("expenseClass").value,category:$("expenseCategory").value,description:$("expenseDescription").value.trim(),amount:Number($("expenseAmount").value||0),paymentMethod:$("expensePayment").value,notes:"",cashMoveId:null});e.target.reset();$("expenseClass").value="opex";$("expenseIncurredDate").value=localISO(new Date());$("expensePeriod").value=state.month;$("expenseDate").value=localISO(new Date());toast("Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
+$("expenseModalForm").onsubmit=async e=>{e.preventDefault();const id=$("modalExpenseId").value;try{await saveExpense({outletId:state.outletId,incurredDate:$("modalIncurredDate").value+"T12:00:00",expensePeriod:$("modalExpensePeriod").value,paymentDate:$("modalDate").value+"T12:00:00",expenseDate:$("modalDate").value+"T12:00:00",classification:$("modalClass").value,category:$("modalCategory").value,description:$("modalDescription").value.trim(),amount:Number($("modalAmount").value||0),paymentMethod:$("modalPayment").value,notes:$("modalNotes").value.trim(),cashMoveId:$("modalCashMoveId").value||null},id);$("expenseModal").classList.add("hidden");toast(id?"Expense updated":"Expense saved")}catch(err){toast("Save gagal: "+err.message)}}
 $("newExpenseBtn").onclick=()=>openExpense();$("closeExpenseModal").onclick=()=>$("expenseModal").classList.add("hidden");$("expenseModal").onclick=e=>{if(e.target===$("expenseModal"))$("expenseModal").classList.add("hidden")};
 
 function enhancePixels(ctx,w,h,mode){
@@ -455,7 +495,7 @@ $("receiptForm").onsubmit=async e=>{
   try{
     const ref=await addDoc(collection(db,"accountingReceipts"),{outletId:state.outletId,receiptDate:$("receiptDate").value+"T12:00:00",merchant:$("receiptMerchant").value.trim(),amount,filingType,category:$("receiptCategory").value,referenceNo:$("receiptReference").value.trim(),notes:$("receiptNotes").value.trim(),imageData:state.scannedReceipt,imageMime:"image/jpeg",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email,expenseId:null});
     if(filingType==="operating_expense"&&$("createExpenseFromReceipt").checked&&amount>0){
-      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,incurredDate:$("receiptDate").value+"T12:00:00",expensePeriod:$("receiptDate").value.slice(0,7),paymentDate:$("receiptDate").value+"T12:00:00",expenseDate:$("receiptDate").value+"T12:00:00",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
+      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,incurredDate:$("receiptDate").value+"T12:00:00",expensePeriod:$("receiptDate").value.slice(0,7),paymentDate:$("receiptDate").value+"T12:00:00",expenseDate:$("receiptDate").value+"T12:00:00",classification:"opex",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
       await updateDoc(ref,{expenseId:er.id});
     }
     state.scannedReceipt=null;receiptSourceImage=null;e.target.reset();$("receiptDate").value=localISO(new Date());$("scanEditor").classList.add("hidden");$("receiptSize").textContent="No scan";$("receiptFile").value="";toast("Receipt filed")
@@ -509,14 +549,14 @@ $("receiptForm").onsubmit=async e=>{
   try{
     const ref=await addDoc(collection(db,"accountingReceipts"),{outletId:state.outletId,receiptDate:$("receiptDate").value+"T12:00:00",merchant:$("receiptMerchant").value.trim(),amount,filingType,category:$("receiptCategory").value,referenceNo:$("receiptReference").value.trim(),notes:$("receiptNotes").value.trim(),imageData:state.scannedReceipt,imageMime:"image/jpeg",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email,expenseId:null});
     if(filingType==="operating_expense"&&$("createExpenseFromReceipt").checked&&amount>0){
-      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,incurredDate:$("receiptDate").value+"T12:00:00",expensePeriod:$("receiptDate").value.slice(0,7),paymentDate:$("receiptDate").value+"T12:00:00",expenseDate:$("receiptDate").value+"T12:00:00",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
+      const er=await addDoc(collection(db,"accountingExpenses"),{outletId:state.outletId,incurredDate:$("receiptDate").value+"T12:00:00",expensePeriod:$("receiptDate").value.slice(0,7),paymentDate:$("receiptDate").value+"T12:00:00",expenseDate:$("receiptDate").value+"T12:00:00",classification:"opex",category:$("receiptCategory").value,description:$("receiptMerchant").value.trim()+( $("receiptReference").value.trim()?` · ${$("receiptReference").value.trim()}`:""),amount,paymentMethod:"Other",notes:$("receiptNotes").value.trim(),cashMoveId:null,receiptId:ref.id,status:"active",createdAt:serverTimestamp(),createdBy:state.user.uid,createdByName:state.profile?.name||state.user.email});
       await updateDoc(ref,{expenseId:er.id});
     }
     state.scannedReceipt=null;receiptSourceImage=null;e.target.reset();$("receiptDate").value=localISO(new Date());$("scanEditor").classList.add("hidden");$("receiptSize").textContent="No scan";$("receiptFile").value="";toast("Receipt filed")
   }catch(err){toast("Save receipt gagal: "+err.message)}
 };
 
-document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+b.dataset.page).classList.remove("hidden");const titles={dashboard:"Accounting Overview",pnl:"Monthly P&L",expenses:"Expense Ledger",cash:"Cash Movement Audit",receipts:"Receipt Filing"};$("pageTitle").textContent=titles[b.dataset.page]});
+document.querySelectorAll("[data-page]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+b.dataset.page).classList.remove("hidden");const titles={dashboard:"Accounting Overview",pnl:"Monthly P&L",expenses:"Expense Ledger",assets:"Assets & Renovation",cash:"Cash Movement Audit",receipts:"Receipt Filing"};$("pageTitle").textContent=titles[b.dataset.page]});
 $("expenseIncurredDate").onchange=e=>{if(e.target.value)$("expensePeriod").value=e.target.value.slice(0,7)};
 $("modalIncurredDate").onchange=e=>{if(e.target.value)$("modalExpensePeriod").value=e.target.value.slice(0,7)};
 $("monthPicker").onchange=e=>{state.month=e.target.value;$("expensePeriod").value=state.month;render()};$("outletSelect").onchange=e=>{state.outletId=e.target.value;render()};$("logoutBtn").onclick=()=>signOut(auth);
