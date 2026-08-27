@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Merchandise Preorder & Variant · 2026-08-26</title>
-  <meta name="meney-build" content="POS-MERCHANDISE-PREORDER-VARIANT-20260826" />
+  <title>Meney POS Enterprise · Merchandise Preorder & Variant + Stock Cost Dashboard · 2026-08-27</title>
+  <meta name="meney-build" content="POS-MERCHANDISE-PREORDER-VARIANT-STOCK-COST-DASHBOARD-20260827" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -477,6 +477,22 @@
     .preorder-chip{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:#fff7ed;color:#9a3412;font-size:9px;font-weight:900}
     .reserved-chip{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:9px;font-weight:900}
 
+
+    /* ===== SAFE PATCH · Stock Cost Value by Category · 2026-08-27 ===== */
+    .stock-cost-section{margin-top:15px;padding-top:15px;border-top:1px solid var(--line2)}
+    .stock-cost-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .stock-cost-head h4{margin:0;font-size:12px;font-weight:950}
+    .stock-cost-head p{margin:3px 0 0;font-size:9px;color:var(--muted)}
+    .stock-cost-total{padding:13px 14px;border:1px solid #bbf7d0;border-radius:12px;background:#f0fdf4;margin-bottom:10px}
+    .stock-cost-total span{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:#166534}
+    .stock-cost-total strong{display:block;margin-top:4px;font-size:22px;color:#14532d}
+    .stock-cost-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .stock-cost-card{border:1px solid var(--line2);border-radius:11px;background:#fbfcfb;padding:10px 11px}
+    .stock-cost-card span{display:block;font-size:9px;color:var(--muted);font-weight:800}
+    .stock-cost-card strong{display:block;margin-top:4px;font-size:14px}
+    .stock-cost-card small{display:block;margin-top:3px;font-size:8px;color:#98a2b3}
+    @media(max-width:590px){.stock-cost-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -653,6 +669,20 @@
                 <div class="summary-mini"><span>Available</span><strong id="sumAvailable">0</strong></div>
                 <div class="summary-mini"><span>Reserved</span><strong id="sumReserved">0</strong></div>
                 <div class="summary-mini"><span>Repair</span><strong id="sumRepair">0</strong></div>
+              </div>
+              <div class="stock-cost-section">
+                <div class="stock-cost-head">
+                  <div>
+                    <h4>Stock Cost Value by Category</h4>
+                    <p>Cost Price × physical stock semasa. Consignment tidak termasuk dalam modal Meney.</p>
+                  </div>
+                  <span class="badge green">LIVE</span>
+                </div>
+                <div class="stock-cost-total">
+                  <span>Total Owned Stock Cost</span>
+                  <strong id="stockCostCategoryTotal">RM0.00</strong>
+                </div>
+                <div id="stockCostCategoryGrid" class="stock-cost-grid"></div>
               </div>
               <div id="dashboardRecentFinancial" class="table-wrap" style="margin-top:15px">
                 <table><thead><tr><th>Invoice</th><th>Customer</th><th>Items</th><th>Type</th><th>Total</th></tr></thead><tbody id="overviewSales"></tbody></table>
@@ -2869,7 +2899,45 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     return {salesValue,cogs,profit:salesValue-cogs,stockBuyValue};
   }
 
+  function renderStockCostByCategory(){
+    const grid=$("stockCostCategoryGrid"),totalEl=$("stockCostCategoryTotal");
+    if(!grid||!totalEl)return;
+
+    const preferred=["Console","Controller","Games","Accessories","Merchandise","Repair Parts","Others"];
+    const values={};
+
+    state.products.forEach(p=>{
+      // Supplier-owned consignment stock is physically held by Meney
+      // but is NOT Meney-owned inventory capital.
+      if(p.ownershipType==="consignment")return;
+
+      const category=String(p.category||"Others").trim()||"Others";
+      const qty=Math.max(0,Number(p.stock||0));
+      const cost=Math.max(0,Number(p.cost||0));
+
+      if(!values[category])values[category]={qty:0,value:0,sku:0};
+      values[category].qty+=qty;
+      values[category].value+=qty*cost;
+      if(qty>0)values[category].sku+=1;
+    });
+
+    const extra=Object.keys(values).filter(c=>!preferred.includes(c)).sort();
+    const categories=[...preferred,...extra];
+    const total=Object.values(values).reduce((sum,x)=>sum+Number(x.value||0),0);
+
+    totalEl.textContent=money(total);
+    grid.innerHTML=categories.map(category=>{
+      const x=values[category]||{qty:0,value:0,sku:0};
+      return `<div class="stock-cost-card">
+        <span>${esc(category)}</span>
+        <strong>${money(x.value)}</strong>
+        <small>${Number(x.qty)} physical units · ${Number(x.sku)} active SKU</small>
+      </div>`;
+    }).join("");
+  }
+
   function renderOverview(){
+    renderStockCostByCategory();
     const activeSales=state.sales.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
     const activeTrades=state.trades.filter(x=>x.status!=="cancelled"&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
     const completedRepairs=state.repairs.filter(x=>(x.status==="Completed"||x.isSale)&&x.transactionStatus!=="cancelled"&&inDashboardRange(x));
