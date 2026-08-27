@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Meney POS" />
   <link rel="manifest" href="./manifest-pos.json" />
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-  <title>Meney POS Enterprise · Merchandise Preorder & Variant + Stock Cost Dashboard · 2026-08-27</title>
-  <meta name="meney-build" content="POS-MERCHANDISE-PREORDER-VARIANT-STOCK-COST-DASHBOARD-20260827" />
+  <title>Meney POS Enterprise · Stock Take PDF + Inventory Allocation · 2026-08-27</title>
+  <meta name="meney-build" content="POS-STOCK-TAKE-PDF-INVENTORY-ALLOCATION-20260827" />
   <style>
     :root{
       --bg:#f6f7f9;--surface:#fff;--surface2:#fbfcfd;--text:#111827;--muted:#667085;
@@ -493,7 +493,29 @@
     .stock-cost-card small{display:block;margin-top:3px;font-size:8px;color:#98a2b3}
     @media(max-width:590px){.stock-cost-grid{grid-template-columns:1fr}}
 
+
+    /* ===== Owner Stock Take Safe Mode · 2026-08-27 ===== */
+    .stocktake-toolbar{display:grid;grid-template-columns:1fr 180px auto;gap:9px;align-items:end;margin-bottom:14px}
+    .stocktake-banner{padding:13px 14px;border:1px solid #bfdbfe;background:#eff6ff;color:#1e3a8a;border-radius:12px;font-size:10px;line-height:1.55;margin-bottom:13px}
+    .stocktake-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}
+    .stocktake-summary .summary-mini{margin:0}
+    .stocktake-input{max-width:105px}
+    .stocktake-var.pos{color:#166534;font-weight:900}
+    .stocktake-var.neg{color:#b91c1c;font-weight:900}
+    .stocktake-var.zero{color:#667085;font-weight:800}
+    .stocktake-finalize{border-top:4px solid #111827}
+    .stocktake-history-card{margin-top:16px}
+    @media(max-width:850px){.stocktake-toolbar{grid-template-columns:1fr 1fr}.stocktake-toolbar .btn{grid-column:1/-1}.stocktake-summary{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:590px){.stocktake-toolbar,.stocktake-summary{grid-template-columns:1fr}}
+
+
+    /* ===== Stock Take PDF Export · V7 ===== */
+    .stocktake-export-btn{white-space:nowrap}
+    .stocktake-report-note{font-size:8px;color:var(--muted);margin-top:3px}
+
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
   <div id="posSplash" class="pos-splash" role="status" aria-label="Meney POS sedang menyediakan ruang kerja">
@@ -583,6 +605,7 @@
         <nav class="nav">
           <button class="nav-btn" data-page="customers"><span class="ico">♙</span>Customers</button>
           <button class="nav-btn" data-page="reports"><span class="ico">◔</span>Reports</button>
+          <button id="stockTakeNavBtn" class="nav-btn hidden" data-page="stockTake"><span class="ico">✓</span>Stock Take</button>
           <button class="nav-btn" data-page="settings"><span class="ico">⚙</span>Settings</button>
         </nav>
       </div>
@@ -1173,6 +1196,64 @@
           </div>
         </section>
 
+
+        <section id="page-stockTake" class="page hidden">
+          <div class="card section stocktake-finalize">
+            <div class="section-head">
+              <div><h3>Owner Stock Take</h3><p>Audit physical stock tanpa mengubah inventory sehingga Finalize ditekan.</p></div>
+              <span class="badge red">OWNER ONLY</span>
+            </div>
+
+            <div class="stocktake-banner">
+              <strong>Safe Mode:</strong> Start Stock Take hanya mengambil snapshot. Physical Count yang ditaip belum mengubah Product Master.
+              Hanya SKU yang mempunyai variance akan dikemaskini ketika Finalize. Setiap perubahan akan menghasilkan ADJ reference dengan before/change/after dan source STK.
+            </div>
+
+            <div class="stocktake-toolbar">
+              <div class="field" style="margin:0">
+                <label>Category</label>
+                <select id="stockTakeCategory"><option value="">All Category</option></select>
+              </div>
+              <div class="field" style="margin:0">
+                <label>Search</label>
+                <input id="stockTakeSearch" placeholder="Product / SKU / variant">
+              </div>
+              <button id="startStockTakeBtn" class="btn btn-dark" type="button">Start / Refresh Snapshot</button>
+            </div>
+
+            <div class="stocktake-summary">
+              <div class="summary-mini"><span>SKU Counted</span><strong id="stockTakeSkuCount">0</strong></div>
+              <div class="summary-mini"><span>System Units</span><strong id="stockTakeSystemUnits">0</strong></div>
+              <div class="summary-mini"><span>Physical Units</span><strong id="stockTakePhysicalUnits">0</strong></div>
+              <div class="summary-mini"><span>Variance Units</span><strong id="stockTakeVarianceUnits">0</strong></div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Product</th><th>Category</th><th>System Stock</th><th>Physical Count</th><th>Variance</th><th>Reason</th></tr></thead>
+                <tbody id="stockTakeBody"><tr><td colspan="6" class="muted">Tekan Start Stock Take untuk mengambil snapshot.</td></tr></tbody>
+              </table>
+            </div>
+
+            <div class="field" style="margin-top:14px">
+              <label>Stock Take Note</label>
+              <textarea id="stockTakeNote" rows="2" placeholder="Contoh: Full stock take 27 Aug 2026"></textarea>
+            </div>
+            <button id="finalizeStockTakeBtn" class="btn btn-green btn-block" type="button" disabled>Finalize Stock Take & Adjust Variance</button>
+            <span class="field-help">Finalize akan mengubah hanya SKU yang Physical Count berbeza daripada System Stock.</span>
+          </div>
+
+          <div class="card section stocktake-history-card">
+            <div class="section-head"><div><h3>Stock Take Audit History</h3><p>Rekod Stock Take yang telah difinalize.</p></div></div>
+            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Reference</th><th>Category</th><th>SKU</th><th>Variance</th><th>Owner</th><th>Report</th></tr></thead><tbody id="stockTakeHistoryBody"></tbody></table></div>
+            <div class="stocktake-report-note">PDF menggunakan snapshot Stock Take + inventory semasa ketika report diexport. Consignment dikecualikan daripada owned inventory allocation.</div>
+          </div>
+          <div class="card section stocktake-history-card">
+            <div class="section-head"><div><h3>Stock Adjustment Trail</h3><p>Immutable adjustment lines generated daripada Stock Take Finalize.</p></div><span class="badge blue">AUDIT</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Adjustment</th><th>Source</th><th>Product</th><th>Before</th><th>Change</th><th>After</th><th>Reason</th></tr></thead><tbody id="stockAdjustmentHistoryBody"></tbody></table></div>
+          </div>
+        </section>
+
         <section id="page-settings" class="page hidden">
           <div class="grid overview-grid">
             <div class="card section">
@@ -1418,7 +1499,7 @@
 
   document.querySelectorAll('input[name="entryMode"]').forEach(el=>el.addEventListener("change",syncEntryModePanel));
 
-  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],refunds:[],exchanges:[],warrantyClaims:[],suppliers:[],customers:[],stockPurchases:[],stockReceipts:[],consignmentAgreements:[],consignmentPayables:[],consignmentSettlements:[],consignmentItems:[],stockPurchaseItems:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,companySettings:{mode:"setup",goLiveDate:""},activeCustomerPrefix:null,unsubs:[]};
+  const state={user:null,profile:null,products:[],inventoryUnits:[],sales:[],buys:[],trades:[],repairs:[],shifts:[],cashMoves:[],refunds:[],exchanges:[],warrantyClaims:[],suppliers:[],customers:[],stockPurchases:[],stockReceipts:[],consignmentAgreements:[],consignmentPayables:[],consignmentSettlements:[],consignmentItems:[],stockPurchaseItems:[],stockTakes:[],stockAdjustments:[],cart:[],buyItems:[],tradeInItems:[],tradeOutItems:[],editingProduct:null,lastDocument:null,companySettings:{mode:"setup",goLiveDate:""},activeCustomerPrefix:null,unsubs:[]};
   const money=n=>new Intl.NumberFormat("ms-MY",{style:"currency",currency:"MYR"}).format(Number(n||0));
   const nowDate=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
   const warrantyPresets=[
@@ -1962,23 +2043,24 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
   }
   function subscribeAll(){
     const up=onSnapshot(query(collection(db,"products"),orderBy("name")),snap=>{state.products=snap.docs.map(d=>({id:d.id,...d.data()}));refresh()},err=>toast("Products: "+err.message));
-    state.unsubs.push(up);["inventoryUnits","sales","buys","trades","repairs","shifts","cashMoves","refunds","exchanges","warrantyClaims","suppliers","customers","stockPurchases","stockReceipts","consignmentAgreements","consignmentPayables","consignmentSettlements"].forEach(n=>sub(n))
+    state.unsubs.push(up);["inventoryUnits","sales","buys","trades","repairs","shifts","cashMoves","refunds","exchanges","warrantyClaims","suppliers","customers","stockPurchases","stockReceipts","consignmentAgreements","consignmentPayables","consignmentSettlements","stockTakes","stockAdjustments"].forEach(n=>sub(n))
   }
 
   const pages={
     overview:["Overview","Ringkasan operasi Meney."],pos:["POS / Sales","Sell flow lengkap."],buy:["Buy From Customer","QC, offer dan stock in."],stockPurchase:["Stock Purchase","Supplier purchase, receiving dan stock in."],consignment:["Consignment Stock","Supplier-owned stock, sales payable dan settlement."],
     trade:["Trade-In","Tolak nilai dan kira baki."],repairs:["Repairs","Repair ticket dan status."],afterSales:["After-Sales","Refund, exchange dan warranty claim."],inventory:["Inventory","Serial number tracking."],receipts:["Transactions & Receipts","Semua bill dan kawalan pembatalan."],
-    customers:["Customers","Database customer."],reports:["Reports","Profit & analytics."],shift:["Current Shift","Cash register."],settings:["Settings","Application settings."]
+    customers:["Customers","Database customer."],reports:["Reports","Profit & analytics."],stockTake:["Stock Take","Owner physical stock audit."],shift:["Current Shift","Cash register."],settings:["Settings","Application settings."]
   };
   document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>showPage(b.dataset.page));
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>showPage(b.dataset.go));
   function showPage(n){
+    if(n==="stockTake"&&!isOwner()){toast("Owner sahaja boleh menggunakan Stock Take.");return}
     document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));$("page-"+n).classList.remove("hidden");
     document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===n));
     $("pageTitle").textContent=pages[n][0];$("pageSub").textContent=pages[n][1];$("sidebar").classList.remove("open")
   }
 
-  function refresh(){renderMaintenance();syncEntryModePanel();syncDashboardAccess();populateCategories();populateCustomerDropdowns();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales();renderStockPurchase();renderConsignment()}
+  function refresh(){renderMaintenance();syncEntryModePanel();syncDashboardAccess();populateCategories();populateCustomerDropdowns();renderProducts();renderCart();renderInventory();renderOverview();renderRepairs();renderReceipts();renderCustomers();renderReports();renderShift();populateTradeProducts();renderAfterSales();renderStockPurchase();renderConsignment();renderStockTake()}
   function populateCategories(){
     const cats=[...new Set(state.products.map(p=>p.category).filter(Boolean))].sort();
     ["posCategory","inventoryCategory"].forEach(id=>{const old=$(id).value;$(id).innerHTML='<option value="">All Category</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");$(id).value=old})
@@ -2898,6 +2980,459 @@ th,td{text-align:left;border-bottom:1px solid #e5e7eb;padding:9px 7px;font-size:
     const stockBuyValue=Number(trade.totalTradeValue ?? stockInItems.reduce((sum,i)=>sum+Number(i.tradeValue||0),0));
     return {salesValue,cogs,profit:salesValue-cogs,stockBuyValue};
   }
+
+
+  // ===== Owner Stock Take Safe Mode =====
+  let stockTakeDraft=[];
+
+  function syncStockTakeOwnerAccess(){
+    $("stockTakeNavBtn")?.classList.toggle("hidden",!isOwner());
+  }
+
+  function stockTakeCategories(){
+    return [...new Set(state.products.map(p=>p.category).filter(Boolean))].sort();
+  }
+
+  function populateStockTakeCategories(){
+    const el=$("stockTakeCategory");if(!el)return;
+    const old=el.value;
+    el.innerHTML='<option value="">All Category</option>'+stockTakeCategories().map(c=>`<option>${esc(c)}</option>`).join("");
+    if([...el.options].some(o=>o.value===old))el.value=old;
+  }
+
+  function stockTakeFilteredDraft(){
+    const q=normalizeText($("stockTakeSearch")?.value||"");
+    return stockTakeDraft.filter(i=>!q||normalizeText(`${i.name} ${i.sku} ${i.category} ${i.variant||""}`).includes(q));
+  }
+
+  function renderStockTakeDraft(){
+    const body=$("stockTakeBody");if(!body)return;
+    const rows=stockTakeFilteredDraft();
+    if(!stockTakeDraft.length){
+      body.innerHTML='<tr><td colspan="6" class="muted">Tekan Start Stock Take untuk mengambil snapshot.</td></tr>';
+    }else if(!rows.length){
+      body.innerHTML='<tr><td colspan="6" class="muted">Tiada SKU padan dengan carian.</td></tr>';
+    }else{
+      body.innerHTML=rows.map(i=>{
+        const variance=Number(i.physicalQty)-Number(i.systemQty);
+        const cls=variance>0?"pos":variance<0?"neg":"zero";
+        return `<tr>
+          <td><strong>${esc(i.name)}${i.variant?` · ${esc(i.variant)}`:""}</strong><br><span class="muted">${esc(i.sku||"No SKU")}</span></td>
+          <td>${esc(i.category||"Others")}</td>
+          <td><strong>${Number(i.systemQty)}</strong></td>
+          <td><input class="stocktake-input" data-stocktake-qty="${i.productId}" type="number" min="0" step="1" value="${Number(i.physicalQty)}"></td>
+          <td><span class="stocktake-var ${cls}">${variance>0?"+":""}${variance}</span></td>
+          <td><input data-stocktake-reason="${i.productId}" value="${esc(i.reason||"")}" placeholder="${variance===0?"No variance":"Reason required"}" ${variance===0?"disabled":""}></td>
+        </tr>`;
+      }).join("");
+    }
+
+    document.querySelectorAll("[data-stocktake-qty]").forEach(el=>el.oninput=()=>{
+      const row=stockTakeDraft.find(x=>x.productId===el.dataset.stocktakeQty);if(!row)return;
+      row.physicalQty=Math.max(0,Math.floor(Number(el.value||0)));
+      renderStockTakeDraft();
+    });
+    document.querySelectorAll("[data-stocktake-reason]").forEach(el=>el.oninput=()=>{
+      const row=stockTakeDraft.find(x=>x.productId===el.dataset.stocktakeReason);if(row)row.reason=el.value;
+    });
+
+    const sku=stockTakeDraft.length,
+      system=stockTakeDraft.reduce((a,i)=>a+Number(i.systemQty||0),0),
+      physical=stockTakeDraft.reduce((a,i)=>a+Number(i.physicalQty||0),0),
+      variance=physical-system;
+    $("stockTakeSkuCount").textContent=sku;
+    $("stockTakeSystemUnits").textContent=system;
+    $("stockTakePhysicalUnits").textContent=physical;
+    $("stockTakeVarianceUnits").textContent=(variance>0?"+":"")+variance;
+    $("finalizeStockTakeBtn").disabled=!isOwner()||!stockTakeDraft.length;
+  }
+
+  function startStockTake(){
+    if(!isOwner())return toast("Owner sahaja boleh menggunakan Stock Take.");
+    const category=$("stockTakeCategory")?.value||"";
+    const products=state.products
+      .filter(p=>p.ownershipType!=="consignment")
+      .filter(p=>!category||p.category===category)
+      .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+
+    stockTakeDraft=products.map(p=>({
+      productId:p.id,name:p.name||"",sku:p.sku||"",category:p.category||"Others",variant:p.variant||"",
+      systemQty:Math.max(0,Number(p.stock||0)),physicalQty:Math.max(0,Number(p.stock||0)),
+      cost:Number(p.cost||0),reason:""
+    }));
+    $("stockTakeNote").value="";
+    renderStockTakeDraft();
+    toast(`Stock Take snapshot ready · ${stockTakeDraft.length} SKU`);
+  }
+
+  async function finalizeStockTake(){
+    if(!isOwner())return toast("Owner sahaja boleh finalize Stock Take.");
+    if(!stockTakeDraft.length)return toast("Start Stock Take dahulu.");
+
+    const changed=stockTakeDraft.filter(i=>Number(i.physicalQty)!==Number(i.systemQty));
+    const missingReason=changed.find(i=>!String(i.reason||"").trim());
+    if(missingReason)return toast(`Reason wajib untuk variance: ${missingReason.name}${missingReason.variant?` · ${missingReason.variant}`:""}`);
+
+    // Firestore transaction has a practical write ceiling. Each changed SKU creates
+    // one product update + one stockAdjustment write, plus the parent stockTake.
+    if(changed.length>200)return toast("Terlalu banyak SKU variance untuk satu atomic finalize. Buat Stock Take ikut category supaya audit kekal selamat.");
+
+    const totalVariance=changed.reduce((a,i)=>a+(Number(i.physicalQty)-Number(i.systemQty)),0);
+    const msg=`Finalize Stock Take?\n\nSKU snapshot: ${stockTakeDraft.length}\nSKU adjusted: ${changed.length}\nNet variance: ${totalVariance>0?"+":""}${totalVariance}\n\nSistem akan create Stock Take + Adjustment Trail + update inventory secara atomic.`;
+    if(!confirm(msg))return;
+
+    const stockTakeRef=doc(collection(db,"stockTakes"));
+    const stockTakeNo=await reserveDocumentNumber("stockTake","STK");
+    const note=$("stockTakeNote").value.trim();
+    const category=$("stockTakeCategory").value||"All Category";
+
+    // Reserve one adjustment number per changed SKU before the main atomic transaction.
+    // These counters may advance even if finalization later fails, but no inventory/audit data is lost.
+    const preparedAdjustments=[];
+    for(const item of changed){
+      const adjustmentNo=await reserveDocumentNumber("stockAdjustment","ADJ");
+      preparedAdjustments.push({
+        item,
+        adjustmentNo,
+        ref:doc(collection(db,"stockAdjustments"))
+      });
+    }
+
+    try{
+      await runTransaction(db,async tx=>{
+        // 1) Read every affected product before any write.
+        const current=new Map();
+        for(const prepared of preparedAdjustments){
+          const item=prepared.item;
+          const pRef=doc(db,"products",item.productId);
+          const snap=await tx.get(pRef);
+          if(!snap.exists())throw new Error(`Product tidak ditemui: ${item.name}`);
+          current.set(item.productId,{ref:pRef,snap});
+        }
+
+        // 2) Concurrency guard: block if inventory changed after snapshot.
+        for(const prepared of preparedAdjustments){
+          const item=prepared.item;
+          const currentStock=Number(current.get(item.productId).snap.data().stock||0);
+          if(currentStock!==Number(item.systemQty)){
+            throw new Error(`${item.name}: stock berubah daripada ${item.systemQty} kepada ${currentStock} selepas snapshot. Refresh Stock Take dan kira semula.`);
+          }
+        }
+
+        // 3) Create one immutable adjustment line and update the product.
+        for(const prepared of preparedAdjustments){
+          const item=prepared.item;
+          const c=current.get(item.productId);
+          const beforeQty=Number(item.systemQty);
+          const afterQty=Number(item.physicalQty);
+          const variance=afterQty-beforeQty;
+
+          tx.set(prepared.ref,{
+            adjustmentNo:prepared.adjustmentNo,
+            type:"stock_take",
+            sourceType:"stockTake",
+            sourceId:stockTakeRef.id,
+            sourceNo:stockTakeNo,
+            productId:item.productId,
+            productName:item.name,
+            sku:item.sku||"",
+            category:item.category||"Others",
+            variant:item.variant||"",
+            beforeQty,
+            adjustmentQty:variance,
+            afterQty,
+            unitCost:Number(item.cost||0),
+            valueImpact:Number((variance*Number(item.cost||0)).toFixed(2)),
+            reason:String(item.reason||"").trim(),
+            status:"finalized",
+            createdBy:state.user.uid,
+            createdByName:state.profile.name||state.user.email,
+            createdAt:serverTimestamp()
+          });
+
+          tx.update(c.ref,{
+            stock:afterQty,
+            status:afterQty>0?"Available":"No Stock",
+            lastStockTakeNo:stockTakeNo,
+            lastStockTakeId:stockTakeRef.id,
+            lastStockAdjustmentNo:prepared.adjustmentNo,
+            lastStockTakeAt:serverTimestamp(),
+            lastStockTakeBy:state.user.uid,
+            updatedAt:serverTimestamp()
+          });
+        }
+
+        // 4) Parent audit snapshot.
+        tx.set(stockTakeRef,{
+          stockTakeNo,
+          category,
+          note,
+          status:"finalized",
+          skuCount:stockTakeDraft.length,
+          adjustedSkuCount:changed.length,
+          adjustmentCount:preparedAdjustments.length,
+          adjustmentNos:preparedAdjustments.map(x=>x.adjustmentNo),
+          systemUnits:stockTakeDraft.reduce((a,i)=>a+Number(i.systemQty||0),0),
+          physicalUnits:stockTakeDraft.reduce((a,i)=>a+Number(i.physicalQty||0),0),
+          varianceUnits:totalVariance,
+          items:stockTakeDraft.map(i=>({
+            productId:i.productId,name:i.name,sku:i.sku,category:i.category,variant:i.variant||"",
+            systemQty:Number(i.systemQty),physicalQty:Number(i.physicalQty),
+            variance:Number(i.physicalQty)-Number(i.systemQty),cost:Number(i.cost||0),
+            reason:String(i.reason||"").trim()
+          })),
+          finalizedBy:state.user.uid,
+          finalizedByName:state.profile.name||state.user.email,
+          finalizedAt:serverTimestamp(),
+          createdAt:serverTimestamp()
+        });
+      });
+
+      stockTakeDraft=[];
+      $("stockTakeNote").value="";
+      renderStockTakeDraft();
+      toast(`Stock Take finalized · ${stockTakeNo} · ${preparedAdjustments.length} adjustment`);
+    }catch(err){
+      console.error("Stock Take finalize failed",err);
+      toast("Stock Take gagal: "+err.message);
+    }
+  }
+
+  function renderStockTakeHistory(){
+    const body=$("stockTakeHistoryBody");if(!body)return;
+    const rows=[...state.stockTakes].slice(0,30);
+    body.innerHTML=rows.length?rows.map(x=>`<tr>
+      <td>${timestampText(x.finalizedAt||x.createdAt)}</td>
+      <td><strong>${esc(x.stockTakeNo||x.id)}</strong></td>
+      <td>${esc(x.category||"All Category")}</td>
+      <td>${Number(x.adjustedSkuCount||0)} / ${Number(x.skuCount||0)}</td>
+      <td>${Number(x.varianceUnits||0)>0?"+":""}${Number(x.varianceUnits||0)}</td>
+      <td>${esc(x.finalizedByName||"—")}</td>
+      <td><button class="btn btn-sm stocktake-export-btn" onclick="exportStockTakePdf('${x.id}')">Export PDF</button></td>
+    </tr>`).join(""):'<tr><td colspan="7" class="muted">Belum ada Stock Take finalized.</td></tr>';
+  }
+
+
+  function stockTakeDateText(value){
+    try{
+      const d=value?.toDate?value.toDate():value instanceof Date?value:new Date(value);
+      if(!d||Number.isNaN(d.getTime()))return "—";
+      return d.toLocaleString("en-MY",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+    }catch{return "—"}
+  }
+
+  function currentOwnedInventoryAllocation(){
+    const map={};
+    state.products.forEach(p=>{
+      if(p.ownershipType==="consignment")return;
+      const category=String(p.category||"Others").trim()||"Others";
+      const qty=Math.max(0,Number(p.stock||0));
+      const cost=Math.max(0,Number(p.cost||0));
+      if(!map[category])map[category]={category,qty:0,value:0,sku:0};
+      map[category].qty+=qty;
+      map[category].value+=qty*cost;
+      if(qty>0)map[category].sku+=1;
+    });
+    const total=Object.values(map).reduce((a,x)=>a+Number(x.value||0),0);
+    return {
+      total,
+      rows:Object.values(map).sort((a,b)=>b.value-a.value).map(x=>({
+        ...x,
+        allocation:total>0?(x.value/total*100):0
+      }))
+    };
+  }
+
+  function stockTakeFinalizedAllocation(st){
+    // Reconstruct owned inventory valuation captured by the Stock Take snapshot itself.
+    // For category-scoped Stock Takes this is the valuation of that scoped snapshot,
+    // not a historical whole-store inventory valuation.
+    const map={};
+    (st.items||[]).forEach(i=>{
+      const category=String(i.category||"Others").trim()||"Others";
+      const qty=Math.max(0,Number(i.physicalQty||0));
+      const cost=Math.max(0,Number(i.cost||0));
+      if(!map[category])map[category]={category,qty:0,value:0,sku:0};
+      map[category].qty+=qty;
+      map[category].value+=qty*cost;
+      if(qty>0)map[category].sku+=1;
+    });
+    const total=Object.values(map).reduce((a,x)=>a+Number(x.value||0),0);
+    return {
+      total,
+      rows:Object.values(map).sort((a,b)=>b.value-a.value).map(x=>({
+        ...x,
+        allocation:total>0?(x.value/total*100):0
+      }))
+    };
+  }
+
+  window.exportStockTakePdf=async id=>{
+    if(!isOwner())return toast("Owner sahaja boleh export Stock Take report.");
+    const st=state.stockTakes.find(x=>x.id===id);
+    if(!st)return toast("Stock Take record tidak ditemui.");
+    if(!window.jspdf?.jsPDF)return toast("PDF library belum ready. Pastikan internet aktif dan cuba lagi.");
+
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const pageW=pdf.internal.pageSize.getWidth();
+    const margin=14;
+    let y=15;
+
+    const moneyPdf=n=>`RM ${Number(n||0).toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    const addTitle=(text,size=12)=>{
+      pdf.setFont("helvetica","bold");pdf.setFontSize(size);pdf.text(text,margin,y);y+=size*0.48+3;
+    };
+    const addText=(text,size=8)=>{
+      pdf.setFont("helvetica","normal");pdf.setFontSize(size);
+      const lines=pdf.splitTextToSize(String(text??""),pageW-margin*2);
+      pdf.text(lines,margin,y);y+=lines.length*4+1;
+    };
+    const ensure=(need=20)=>{
+      if(y+need>282){pdf.addPage();y=15}
+    };
+
+    // Header
+    pdf.setFont("helvetica","bold");pdf.setFontSize(17);
+    pdf.text("MENEY GAMING",margin,y);y+=7;
+    pdf.setFontSize(12);pdf.text("Stock Take & Inventory Allocation Report",margin,y);y+=7;
+    pdf.setDrawColor(30);pdf.line(margin,y,pageW-margin,y);y+=6;
+
+    const finalizedVal=stockTakeFinalizedAllocation(st);
+    const currentVal=currentOwnedInventoryAllocation();
+    const adjustments=state.stockAdjustments
+      .filter(a=>a.sourceId===st.id||a.sourceNo===st.stockTakeNo)
+      .sort((a,b)=>String(a.adjustmentNo||"").localeCompare(String(b.adjustmentNo||"")));
+
+    addTitle("Stock Take Summary",11);
+    pdf.autoTable({
+      startY:y,
+      theme:"grid",
+      styles:{font:"helvetica",fontSize:8,cellPadding:2.2},
+      headStyles:{fillColor:[31,41,55]},
+      body:[
+        ["Reference",st.stockTakeNo||st.id,"Finalized",stockTakeDateText(st.finalizedAt||st.createdAt)],
+        ["Owner",st.finalizedByName||"—","Scope",st.category||"All Category"],
+        ["SKU Snapshot",String(Number(st.skuCount||0)),"SKU Adjusted",String(Number(st.adjustedSkuCount||0))],
+        ["System Units",String(Number(st.systemUnits||0)),"Physical Units",String(Number(st.physicalUnits||0))],
+        ["Net Variance",(Number(st.varianceUnits||0)>0?"+":"")+Number(st.varianceUnits||0),"Adjustment Count",String(Number(st.adjustmentCount||adjustments.length||0))]
+      ],
+      margin:{left:margin,right:margin}
+    });
+    y=pdf.lastAutoTable.finalY+6;
+    if(st.note){addText(`Stock Take Note: ${st.note}`,8);y+=2}
+
+    ensure(30);
+    addTitle("Stock Adjustment Detail",11);
+    const detail=(st.items||[]).filter(i=>Number(i.variance||0)!==0);
+    pdf.autoTable({
+      startY:y,
+      theme:"striped",
+      styles:{font:"helvetica",fontSize:7,cellPadding:1.8,overflow:"linebreak"},
+      headStyles:{fillColor:[22,101,52]},
+      head:[["SKU / Product","System","Physical","Var.","Cost","Value Impact","Reason","ADJ Ref"]],
+      body:detail.length?detail.map(i=>{
+        const adj=adjustments.find(a=>a.productId===i.productId);
+        const variance=Number(i.variance||0);
+        return [
+          `${i.sku||"No SKU"}\n${i.name||""}${i.variant?` · ${i.variant}`:""}`,
+          String(Number(i.systemQty||0)),
+          String(Number(i.physicalQty||0)),
+          `${variance>0?"+":""}${variance}`,
+          moneyPdf(i.cost),
+          moneyPdf(variance*Number(i.cost||0)),
+          i.reason||"—",
+          adj?.adjustmentNo||"—"
+        ];
+      }):[["No variance adjustment","—","—","0","—","RM 0.00","—","—"]],
+      columnStyles:{0:{cellWidth:42},6:{cellWidth:38}},
+      margin:{left:margin,right:margin}
+    });
+    y=pdf.lastAutoTable.finalY+7;
+
+    ensure(35);
+    addTitle("Inventory Value at Stock Take Finalization",11);
+    addText(st.category&&st.category!=="All Category"
+      ? `This valuation represents the finalized ${st.category} Stock Take scope only.`
+      : "This valuation is reconstructed from the physical counts captured in this finalized Stock Take.",7);
+    pdf.autoTable({
+      startY:y,
+      theme:"grid",
+      styles:{font:"helvetica",fontSize:8,cellPadding:2},
+      headStyles:{fillColor:[17,24,39]},
+      head:[["Category","Physical Qty","Cost Value","Allocation"]],
+      body:[
+        ...finalizedVal.rows.map(x=>[x.category,String(x.qty),moneyPdf(x.value),`${x.allocation.toFixed(1)}%`]),
+        ["TOTAL",String(finalizedVal.rows.reduce((a,x)=>a+x.qty,0)),moneyPdf(finalizedVal.total),finalizedVal.total>0?"100.0%":"0.0%"]
+      ],
+      margin:{left:margin,right:margin}
+    });
+    y=pdf.lastAutoTable.finalY+7;
+
+    ensure(35);
+    addTitle("Current Owned Inventory Allocation at Export",11);
+    addText(`Generated: ${new Date().toLocaleString("en-MY")} · Formula: Physical Stock × Cost Price · Consignment excluded.`,7);
+    pdf.autoTable({
+      startY:y,
+      theme:"grid",
+      styles:{font:"helvetica",fontSize:8,cellPadding:2},
+      headStyles:{fillColor:[21,128,61]},
+      head:[["Category","Physical Qty","Active SKU","Cost Value","Allocation"]],
+      body:[
+        ...currentVal.rows.map(x=>[x.category,String(x.qty),String(x.sku),moneyPdf(x.value),`${x.allocation.toFixed(1)}%`]),
+        ["TOTAL",String(currentVal.rows.reduce((a,x)=>a+x.qty,0)),String(currentVal.rows.reduce((a,x)=>a+x.sku,0)),moneyPdf(currentVal.total),currentVal.total>0?"100.0%":"0.0%"]
+      ],
+      margin:{left:margin,right:margin}
+    });
+    y=pdf.lastAutoTable.finalY+7;
+
+    ensure(25);
+    addTitle("Audit Notes",10);
+    addText("Stock Take records and Stock Adjustment records are audit references. Current inventory allocation may differ from the finalized Stock Take valuation because sales, stock receiving, refunds, exchanges, or later stock adjustments can occur after finalization.",7);
+    addText(`Report source: ${st.stockTakeNo||st.id} · Exported by ${state.profile.name||state.user.email}`,7);
+
+    // Footer page numbers
+    const pages=pdf.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      pdf.setPage(i);
+      pdf.setFont("helvetica","normal");pdf.setFontSize(7);
+      pdf.text(`Meney Gaming · Stock Take Report · Page ${i} of ${pages}`,margin,291);
+    }
+
+    const safeRef=String(st.stockTakeNo||"Stock-Take").replace(/[^A-Za-z0-9_-]+/g,"-");
+    pdf.save(`Meney-${safeRef}-Inventory-Report.pdf`);
+  };
+
+  function renderStockAdjustmentHistory(){
+    const body=$("stockAdjustmentHistoryBody");if(!body)return;
+    const rows=[...state.stockAdjustments].slice(0,50);
+    body.innerHTML=rows.length?rows.map(x=>{
+      const delta=Number(x.adjustmentQty||0);
+      return `<tr>
+        <td>${timestampText(x.createdAt)}</td>
+        <td><strong>${esc(x.adjustmentNo||x.id)}</strong></td>
+        <td>${esc(x.sourceNo||"—")}</td>
+        <td><strong>${esc(x.productName||"—")}${x.variant?` · ${esc(x.variant)}`:""}</strong><br><span class="muted">${esc(x.sku||"")}</span></td>
+        <td>${Number(x.beforeQty||0)}</td>
+        <td><strong class="${delta>0?"stocktake-var pos":delta<0?"stocktake-var neg":"stocktake-var zero"}">${delta>0?"+":""}${delta}</strong></td>
+        <td>${Number(x.afterQty||0)}</td>
+        <td>${esc(x.reason||"—")}</td>
+      </tr>`;
+    }).join(""):'<tr><td colspan="8" class="muted">Belum ada Stock Adjustment.</td></tr>';
+  }
+
+  function renderStockTake(){
+    syncStockTakeOwnerAccess();
+    populateStockTakeCategories();
+    renderStockTakeDraft();
+    renderStockTakeHistory();
+    renderStockAdjustmentHistory();
+  }
+
+  $("startStockTakeBtn")?.addEventListener("click",startStockTake);
+  $("finalizeStockTakeBtn")?.addEventListener("click",finalizeStockTake);
+  $("stockTakeSearch")?.addEventListener("input",renderStockTakeDraft);
+  $("stockTakeCategory")?.addEventListener("change",()=>{stockTakeDraft=[];renderStockTakeDraft()});
 
   function renderStockCostByCategory(){
     const grid=$("stockCostCategoryGrid"),totalEl=$("stockCostCategoryTotal");
