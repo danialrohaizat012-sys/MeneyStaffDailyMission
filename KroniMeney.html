@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&icon_names=arrow_back,badge,calendar_month,call,celebration,check,check_circle,checkroom,chevron_right,close,cloud_off,content_copy,emoji_events,expand_more,group_add,help,history,home,inbox,info,install_mobile,light_mode,lightbulb,local_activity,local_fire_department,lock,logout,mail,palette,password,person,qr_code_2,radio_button_checked,radio_button_unchecked,receipt_long,redeem,sell,share,shopping_bag,star,stars,trending_up,visibility,visibility_off,workspace_premium&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&icon_names=arrow_back,badge,calendar_month,call,celebration,check,check_circle,checkroom,chevron_right,close,cloud_off,content_copy,expand_more,group_add,help,history,home,inbox,info,install_mobile,light_mode,lightbulb,local_activity,lock,logout,mail,palette,password,person,qr_code_2,radio_button_checked,radio_button_unchecked,receipt_long,redeem,sell,share,shopping_bag,stars,visibility,visibility_off&display=block" rel="stylesheet">
 <script>
 // Apply saved theme before first paint (per-device preference only).
 (function(){try{var t=localStorage.getItem("kroni-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}})();
@@ -322,15 +322,6 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .prof-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 4px}
 .prof-head .avatar{margin-bottom:12px}
 .prof-head p{margin:4px 0 0}
-.tiers{display:flex;align-items:center;gap:0;padding:20px 16px 16px}
-.tstep{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:10px;font-weight:500;letter-spacing:.4px;color:var(--on-surface-variant);position:relative}
-.tstep i{width:24px;height:24px;border-radius:12px;display:grid;place-items:center;background:var(--surface-c-highest);color:var(--on-surface-variant);font-style:normal;position:relative;z-index:1}
-.tstep i .ms{font-size:16px}
-.tstep:not(:last-child):after{content:"";position:absolute;top:11px;left:calc(50% + 14px);right:calc(-50% + 14px);height:2px;border-radius:1px;background:var(--outline-variant)}
-.tstep.done i{background:var(--primary);color:var(--on-primary)}
-.tstep.done:after{background:var(--primary)!important}
-.tstep.now{color:var(--on-surface)}
-.tstep.now i{background:var(--primary-container);color:var(--on-primary-container);box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 25%,transparent)}
 .ref{display:flex;align-items:center;gap:12px;padding:16px}
 .ref .code{flex:1;min-width:0}
 .ref .code b{display:block;font-size:22px;line-height:28px;font-weight:500;letter-spacing:2px}
@@ -489,9 +480,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
 <section class="hidden" id="intro">
   <div class="intro-top"><button class="btn btn-text ink" id="introSkip">Langkau</button></div>
   <div class="slides" id="slides">
-    <div class="slide"><div class="art a1"><span class="ms fill">qr_code_2</span></div><h2 class="headline-s">Satu kad, semua kelebihan</h2><p class="body-l muted">Tunjuk Kad Kroni setiap kali membeli di Meney untuk kumpul XP dan points.</p></div>
+    <div class="slide"><div class="art a1"><span class="ms fill">qr_code_2</span></div><h2 class="headline-s">Kad ahli digital anda</h2><p class="body-l muted">Tunjuk Kad Ahli setiap kali membeli di Meney untuk kumpul points.</p></div>
     <div class="slide"><div class="art a2"><span class="ms fill">redeem</span></div><h2 class="headline-s">Tebus reward sebenar</h2><p class="body-l muted">Tukar points dengan diskaun dan merchandise Meney terus di kaunter.</p></div>
-    <div class="slide"><div class="art a3"><span class="ms fill">workspace_premium</span></div><h2 class="headline-s">Naik tahap, lebih istimewa</h2><p class="body-l muted">Dari ROOKIE hingga MYTHIC. Lebih banyak XP, lebih tinggi tahap anda.</p></div>
+    <div class="slide"><div class="art a3"><span class="ms fill">receipt_long</span></div><h2 class="headline-s">Semua dalam satu tempat</h2><p class="body-l muted">Semak baki points, voucher dan sejarah pembelian anda bila-bila masa.</p></div>
   </div>
   <div class="intro-foot">
     <div class="dots" id="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
@@ -545,8 +536,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
   <div class="body">
     <div class="auth-head">
       <svg class="logo" width="72" height="72"><use href="#logo"/></svg>
-      <h1 class="headline-m" style="margin:0">Aktifkan Kroni Pass</h1>
-      <p class="body-l muted" id="obSub">Lengkapkan maklumat untuk dapatkan Kroni ID, +100 XP dan +50 points bonus.</p>
+      <h1 class="headline-m" style="margin:0">Aktifkan kad ahli</h1>
+      <p class="body-l muted" id="obSub">Lengkapkan maklumat untuk dapatkan Kroni ID dan 50 points bonus selamat datang.</p>
     </div>
     <form id="obForm" novalidate>
       <div class="tf"><input id="obName" placeholder=" " autocomplete="name" enterkeyhint="next"><label for="obName">Nama penuh</label><span class="support"></span></div>
@@ -562,9 +553,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
 <section class="auth hidden" id="welcome">
   <div class="body" style="text-align:center">
     <div class="done-mark"><span class="ms">check</span></div>
-    <h1 class="headline-m" style="margin:0">Kroni Pass anda sedia!</h1>
+    <h1 class="headline-m" style="margin:0">Kad ahli anda sedia!</h1>
     <p class="body-l muted" style="margin:8px 0 0" id="wSub">Selamat datang ke KroniMeney.</p>
-    <div class="gain-row"><span class="gain"><span class="ms">trending_up</span>+100 XP</span><span class="gain"><span class="ms">stars</span>+50 points</span></div>
+    <div class="gain-row"><span class="gain"><span class="ms">stars</span>+50 points bonus</span></div>
     <div class="mini-pass" id="wPass"></div>
     <button class="btn btn-filled btn-block ink" id="wGo" style="margin-top:32px">Mula guna KroniMeney</button>
   </div>
@@ -574,7 +565,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 <header class="appbar hidden" id="appbar">
   <div class="appbar-in">
     <div class="appbar-title" id="abTitle">KroniMeney</div>
-    <button class="icon-btn ink" id="abQr" aria-label="Kad Kroni"><span class="ms">qr_code_2</span></button>
+    <button class="icon-btn ink" id="abQr" aria-label="Kad Ahli"><span class="ms">qr_code_2</span></button>
     <button class="icon-btn ink" data-go="profile" aria-label="Profil"><span class="avatar" id="abAvatar">K</span></button>
   </div>
 </header>
@@ -586,10 +577,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <section class="page active" id="p-home" data-title="KroniMeney">
       <div class="large-title"><h1 class="headline-m" id="hello">Hai, Kroni</h1><p class="body-m muted" id="greet">Selamat datang</p></div>
 
-      <button class="pass ink" id="passCard" aria-label="Buka kad Kroni dan QR">
+      <button class="pass ink" id="passCard" aria-label="Buka kad ahli dan QR">
         <div class="pass-row">
-          <div class="pass-brand"><svg class="logo" width="32" height="32"><use href="#logo"/></svg>Kroni Pass</div>
-          <span class="pass-tier" id="passTier"><span class="ms fill">workspace_premium</span><span>ROOKIE</span></span>
+          <div class="pass-brand"><svg class="logo" width="32" height="32"><use href="#logo"/></svg>KroniMeney</div>
+          <span class="pass-tier">AHLI</span>
         </div>
         <div class="pass-id"><small>KRONI ID</small><b class="num" id="passId">KRN ––––––</b></div>
         <div class="pass-row">
@@ -603,20 +594,19 @@ button{cursor:pointer;border:0;background:none;padding:0}
           <div><div class="label-l muted">Kroni Points</div><div class="big num" id="ptsBig">0<span>pts</span></div></div>
           <button class="btn btn-tonal ink" data-go="rewards">Tebus</button>
         </div>
-        <div class="progress" role="progressbar" aria-label="Kemajuan XP" id="xpWrap"><i id="xpBar"></i></div>
-        <div class="points-meta"><span id="xpNow">0 XP · Level 1</span><span id="xpNext">500 XP lagi ke <b>PLAYER</b></span></div>
+        <div class="points-meta" style="margin-top:12px"><span id="ptsNote">Points dikemas kini selepas setiap pembelian</span></div>
       </div>
 
       <div class="actions">
         <button class="action ink" id="actQr"><span class="bubble"><span class="ms">qr_code_2</span></span>Kad QR</button>
         <button class="action ink" data-go="rewards"><span class="bubble"><span class="ms">redeem</span></span>Reward</button>
-        <button class="action ink" data-go="activity"><span class="bubble"><span class="ms">receipt_long</span></span>Aktiviti</button>
+        <button class="action ink" data-go="activity"><span class="bubble"><span class="ms">receipt_long</span></span>Sejarah</button>
         <button class="action ink" id="actShare"><span class="bubble"><span class="ms">group_add</span></span>Ajak kawan</button>
       </div>
 
       <div class="tipcard hidden" id="tipHow">
         <span class="ms fill" style="font-size:32px">lightbulb</span>
-        <button class="txt" id="tipHowOpen" style="text-align:left"><b>Baru di sini?</b><span class="body-m">Ketahui cara kumpul XP dan tebus reward.</span></button>
+        <button class="txt" id="tipHowOpen" style="text-align:left"><b>Baru di sini?</b><span class="body-m">Ketahui cara kumpul points dan tebus reward.</span></button>
         <button class="icon-btn ink" id="tipHowClose" aria-label="Tutup petua"><span class="ms">close</span></button>
       </div>
 
@@ -625,10 +615,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
         <div class="hscroll" id="vouchRow"></div>
       </div>
 
-      <div class="section"><h2 class="title-m">Reward seterusnya</h2><button class="btn btn-text ink" data-go="rewards">Katalog</button></div>
+      <div class="section"><h2 class="title-m">Reward untuk anda</h2><button class="btn btn-text ink" data-go="rewards">Katalog</button></div>
       <div class="card list" id="nextReward"></div>
 
-      <div class="section"><h2 class="title-m">Aktiviti terkini</h2><button class="btn btn-text ink" data-go="activity">Lihat semua</button></div>
+      <div class="section"><h2 class="title-m">Sejarah terkini</h2><button class="btn btn-text ink" data-go="activity">Lihat semua</button></div>
       <div class="card list" id="recentList"></div>
 
       <div id="shopSec" class="hidden">
@@ -638,13 +628,13 @@ button{cursor:pointer;border:0;background:none;padding:0}
     </section>
 
     <!-- ACTIVITY -->
-    <section class="page" id="p-activity" data-title="Aktiviti">
-      <div class="large-title"><h1 class="headline-m">Aktiviti</h1></div>
-      <div class="chips" id="actFilters" role="group" aria-label="Tapis aktiviti">
+    <section class="page" id="p-activity" data-title="Sejarah">
+      <div class="large-title"><h1 class="headline-m">Sejarah</h1></div>
+      <div class="chips" id="actFilters" role="group" aria-label="Tapis sejarah">
         <button class="chip ink" aria-pressed="true" data-f="all"><span class="ms">check</span>Semua</button>
         <button class="chip ink" aria-pressed="false" data-f="tx"><span class="ms">check</span>Pembelian</button>
-        <button class="chip ink" aria-pressed="false" data-f="ledger"><span class="ms">check</span>XP &amp; points</button>
-        <button class="chip ink" aria-pressed="false" data-f="reward"><span class="ms">check</span>Reward</button>
+        <button class="chip ink" aria-pressed="false" data-f="ledger"><span class="ms">check</span>Points</button>
+        <button class="chip ink" aria-pressed="false" data-f="reward"><span class="ms">check</span>Voucher</button>
       </div>
       <div id="actList" style="margin-top:8px"></div>
     </section>
@@ -664,7 +654,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
           <button class="chip ink" aria-pressed="false" data-f="prod"><span class="ms">check</span>Merchandise</button>
         </div>
         <div class="grid" id="rGrid"></div>
-        <p class="body-s muted" style="margin:16px 4px 0">Reward ditebus di kaunter Meney. Staff akan imbas kad Kroni anda dan menolak points melalui POS.</p>
+        <p class="body-s muted" style="margin:16px 4px 0">Reward ditebus di kaunter Meney. Staff akan imbas kad ahli anda dan menolak points melalui POS.</p>
       </div>
       <div id="rMine" class="hidden" style="margin-top:16px">
         <div class="chips" id="vFilters" role="group" aria-label="Tapis voucher">
@@ -680,17 +670,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <div class="prof-head">
         <div class="avatar xl" id="prAvatar">K</div>
         <h1 class="headline-s" style="margin:0" id="prName">—</h1>
-        <p class="body-m muted" id="prTier">Level 1 · ROOKIE</p>
+        <p class="body-m muted" id="prTier">Ahli KroniMeney</p>
       </div>
-
-      <div class="section"><h2 class="title-m">Tahap Kroni</h2></div>
-      <button class="card ink" id="tierCard" style="display:block;width:100%;text-align:left" aria-label="Lihat semua tahap Kroni">
-        <div class="tiers" id="tierSteps"></div>
-        <div class="tile two" style="padding-top:0"><div class="txt"><span class="t1" id="tierNow">ROOKIE</span><span class="t2" id="tierHint">500 XP lagi ke PLAYER</span></div><span class="ms trail">chevron_right</span></div>
-      </button>
-
-      <div class="section"><h2 class="title-m">Pencapaian</h2></div>
-      <div class="card list" id="achList"></div>
 
       <div class="section"><h2 class="title-m">Ajak kawan</h2></div>
       <div class="card ref"><div class="code"><span class="body-s muted">Kod referral anda</span><b class="num" id="refCode">—</b></div><button class="btn btn-filled icon-l ink" id="shareRef"><span class="ms">share</span>Kongsi</button></div>
@@ -706,7 +687,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
       <div class="section"><h2 class="title-m">Bantuan</h2></div>
       <div class="card list">
-        <button class="tile ink" data-route="how"><span class="lead n"><span class="ms">lightbulb</span></span><span class="txt"><span class="t1">Cara ia berfungsi</span><span class="t2">Kumpul, naik tahap, tebus</span></span><span class="ms trail">chevron_right</span></button>
+        <button class="tile ink" data-route="how"><span class="lead n"><span class="ms">lightbulb</span></span><span class="txt"><span class="t1">Cara ia berfungsi</span><span class="t2">Kumpul dan tebus points</span></span><span class="ms trail">chevron_right</span></button>
         <button class="tile ink" data-route="help"><span class="lead n"><span class="ms">help</span></span><span class="txt"><span class="t1">Soalan lazim</span><span class="t2">Jawapan kepada soalan biasa</span></span><span class="ms trail">chevron_right</span></button>
       </div>
 
@@ -717,18 +698,18 @@ button{cursor:pointer;border:0;background:none;padding:0}
         <button class="tile ink" id="resetPw"><span class="lead n"><span class="ms">password</span></span><span class="txt"><span class="t1">Tukar kata laluan</span><span class="t2">Pautan dihantar ke e-mel anda</span></span></button>
         <button class="tile ink" id="logoutBtn" style="color:var(--error)"><span class="lead n" style="color:var(--error)"><span class="ms">logout</span></span><span class="txt"><span class="t1">Log keluar</span></span></button>
       </div>
-      <p class="body-s muted" style="text-align:center;margin-top:24px">KroniMeney 3.1</p>
+      <p class="body-s muted" style="text-align:center;margin-top:24px">KroniMeney 3.2</p>
     </section>
 
   </div>
 </main>
 
-<button class="fab ink hidden" id="fab" aria-label="Kad Kroni"><span class="ms">qr_code_2</span><span class="lbl">Kad Kroni</span></button>
+<button class="fab ink hidden" id="fab" aria-label="Kad Ahli"><span class="ms">qr_code_2</span><span class="lbl">Kad Ahli</span></button>
 
 <nav class="navbar hidden" id="navbar" aria-label="Navigasi utama">
   <div class="navbar-in">
     <button class="dest" data-go="home" aria-current="page"><span class="pill ink"><span class="ms">home</span></span>Utama</button>
-    <button class="dest" data-go="activity"><span class="pill ink"><span class="ms">receipt_long</span></span>Aktiviti</button>
+    <button class="dest" data-go="activity"><span class="pill ink"><span class="ms">receipt_long</span></span>Sejarah</button>
     <button class="dest" data-go="rewards"><span class="pill ink"><span class="ms">redeem</span></span>Reward</button>
     <button class="dest" data-go="profile"><span class="pill ink"><span class="ms">person</span></span>Profil</button>
   </div>
@@ -740,7 +721,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
   <div class="sheet-in">
     <div class="handle"></div>
     <div class="sheet-chip hidden" id="sheetChip"><span class="badge on" id="sheetChipLbl"></span></div>
-    <h3 class="headline-s" id="sheetTitle">Kad Kroni</h3>
+    <h3 class="headline-s" id="sheetTitle">Kad Ahli</h3>
     <p class="body-m muted lead" id="sheetLead">Tunjuk kod ini kepada staff Meney semasa pembayaran.</p>
     <div class="qrbox" id="qrBox"></div>
     <div class="qr-id num" id="qrId">KRN ––––––</div>
@@ -765,13 +746,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <div class="hero-note"><span class="ms fill">badge</span><span class="body-l">KroniMeney ialah program ganjaran ahli Meney. Satu Kroni ID untuk semua kelebihan.</span></div>
     <div class="section"><h2 class="title-m">1 · Kumpul</h2></div>
     <div class="card steps">
-      <div class="step"><span class="n"><span class="ms">qr_code_2</span></span><div><b>Tunjuk Kad Kroni semasa bayar</b><p class="body-m">Staff akan imbas QR anda di kaunter supaya pembelian dipautkan ke akaun anda.</p></div></div>
-      <div class="step"><span class="n"><span class="ms">trending_up</span></span><div><b>Dapat XP dan points</b><p class="body-m">XP menaikkan tahap anda. Points boleh ditukar dengan reward.</p></div></div>
-      <div class="step"><span class="n"><span class="ms">celebration</span></span><div><b>Bonus selamat datang</b><p class="body-m">+100 XP dan +50 points sebaik sahaja Kroni Pass diaktifkan.</p></div></div>
+      <div class="step"><span class="n"><span class="ms">qr_code_2</span></span><div><b>Tunjuk Kad Ahli semasa bayar</b><p class="body-m">Staff akan imbas QR anda di kaunter supaya pembelian dipautkan ke akaun anda.</p></div></div>
+      <div class="step"><span class="n"><span class="ms">stars</span></span><div><b>Kumpul points</b><p class="body-m">Points terkumpul boleh ditukar dengan diskaun dan merchandise Meney.</p></div></div>
+      <div class="step"><span class="n"><span class="ms">celebration</span></span><div><b>Bonus selamat datang</b><p class="body-m">50 points percuma sebaik sahaja kad ahli anda diaktifkan.</p></div></div>
     </div>
-    <div class="section"><h2 class="title-m">2 · Naik tahap</h2></div>
-    <div class="card list" id="howTiers"></div>
-    <div class="section"><h2 class="title-m">3 · Tebus</h2></div>
+    <div class="section"><h2 class="title-m">2 · Tebus</h2></div>
     <div class="card steps">
       <div class="step"><span class="n">1</span><div><b>Pilih reward</b><p class="body-m">Lihat katalog di tab Reward dan semak points yang diperlukan.</p></div></div>
       <div class="step"><span class="n">2</span><div><b>Tunjuk QR di kaunter</b><p class="body-m">Buka butiran reward dan tekan "Tebus di kaunter".</p></div></div>
@@ -787,9 +766,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
   <div class="body route-body">
     <div class="card" style="margin-top:8px">
       <details class="exp"><summary>Apa itu Kroni ID?<span class="ms">expand_more</span></summary><div class="ans body-m">Kroni ID ialah nombor ahli unik anda (contoh: KRN 123456). Ia dipaparkan pada Kroni Pass dan dalam kod QR anda.</div></details>
-      <details class="exp"><summary>Bagaimana nak kumpul XP dan points?<span class="ms">expand_more</span></summary><div class="ans body-m">Tunjuk Kad Kroni kepada staff setiap kali anda membuat pembelian di Meney. Pembelian yang diimbas akan memberi XP dan points kepada akaun anda.</div></details>
+      <details class="exp"><summary>Bagaimana nak kumpul points?<span class="ms">expand_more</span></summary><div class="ans body-m">Tunjuk Kad Ahli kepada staff setiap kali anda membuat pembelian di Meney. Pembelian yang diimbas akan menambah points ke akaun anda.</div></details>
       <details class="exp"><summary>Bagaimana nak tebus reward?<span class="ms">expand_more</span></summary><div class="ans body-m">Buka tab Reward, pilih reward, kemudian tekan "Tebus di kaunter" dan tunjuk QR kepada staff. Staff akan menolak points dan memberikan reward.</div></details>
-      <details class="exp"><summary>Kenapa pembelian saya tidak muncul?<span class="ms">expand_more</span></summary><div class="ans body-m">Pembelian hanya direkodkan jika Kad Kroni anda diimbas semasa pembayaran. Jika terlupa, hubungi staff Meney bersama resit anda.</div></details>
+      <details class="exp"><summary>Kenapa pembelian saya tidak muncul?<span class="ms">expand_more</span></summary><div class="ans body-m">Pembelian hanya direkodkan jika Kad Ahli anda diimbas semasa pembayaran. Jika terlupa, hubungi staff Meney bersama resit anda.</div></details>
       <details class="exp"><summary>Boleh saya tukar nama atau telefon?<span class="ms">expand_more</span></summary><div class="ans body-m">Boleh. Untuk keselamatan akaun, perubahan maklumat dibuat oleh staff Meney. Sila hubungi mereka di kaunter.</div></details>
       <details class="exp"><summary>Saya lupa kata laluan<span class="ms">expand_more</span></summary><div class="ans body-m">Di skrin log masuk, tekan "Lupa kata laluan?" dan masukkan e-mel anda. Pautan untuk set semula akan dihantar ke e-mel tersebut.</div></details>
     </div>
@@ -811,10 +790,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
 <script src="kroni-qrcode.js"></script>
 <script type="module">
 /* ICONS used only from JS (kept here so the icon font subset includes them):
-   ms("shopping_bag") ms("star") ms("local_fire_department") ms("local_activity") ms("checkroom")
-   ms("lock") ms("check_circle") ms("emoji_events") ms("chevron_right") ms("radio_button_checked")
-   ms("radio_button_unchecked") ms("visibility_off") ms("logout") ms("inbox") ms("sell")
-   ms("celebration") ms("history") ms("check") ms("receipt_long") ms("qr_code_2") ms("info") */
+   ms("shopping_bag") ms("stars") ms("local_activity") ms("checkroom") ms("lock") ms("check_circle")
+   ms("chevron_right") ms("radio_button_checked") ms("radio_button_unchecked") ms("visibility_off")
+   ms("logout") ms("inbox") ms("sell") ms("celebration") ms("history") ms("check") ms("receipt_long")
+   ms("qr_code_2") ms("info") */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
@@ -826,7 +805,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 /* ------------------------------------------------------------------
-   KroniMeney 3.1
+   KroniMeney 3.2
    DATA SAFETY — this app shares the Firebase project with Meney POS.
    • READS only the signed-in member's own Kroni docs + published publicCatalogue.
    • The ONLY writes: kroniMembers/{uid} and kroniLedger/{uid}_welcome, once,
@@ -855,6 +834,7 @@ const toDate = v => { try { return v?.toDate ? v.toDate() : v ? new Date(v) : nu
 const tms = v => toDate(v)?.getTime() || 0;
 const fDate = v => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleDateString("ms-MY", { day: "numeric", month: "short", year: "numeric" }) : "—"; };
 const fDateTime = v => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleString("ms-MY", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : "—"; };
+const fYear = v => { const d = toDate(v); return d && !isNaN(d) ? d.getFullYear() : new Date().getFullYear(); };
 const fMonth = v => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleDateString("ms-MY", { month: "long", year: "numeric" }) : "Tarikh tidak diketahui"; };
 const fId = id => { const s = String(id || ""); return /^KRN\d{6}$/.test(s) ? `KRN ${s.slice(3)}` : (s || "KRN ––––––"); };
 const ms = (name, cls = "") => `<span class="ms ${cls}">${name}</span>`;
@@ -899,19 +879,6 @@ function kroniIdFor(uid) {
   return "KRN" + String(h % 1000000).padStart(6, "0");
 }
 const referralFrom = id => String(id || "KRN000000").replace("KRN", "MNY");
-const TIERS = [
-  { min: 0, max: 500, level: 1, name: "ROOKIE", acc: "#b8f25c", ink: "#112000", c1: "#3f6a00", c2: "#16290a" },
-  { min: 500, max: 1500, level: 2, name: "PLAYER", acc: "#9ce4ff", ink: "#001f2a", c1: "#00658a", c2: "#002838" },
-  { min: 1500, max: 3000, level: 3, name: "PRO", acc: "#d8c2ff", ink: "#22005d", c1: "#6a4ea8", c2: "#2a1658" },
-  { min: 3000, max: 6000, level: 4, name: "ELITE", acc: "#ffb68a", ink: "#331200", c1: "#9a4a12", c2: "#401a03" },
-  { min: 6000, max: 10000, level: 5, name: "LEGEND", acc: "#ffe08a", ink: "#241a00", c1: "#8a6b00", c2: "#3a2c00" },
-  { min: 10000, max: 15000, level: 6, name: "MYTHIC", acc: "#ffb0cc", ink: "#3e0021", c1: "#a0335f", c2: "#43001f" }
-];
-function tierOf(xp) {
-  xp = Number(xp || 0);
-  const i = TIERS.findIndex(t => xp < t.max), idx = i === -1 ? TIERS.length - 1 : i, t = TIERS[idx];
-  return { ...t, idx, next: TIERS[idx + 1] || null, pct: Math.max(0, Math.min(100, ((xp - t.min) / (t.max - t.min)) * 100)) };
-}
 const CATALOG = [
   { id: "RM10", title: "Diskaun RM10", cost: 100, kind: "disc", desc: "Potongan RM10 untuk mana-mana pembelian di Meney." },
   { id: "RM30", title: "Diskaun RM30", cost: 180, kind: "disc", desc: "Potongan RM30 untuk mana-mana pembelian di Meney." },
@@ -988,7 +955,7 @@ async function openQr({ title, lead, chip } = {}, opt = {}) {
   const m = S.member; if (!m) return;
   haptic();
   if (!opt.replace) lastFocus = document.activeElement;
-  $("sheetTitle").textContent = title || "Kad Kroni";
+  $("sheetTitle").textContent = title || "Kad Ahli";
   $("sheetLead").textContent = lead || "Tunjuk kod ini kepada staff Meney semasa pembayaran.";
   $("sheetChip").classList.toggle("hidden", !chip); $("sheetChipLbl").textContent = chip || "";
   $("qrBox").innerHTML = qrSVG(m.kroniId || "");
@@ -1019,7 +986,6 @@ document.querySelectorAll(".sheet").forEach(s => {
 
 function openRoute(name) {
   const r = $("r-" + name); if (!r) return;
-  if (name === "how") renderHow();
   lastFocus = document.activeElement;
   r.scrollTop = 0; r.classList.add("open");
   pushOverlay(() => { r.classList.remove("open"); lastFocus?.focus?.(); });
@@ -1141,7 +1107,7 @@ function renderStep() {
   $("fPass").autocomplete = reg ? "new-password" : "current-password";
   $("fPass").enterKeyHint = reg ? "next" : "go";
   $("authTitle").textContent = reset ? "Set semula kata laluan" : step2 ? "Sedikit tentang anda" : reg ? "Sertai KroniMeney" : "Selamat kembali";
-  $("authSub").textContent = reset ? "Kami akan hantar pautan ke e-mel anda" : step2 ? "Nama dan telefon digunakan untuk mengenal pasti anda di kaunter" : reg ? "Daftar percuma dan terus dapat +100 XP & +50 points" : "Log masuk ke akaun KroniMeney anda";
+  $("authSub").textContent = reset ? "Kami akan hantar pautan ke e-mel anda" : step2 ? "Nama dan telefon digunakan untuk mengenal pasti anda di kaunter" : reg ? "Daftar percuma dan terima 50 points bonus selamat datang" : "Log masuk ke akaun KroniMeney anda";
   $("authBtn").textContent = reset ? "Hantar pautan" : step2 ? "Daftar" : reg ? "Seterusnya" : "Log masuk";
 }
 function setMode(mode) { S.mode = mode; S.regStep = 1; setMsg("authMsg", ""); clearErrors(); renderStep(); }
@@ -1218,6 +1184,7 @@ async function createProfile(user, { name, phone }) {
   await setDoc(doc(db, "kroniMembers", user.uid), {
     uid: user.uid, kroniId, referralCode: referralFrom(kroniId),
     name, email: user.email || "", phone, normalizedPhone: normPhone(phone),
+    // xp/streak/level/tier are legacy fields kept for schema compatibility (not shown in the app)
     xp: 100, points: 50, streak: 0, level: 1, tier: "ROOKIE",
     active: true, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
   });
@@ -1243,16 +1210,16 @@ $("obForm").onsubmit = async e => {
 };
 $("obOut").onclick = () => signOut(auth);
 
-function passHTML(m, t) {
-  return `<div class="pass" style="--acc:${t.acc};--ink:${t.ink};--c1:${t.c1};--c2:${t.c2}">
-    <div class="pass-row"><div class="pass-brand"><svg class="logo" width="32" height="32"><use href="#logo"/></svg>Kroni Pass</div><span class="pass-tier">${ms("workspace_premium", "fill")}<span>${t.name}</span></span></div>
+function passHTML(m) {
+  return `<div class="pass">
+    <div class="pass-row"><div class="pass-brand"><svg class="logo" width="32" height="32"><use href="#logo"/></svg>KroniMeney</div><span class="pass-tier">AHLI</span></div>
     <div class="pass-id"><small>KRONI ID</small><b class="num">${esc(fId(m.kroniId))}</b></div>
     <div class="pass-row"><div class="pass-name"><b>${esc(m.name || "Kroni")}</b><small>Ahli baharu</small></div></div></div>`;
 }
 function showWelcome() {
-  const m = S.member, t = tierOf(m.xp);
+  const m = S.member;
   $("wSub").textContent = `Selamat datang ke KroniMeney, ${(m.name || "Kroni").split(" ")[0]}.`;
-  $("wPass").innerHTML = passHTML(m, t);
+  $("wPass").innerHTML = passHTML(m);
   show("welcome"); haptic();
 }
 $("wGo").onclick = () => { S.justJoined = false; show("app"); go("home"); };
@@ -1292,7 +1259,7 @@ onAuthStateChanged(auth, async user => {
     if (await enter(user)) return;
     if (S.pending) { const p = S.pending; S.pending = null; await createProfile(user, p); await enter(user); return; }
     if (user.displayName) $("obName").value = user.displayName;
-    $("obSub").textContent = `Log masuk sebagai ${user.email || "akaun ini"}. Lengkapkan maklumat untuk dapatkan Kroni ID, +100 XP dan +50 points bonus.`;
+    $("obSub").textContent = `Log masuk sebagai ${user.email || "akaun ini"}. Lengkapkan maklumat untuk dapatkan Kroni ID dan 50 points bonus selamat datang.`;
     show("onboard");
   } catch (err) { show("auth"); setMsg("authMsg", humanError(err)); await signOut(auth).catch(() => {}); }
 });
@@ -1305,27 +1272,20 @@ const skelTiles = n => Array.from({ length: n }, () => `<div class="tile two"><s
 
 function render() {
   const m = S.member; if (!m) return;
-  const t = tierOf(m.xp), first = (m.name || "Kroni").split(" ")[0];
-  const pts = Number(m.points || 0), xp = Number(m.xp || 0);
+  const first = (m.name || "Kroni").split(" ")[0];
+  const pts = Number(m.points || 0);
   const active = S.rewards.filter(isActiveReward);
 
   $("abAvatar").textContent = initials(m.name);
   $("hello").textContent = `Hai, ${first}`;
-  $("greet").textContent = `${greeting()} · ${t.name}`;
+  $("greet").textContent = `${greeting()} · Ahli sejak ${fYear(m.createdAt)}`;
 
-  const pass = $("passCard");
-  ["acc", "ink", "c1", "c2"].forEach(k => pass.style.setProperty("--" + k, t[k]));
-  $("passTier").lastElementChild.textContent = t.name;
   $("passId").textContent = fId(m.kroniId);
   $("passName").textContent = m.name || "Kroni";
   $("passSince").textContent = "Ahli sejak " + fDate(m.createdAt);
 
   $("ptsBig").innerHTML = `${nf(pts)}<span>pts</span>`;
   $("ptsHero").textContent = nf(pts);
-  $("xpBar").style.width = t.pct + "%";
-  $("xpWrap").setAttribute("aria-valuenow", Math.round(t.pct));
-  $("xpNow").textContent = `${nf(xp)} XP · Level ${t.level}`;
-  $("xpNext").innerHTML = t.next ? `${nf(t.max - xp)} XP lagi ke <b>${t.next.name}</b>` : `<b>Tahap tertinggi</b>`;
 
   $("tipHow").classList.toggle("hidden", !!store.get("kroni-tip-how") || !isLoaded() || S.tx.length > 0);
 
@@ -1335,28 +1295,28 @@ function render() {
   const next = CATALOG.filter(c => c.cost > pts).sort((a, b) => a.cost - b.cost)[0];
   const can = CATALOG.filter(c => c.cost <= pts).length;
   $("nextReward").innerHTML = next
-    ? `<button class="tile two ink" data-reward="${next.id}"><span class="lead p">${ms(next.kind === "disc" ? "sell" : "checkroom")}</span><span class="txt"><span class="t1">${esc(next.title)}</span><span class="t2">${nf(next.cost - pts)} pts lagi${can ? ` · ${can} boleh ditebus sekarang` : ""}</span><div class="progress" style="margin-top:8px"><i style="width:${Math.min(100, pts / next.cost * 100)}%"></i></div></span><span class="trail"><b class="num">${nf(next.cost)}</b>pts</span></button>`
-    : `<button class="tile two ink" data-go="rewards"><span class="lead p">${ms("celebration")}</span><span class="txt"><span class="t1">Semua reward boleh ditebus</span><span class="t2">Tunjuk kad Kroni di kaunter</span></span>${ms("chevron_right", "trail")}</button>`;
+    ? `<button class="tile two ink" data-reward="${next.id}"><span class="lead p">${ms(next.kind === "disc" ? "sell" : "checkroom")}</span><span class="txt"><span class="t1">${esc(next.title)}</span><span class="t2">Perlu ${nf(next.cost - pts)} points lagi${can ? ` · ${can} boleh ditebus sekarang` : ""}</span></span><span class="trail"><b class="num">${nf(next.cost)}</b>pts</span></button>`
+    : `<button class="tile two ink" data-go="rewards"><span class="lead p">${ms("celebration")}</span><span class="txt"><span class="t1">Semua reward boleh ditebus</span><span class="t2">Tunjuk kad ahli di kaunter</span></span>${ms("chevron_right", "trail")}</button>`;
 
   S.feed = buildFeed();
   $("recentList").innerHTML = !isLoaded() ? skelTiles(3)
     : S.feed.length ? S.feed.slice(0, 4).map(feedTile).join(`<div class="divider"></div>`)
-    : emptyHTML("history", "Belum ada aktiviti", "Tunjuk kad Kroni semasa membeli di Meney untuk kumpul XP.");
+    : emptyHTML("history", "Belum ada aktiviti", "Tunjuk kad ahli semasa membeli di Meney untuk kumpul points.");
 
-  renderActivity(); renderRewards(pts); renderProfile(m, t); updateFab();
+  $("ptsNote").textContent = can ? `${can} reward boleh ditebus sekarang` : "Points dikemas kini selepas setiap pembelian";
+  renderActivity(); renderRewards(pts); renderProfile(m); updateFab();
 }
 
 function buildFeed() {
-  const L = S.ledger.map(x => ({ kind: "ledger", at: x.createdAt, title: x.title || labelType(x.type), typeLabel: labelType(x.type), sub: sourceLabel(x.source), xp: Number(x.xp || 0), pts: Number(x.points || 0), icon: x.type === "mission" ? "local_fire_department" : x.type === "welcome" ? "celebration" : "star", lead: "p", note: x.note || x.description || "" }));
-  const T = S.tx.map(x => ({ kind: "tx", at: x.transactionDate || x.createdAt, title: x.receiptNo || x.transactionNo || "Pembelian", typeLabel: "Pembelian", sub: (x.type || "POS") + (x.branch ? " · " + x.branch : ""), amount: Number(x.total || 0), xp: Number(x.xpEarned || 0), pts: Number(x.pointsEarned || 0), icon: "shopping_bag", lead: "", ref: x.receiptNo || x.transactionNo || "", branch: x.branch || "" }));
-  const R = S.rewards.map(x => ({ kind: "reward", at: x.redeemedAt || x.usedAt || x.createdAt, title: x.title || "Reward", typeLabel: "Reward", sub: isActiveReward(x) ? "Voucher diterima" : "Voucher digunakan", pts: x.pointsCost ? -Number(x.pointsCost) : 0, icon: "local_activity", lead: "t", rewardId: x.id }));
+  const L = S.ledger.map(x => ({ kind: "ledger", at: x.createdAt, title: x.title || labelType(x.type), typeLabel: labelType(x.type), sub: sourceLabel(x.source), pts: Number(x.points || 0), icon: x.type === "welcome" ? "celebration" : "stars", lead: "p", note: x.note || x.description || "" }));
+  const T = S.tx.map(x => ({ kind: "tx", at: x.transactionDate || x.createdAt, title: x.receiptNo || x.transactionNo || "Pembelian", typeLabel: "Pembelian", sub: (x.type || "POS") + (x.branch ? " · " + x.branch : ""), amount: Number(x.total || 0), pts: Number(x.pointsEarned || 0), icon: "shopping_bag", lead: "", ref: x.receiptNo || x.transactionNo || "", branch: x.branch || "" }));
+  const R = S.rewards.map(x => ({ kind: "reward", at: x.redeemedAt || x.usedAt || x.createdAt, title: x.title || "Reward", typeLabel: "Voucher", sub: isActiveReward(x) ? "Voucher diterima" : "Voucher digunakan", pts: x.pointsCost ? -Number(x.pointsCost) : 0, icon: "local_activity", lead: "t", rewardId: x.id }));
   return [...L, ...T, ...R].sort((a, b) => tms(b.at) - tms(a.at));
 }
-function labelType(t) { return ({ welcome: "Bonus selamat datang", purchase: "Pembelian", mission: "Misi selesai", referral: "Bonus referral", redeem: "Tebusan reward", adjustment: "Pelarasan" })[t] || "Aktiviti"; }
+function labelType(t) { return ({ welcome: "Bonus selamat datang", purchase: "Pembelian", referral: "Bonus referral", redeem: "Tebusan reward", adjustment: "Pelarasan" })[t] || "Aktiviti"; }
 function sourceLabel(s) { return ({ registration: "Pendaftaran", pos: "Kaunter Meney", website: "Online", referral: "Referral" })[s] || s || "KroniMeney"; }
 function gainsText(f) {
   const g = [];
-  if (f.xp) g.push(`+${nf(f.xp)} XP`);
   if (f.pts) g.push(`${f.pts > 0 ? "+" : ""}${nf(f.pts)} pts`);
   return g.join(" · ");
 }
@@ -1370,8 +1330,8 @@ function renderActivity() {
   if (!isLoaded()) { $("actList").innerHTML = `<div class="card list" style="margin-top:12px">${skelTiles(5)}</div>`; return; }
   const f = S.actFilter === "all" ? S.feed : S.feed.filter(x => x.kind === S.actFilter);
   if (!f.length) {
-    const e = { all: ["history", "Belum ada aktiviti", "Aktiviti anda akan muncul di sini."], tx: ["shopping_bag", "Belum ada pembelian", "Tunjuk kad Kroni semasa bayar supaya pembelian dipautkan ke akaun anda."], ledger: ["star", "Belum ada XP atau points", "Kumpul XP setiap kali membeli di Meney."], reward: ["local_activity", "Belum ada reward", "Kumpul points dan tebus reward di kaunter."] }[S.actFilter];
-    const cta = S.actFilter === "reward" ? `<button class="btn btn-tonal ink" data-go="rewards" style="margin-top:16px">Lihat katalog</button>` : `<button class="btn btn-tonal ink" data-route="how" style="margin-top:16px">Cara kumpul XP</button>`;
+    const e = { all: ["history", "Belum ada aktiviti", "Aktiviti anda akan muncul di sini."], tx: ["shopping_bag", "Belum ada pembelian", "Tunjuk kad ahli semasa bayar supaya pembelian dipautkan ke akaun anda."], ledger: ["stars", "Belum ada rekod points", "Points akan direkodkan setiap kali anda membeli di Meney."], reward: ["local_activity", "Belum ada voucher", "Kumpul points dan tebus reward di kaunter."] }[S.actFilter];
+    const cta = S.actFilter === "reward" ? `<button class="btn btn-tonal ink" data-go="rewards" style="margin-top:16px">Lihat katalog</button>` : `<button class="btn btn-tonal ink" data-route="how" style="margin-top:16px">Cara kumpul points</button>`;
     $("actList").innerHTML = `<div class="card" style="margin-top:12px">${emptyHTML(...e, cta)}</div>`; return;
   }
   const groups = new Map();
@@ -1397,41 +1357,20 @@ function renderRewards(pts) {
     : vs.length ? vs.map(voucherHTML).join("").replaceAll('class="voucher', 'style="flex:none;width:100%" class="voucher')
     : `<div class="card">${emptyHTML("inbox", S.vFilter === "available" ? "Tiada voucher aktif" : "Tiada sejarah voucher", S.vFilter === "available" ? "Voucher yang anda tebus akan muncul di sini." : "Voucher yang telah digunakan akan muncul di sini.")}</div>`;
   $("rGrid").innerHTML = CATALOG.filter(c => S.rFilter === "all" || c.kind === S.rFilter).map(c => {
-    const ok = pts >= c.cost, pct = Math.min(100, pts / c.cost * 100);
-    return `<div class="rcard"><div class="rart ${c.kind}">${c.kind === "disc" ? esc(c.id.replace("RM", "RM ")) : ms("checkroom")}</div><div class="rb"><span class="rt">${esc(c.title)}</span><span class="rc num">${nf(c.cost)} pts</span><div class="progress"><i style="width:${pct}%"></i></div><span class="rh">${ok ? "Boleh ditebus" : nf(c.cost - pts) + " pts lagi"}</span><button class="btn ${ok ? "btn-filled" : "btn-tonal"} ink" data-reward="${c.id}">${ok ? "Tebus" : "Butiran"}</button></div></div>`;
+    const ok = pts >= c.cost;
+    return `<div class="rcard"><div class="rart ${c.kind}">${c.kind === "disc" ? esc(c.id.replace("RM", "RM ")) : ms("checkroom")}</div><div class="rb"><span class="rt">${esc(c.title)}</span><span class="rc num">${nf(c.cost)} points</span><span class="rh">${ok ? "Boleh ditebus" : "Perlu " + nf(c.cost - pts) + " lagi"}</span><button class="btn ${ok ? "btn-filled" : "btn-tonal"} ink" data-reward="${c.id}">${ok ? "Tebus" : "Butiran"}</button></div></div>`;
   }).join("");
 }
 
-function renderProfile(m, t) {
+function renderProfile(m) {
   $("prAvatar").textContent = initials(m.name);
   $("prName").textContent = m.name || "Kroni";
-  $("prTier").textContent = `Level ${t.level} · ${t.name}`;
+  $("prTier").textContent = "Ahli sejak " + fDate(m.createdAt);
   $("prId").textContent = fId(m.kroniId);
   $("prEmail").textContent = m.email || S.user?.email || "—";
   $("prPhone").textContent = m.phone || "—";
   $("prSince").textContent = fDate(m.createdAt);
   $("refCode").textContent = m.referralCode || referralFrom(m.kroniId);
-  $("tierSteps").innerHTML = TIERS.map((x, i) => `<div class="tstep ${i < t.idx ? "done" : i === t.idx ? "now" : ""}"><i>${i < t.idx ? ms("check") : i === t.idx ? ms("star", "fill") : ""}</i>${x.name}</div>`).join("");
-  $("tierNow").textContent = `${t.name} · ${nf(m.xp)} XP`;
-  $("tierHint").textContent = t.next ? `${nf(t.max - Number(m.xp || 0))} XP lagi ke ${t.next.name}` : "Anda di tahap tertinggi";
-  const xp = Number(m.xp || 0);
-  const ach = [
-    { t: "Langkah pertama", d: "Daftar sebagai Kroni", ok: true },
-    { t: "Pembelian pertama", d: "Selesaikan transaksi pertama di Meney", ok: S.tx.length >= 1 },
-    { t: "Kroni setia", d: "Capai 1,000 XP", ok: xp >= 1000 },
-    { t: "Pemburu reward", d: "Tebus reward pertama anda", ok: S.rewards.length >= 1 },
-    { t: "Laluan legenda", d: "Capai 6,000 XP", ok: xp >= 6000 }
-  ];
-  $("achList").innerHTML = ach.map(a => `<div class="tile two"><span class="lead ${a.ok ? "p" : ""}" style="${a.ok ? "" : "background:var(--surface-c-high);color:var(--outline)"}">${ms(a.ok ? "emoji_events" : "lock", a.ok ? "fill" : "")}</span><span class="txt"><span class="t1" style="${a.ok ? "" : "color:var(--on-surface-variant)"}">${esc(a.t)}</span><span class="t2">${esc(a.d)}</span></span><span class="badge ${a.ok ? "on" : "off"}">${a.ok ? "Selesai" : "Terkunci"}</span></div>`).join(`<div class="divider"></div>`);
-}
-
-function renderHow() {
-  const m = S.member, t = m ? tierOf(m.xp) : null;
-  $("howTiers").innerHTML = TIERS.map((x, i) => {
-    const here = t && t.idx === i;
-    const range = x.level === 6 ? `${nf(x.min)}+ XP` : `${nf(x.min)} – ${nf(x.max - 1)} XP`;
-    return `<div class="tile"><span class="lead" style="background:${x.acc};color:${x.ink}"><b style="font-weight:500">${x.level}</b></span><span class="txt"><span class="t1">${x.name}${here ? `<span class="here">Anda di sini</span>` : ""}</span><span class="t2">${range}</span></span></div>`;
-  }).join(`<div class="divider"></div>`);
 }
 
 function renderShop() {
@@ -1457,13 +1396,12 @@ bindChips("rFilters", "rFilter", () => renderRewards(Number(S.member?.points || 
 
 /* ---------------- detail sheets ---------------- */
 function rewardDetail(c) {
-  const pts = Number(S.member?.points || 0), ok = pts >= c.cost, pct = Math.min(100, pts / c.cost * 100);
+  const pts = Number(S.member?.points || 0), ok = pts >= c.cost;
   return `<div class="reward-art rart ${c.kind}" style="${c.kind === "disc" ? "background:var(--primary-container);color:var(--on-primary-container)" : "background:var(--tertiary-container);color:var(--on-tertiary-container)"}">${c.kind === "disc" ? esc(c.id.replace("RM", "RM ")) : ms("checkroom")}</div>
     <h3 class="headline-s" style="text-align:center">${esc(c.title)}</h3>
     <p class="body-m muted lead">${esc(c.desc)}</p>
     <div class="kv"><span>Kos</span><b class="num">${nf(c.cost)} pts</b></div>
     <div class="kv"><span>Points anda</span><b class="num">${nf(pts)} pts</b></div>
-    <div class="progress" style="margin:8px 4px 4px"><i style="width:${pct}%"></i></div>
     <p class="body-s muted" style="margin:8px 4px 0">${ok ? "Anda layak menebus reward ini. Points akan ditolak oleh staff di kaunter." : `Kumpul ${nf(c.cost - pts)} pts lagi untuk menebus reward ini.`}</p>
     <div class="sheet-actions">
       <button class="btn btn-tonal ink" data-sheet-close>Tutup</button>
@@ -1474,7 +1412,6 @@ function activityDetail(f) {
   const rows = [["Jenis", f.typeLabel], ["Tarikh", fDateTime(f.at)]];
   if (f.kind === "tx") { if (f.ref) rows.push(["No. resit", f.ref]); if (f.branch) rows.push(["Cawangan", f.branch]); rows.push(["Jumlah", money(f.amount)]); }
   else rows.push(["Sumber", f.sub]);
-  if (f.xp) rows.push(["XP", `+${nf(f.xp)}`]);
   if (f.pts) rows.push(["Points", `${f.pts > 0 ? "+" : ""}${nf(f.pts)}`]);
   if (f.note) rows.push(["Nota", f.note]);
   const leadStyle = f.lead === "p" ? "background:var(--primary-container);color:var(--on-primary-container)" : f.lead === "t" ? "background:var(--tertiary-container);color:var(--on-tertiary-container)" : "background:var(--secondary-container);color:var(--on-secondary-container)";
@@ -1508,7 +1445,6 @@ document.addEventListener("click", e => {
 /* ---------------- home tip, profile actions ---------------- */
 $("tipHowOpen").onclick = () => openRoute("how");
 $("tipHowClose").onclick = () => { store.set("kroni-tip-how", "1"); $("tipHow").classList.add("hidden"); };
-$("tierCard").onclick = () => openRoute("how");
 
 async function shareReferral() {
   const code = S.member?.referralCode || referralFrom(S.member?.kroniId);
@@ -1532,7 +1468,7 @@ $("themeBtn").onclick = () => {
 };
 document.addEventListener("click", async e => { const o = e.target.closest("[data-theme-opt]"); if (o) { setTheme(o.dataset.themeOpt); await closeTop(); } });
 $("logoutBtn").onclick = () => openDialog({
-  icon: "logout", title: "Log keluar?", body: `<p class="body-m" style="text-align:center">Anda perlu log masuk semula untuk melihat kad Kroni anda.</p>`,
+  icon: "logout", title: "Log keluar?", body: `<p class="body-m" style="text-align:center">Anda perlu log masuk semula untuk melihat kad ahli anda.</p>`,
   actions: [{ label: "Batal" }, { label: "Log keluar", danger: true, onClick: async () => { await signOut(auth); snack("Anda telah log keluar"); } }]
 });
 $("resetPw").onclick = async () => {

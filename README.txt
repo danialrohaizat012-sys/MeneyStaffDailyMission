@@ -1,4 +1,13 @@
-KroniMeney 3.1 — Bina semula dari awal (gaya Flutter / Material 3)
+KroniMeney 3.2 — Gaya keahlian biasa (Flutter / Material 3)
+
+BAHARU DALAM 3.2
+- Semua unsur gaming dibuang: XP, level, tier (ROOKIE–MYTHIC), pencapaian, streak, bar kemajuan.
+- Kad ahli tunggal (KroniMeney · AHLI), baki points, reward & voucher, sejarah pembelian.
+- Tab "Aktiviti" ditukar kepada "Sejarah"; bonus selamat datang dipaparkan sebagai 50 points.
+- Medan lama (xp, level, tier, streak) masih ditulis semasa daftar supaya skema data kekal sama,
+  tetapi tidak dipaparkan dalam app.
+
+(Nota 3.1)
 
 BAHARU DALAM 3.1 (UI/UX & aliran, tanpa sambungan POS)
 - Pengenalan 3 slaid untuk pengguna kali pertama.
