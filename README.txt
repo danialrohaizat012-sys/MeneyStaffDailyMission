@@ -1,17 +1,26 @@
-KroniMeney v2.0 — Wallet redesign
+KroniMeney 3.0 — Bina semula dari awal (gaya Flutter / Material 3)
 
-- Splash screen dibuang; app terus buka (loader kecil semasa semak log masuk sahaja).
-- UI gaya wallet: Kroni Pass (warna ikut tier), QR sebenar Kroni ID, voucher macam pass.
-- Page: Wallet, Aktiviti (tapis + ikut bulan), Reward (katalog + voucher), Profil.
-- Lupa/tukar kata laluan, log masuk Google, aktifkan Kroni Pass untuk akaun tanpa profil.
-- Data palsu dibuang (Ranking "Top 8%", promo Double XP).
+REKA BENTUK
+- Material Design 3 penuh: tema cerah & gelap (ikut sistem atau pilih sendiri),
+  NavigationBar, FAB "Kad Kroni", app bar, kesan ripple, kotak teks label terapung,
+  segmented button, filter chip, bottom sheet, dialog dan snackbar.
+- Jenama baharu: logo monogram "K" (kroni-icon-*.png, kroni-maskable-*.png).
+  Logo/maskot Kront tidak lagi digunakan oleh KroniMeney.
+- Tiada splash screen.
+
+PAGE
+- Utama: Kroni Pass (warna ikut tier), points + kemajuan XP, aksi pantas,
+  voucher aktif, reward seterusnya, aktiviti terkini, produk baharu.
+- Aktiviti: tapis Semua / Pembelian / XP & points / Reward, ikut bulan.
+- Reward: Katalog & Voucher saya.
+- Profil: tahap Kroni, pencapaian, kod referral, akaun, tema, log keluar.
 
 KESELAMATAN DATA POS
 - App hanya BACA data Kroni milik ahli sendiri + publicCatalogue (published sahaja).
-- Satu-satunya tulisan: kroniMembers/{uid} dan kroniLedger/{uid}_welcome semasa daftar
-  (skema sama seperti v1, ikut Firestore rules sedia ada).
-- Tiada koleksi POS (sales, products, customers, dll.) disentuh.
-- Tebus reward dibuat oleh staff di kaunter (imbas QR Kroni ID).
+- Satu-satunya tulisan: kroniMembers/{uid} dan kroniLedger/{uid}_welcome semasa aktifkan akaun
+  (skema sama seperti versi sebelum, ikut Firestore rules sedia ada).
+- Tiada koleksi POS disentuh. Tebus reward dibuat oleh staff di kaunter (imbas QR Kroni ID).
 
-Fail: KroniMeney.html, sw-kroni.js (skop /KroniMeney sahaja, network-first),
-kroni-avatar.jpg, kroni-reward.jpg, KroniMeney.webmanifest.
+FAIL
+KroniMeney.html, KroniMeney.webmanifest, sw-kroni.js, kroni-qrcode.js (QR, MIT),
+kroni-icon-*.png, kroni-maskable-*.png, kroni-apple-touch-180.png, kroni-favicon-32.png

@@ -1,18 +1,13 @@
 // KroniMeney service worker — scoped to /KroniMeney* only.
 // Network-first so members always get the latest app; cache is an offline fallback.
 // Never caches Firebase / Firestore traffic.
-const CACHE = "kronimeney-v2";
+const CACHE = "kronimeney-v3";
 const CORE = [
   "./KroniMeney.html",
   "./KroniMeney.webmanifest",
-  "./kroni-avatar.jpg",
-  "./kront-hi.jpg",
-  "./kront-go.jpg",
-  "./kroni-reward.jpg",
-  "./kront-sleep.jpg",
-  "./kront-wake.jpg",
-  "./kront-excited.jpg",
-  "./kront-icon-192.png"
+  "./kroni-qrcode.js",
+  "./kroni-icon-192.png",
+  "./kroni-favicon-32.png"
 ];
 
 self.addEventListener("install", e => {
@@ -22,7 +17,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k.startsWith("kronimeney-v2") && k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => /^kronimeney-v[23]$/.test(k) && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -31,9 +26,9 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  // Only handle same-origin files and the pinned QR library; let Firebase go straight to network.
+  // Only handle same-origin files and Google Fonts; let Firebase go straight to network.
   const sameOrigin = url.origin === self.location.origin;
-  const cdn = url.hostname === "cdn.jsdelivr.net" || url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
+  const cdn = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
   if (!sameOrigin && !cdn) return;
 
   e.respondWith(
