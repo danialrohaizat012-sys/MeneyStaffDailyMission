@@ -1,4 +1,14 @@
-KroniMeney 3.0 — Bina semula dari awal (gaya Flutter / Material 3)
+KroniMeney 3.1 — Bina semula dari awal (gaya Flutter / Material 3)
+
+BAHARU DALAM 3.1 (UI/UX & aliran, tanpa sambungan POS)
+- Pengenalan 3 slaid untuk pengguna kali pertama.
+- Daftar 2 langkah (Akaun -> Profil), meter kekuatan kata laluan, ralat di bawah setiap medan.
+- Skrin "Kroni Pass anda sedia!" selepas aktifkan akaun.
+- Butiran reward (sebelum tebus) dan butiran aktiviti dalam bottom sheet.
+- Page "Cara ia berfungsi" (kumpul, tahap, tebus) dan "Soalan lazim".
+- Butang Back Android/pelayar menutup sheet, dialog dan page; dari tab lain kembali ke Utama.
+- Skeleton loading, penunjuk luar talian, butang Salin ID pada QR, getaran halus.
+- Kad petua "Baru di sini?" di Utama untuk ahli baharu.
 
 REKA BENTUK
 - Material Design 3 penuh: tema cerah & gelap (ikut sistem atau pilih sendiri),

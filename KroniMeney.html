@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&icon_names=badge,brightness_auto,calendar_month,call,celebration,check,check_circle,checkroom,chevron_right,content_copy,dark_mode,emoji_events,group_add,history,home,inbox,info,install_mobile,light_mode,local_activity,local_fire_department,lock,logout,mail,military_tech,palette,password,person,qr_code_2,radio_button_checked,radio_button_unchecked,receipt_long,redeem,sell,share,shopping_bag,star,stars,visibility,visibility_off,workspace_premium&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&icon_names=arrow_back,badge,calendar_month,call,celebration,check,check_circle,checkroom,chevron_right,close,cloud_off,content_copy,emoji_events,expand_more,group_add,help,history,home,inbox,info,install_mobile,light_mode,lightbulb,local_activity,local_fire_department,lock,logout,mail,palette,password,person,qr_code_2,radio_button_checked,radio_button_unchecked,receipt_long,redeem,sell,share,shopping_bag,star,stars,trending_up,visibility,visibility_off,workspace_premium&display=block" rel="stylesheet">
 <script>
 // Apply saved theme before first paint (per-device preference only).
 (function(){try{var t=localStorage.getItem("kroni-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}})();
@@ -378,6 +378,96 @@ button{cursor:pointer;border:0;background:none;padding:0}
 @keyframes rot{to{transform:rotate(360deg)}}
 @keyframes dash{0%{stroke-dasharray:1 200;stroke-dashoffset:0}50%{stroke-dasharray:90 200;stroke-dashoffset:-35}100%{stroke-dasharray:90 200;stroke-dashoffset:-124}}
 
+/* =========================================================
+   Intro (first run)
+   ========================================================= */
+#intro{min-height:100dvh;display:flex;flex-direction:column;padding:calc(8px + var(--sat)) 0 calc(24px + var(--sab))}
+.intro-top{display:flex;justify-content:flex-end;width:min(600px,100%);margin:0 auto;padding:0 8px;min-height:48px}
+.slides{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-behavior:smooth}
+.slides::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 32px}
+.art{width:min(220px,56vw);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;margin-bottom:48px;position:relative}
+.art .ms{font-size:96px}
+.art.a1{background:var(--primary-container);color:var(--on-primary-container)}
+.art.a2{background:var(--tertiary-container);color:var(--on-tertiary-container)}
+.art.a3{background:var(--secondary-container);color:var(--on-secondary-container)}
+.art:after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px dashed var(--outline-variant)}
+.slide h2{margin:0 0 12px}
+.slide p{margin:0;max-width:340px}
+.intro-foot{width:min(600px,100%);margin:0 auto;padding:16px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.dots{display:flex;gap:8px}
+.dots i{width:8px;height:8px;border-radius:4px;background:var(--outline-variant);transition:all .25s}
+.dots i.on{width:24px;background:var(--primary)}
+
+/* Register stepper + password meter */
+.stepper{margin:-8px 0 24px}
+.stepper .label-m{display:flex;justify-content:space-between;color:var(--on-surface-variant);margin-bottom:8px}
+.pw-meter{margin:-12px 0 20px;padding:0 16px;font-size:12px;line-height:16px;color:var(--on-surface-variant)}
+.pw-meter .bars{display:flex;gap:4px;margin-bottom:6px}
+.pw-meter .bars i{flex:1;height:4px;border-radius:2px;background:var(--surface-c-highest);transition:background .2s}
+.pw-meter.s1 .bars i:nth-child(-n+1){background:var(--error)}
+.pw-meter.s2 .bars i:nth-child(-n+2){background:#c77700}
+.pw-meter.s3 .bars i{background:var(--primary)}
+.pw-meter.s1 span{color:var(--error)}
+
+/* Welcome (after activation) */
+.done-mark{width:96px;height:96px;border-radius:48px;margin:0 auto 24px;display:grid;place-items:center;background:var(--primary-container);color:var(--on-primary-container);animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+.done-mark .ms{font-size:56px}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.gain-row{display:flex;gap:8px;justify-content:center;margin:20px 0 28px;flex-wrap:wrap}
+.gain{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;background:var(--secondary-container);color:var(--on-secondary-container);font-size:14px;font-weight:500}
+.gain .ms{font-size:18px}
+.mini-pass{margin:0 auto;max-width:360px}
+
+/* Home tip card */
+.tipcard{display:flex;gap:16px;align-items:center;padding:16px 8px 16px 16px;border-radius:12px;background:var(--tertiary-container);color:var(--on-tertiary-container);margin-top:20px;text-align:left;width:100%}
+.tipcard .txt{flex:1;min-width:0}
+.tipcard b{display:block;font-size:16px;font-weight:500;letter-spacing:.15px}
+.tipcard .icon-btn{color:var(--on-tertiary-container)}
+
+/* Skeleton */
+.skel{display:block;border-radius:6px;background:linear-gradient(90deg,var(--surface-c-high) 25%,var(--surface-c) 50%,var(--surface-c-high) 75%);background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* Offline indicator */
+.offline{position:fixed;left:50%;top:calc(72px + var(--sat));transform:translateX(-50%);z-index:25;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px 0 8px;border-radius:8px;background:var(--inverse-surface);color:var(--inverse-on-surface);font-size:12px;font-weight:500;letter-spacing:.5px;box-shadow:var(--shadow);white-space:nowrap}
+.offline .ms{font-size:18px}
+
+/* Full-screen routes (Navigator.push) */
+.route{position:fixed;inset:0;z-index:30;background:var(--surface);overflow-y:auto;overscroll-behavior:contain;transform:translateX(100%);visibility:hidden;transition:transform .3s cubic-bezier(.3,0,.8,.15),visibility 0s .3s}
+.route.open{transform:none;visibility:visible;transition:transform .4s cubic-bezier(.05,.7,.1,1)}
+.route-bar{position:sticky;top:0;z-index:2;background:var(--surface);padding-top:var(--sat)}
+.route-bar .appbar-in{padding:0 16px 0 4px;gap:8px}
+.route-body{padding-bottom:calc(40px + var(--sab))}
+.hero-note{padding:20px;border-radius:28px;background:var(--primary-container);color:var(--on-primary-container);display:flex;gap:16px;align-items:center}
+.hero-note .ms{font-size:40px}
+.steps{display:grid;gap:0}
+.step{display:flex;gap:16px;padding:12px 16px}
+.step .n{width:32px;height:32px;border-radius:16px;display:grid;place-items:center;background:var(--secondary-container);color:var(--on-secondary-container);flex:none;font-weight:500}
+.step .n .ms{font-size:18px}
+.step b{display:block;font-size:16px;font-weight:500;letter-spacing:.15px;line-height:24px}
+.step p{margin:2px 0 0;color:var(--on-surface-variant)}
+.here{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:8px;background:var(--primary);color:var(--on-primary);font-size:11px;font-weight:500;letter-spacing:.5px;margin-left:8px;vertical-align:middle}
+.exp{border-top:1px solid var(--outline-variant)}
+.exp:first-child{border-top:0}
+.exp summary{list-style:none;display:flex;align-items:center;gap:16px;min-height:56px;padding:12px 16px;font-size:16px;line-height:24px;letter-spacing:.5px;cursor:pointer}
+.exp summary::-webkit-details-marker{display:none}
+.exp summary .ms{margin-left:auto;transition:transform .2s;color:var(--on-surface-variant)}
+.exp[open] summary .ms{transform:rotate(180deg)}
+.exp .ans{padding:0 16px 16px;color:var(--on-surface-variant)}
+
+/* Detail sheet rows */
+.detail-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;margin-bottom:20px}
+.detail-head .lead{width:64px;height:64px;border-radius:20px;display:grid;place-items:center}
+.detail-head .lead .ms{font-size:32px}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:14px 4px;border-top:1px solid var(--outline-variant);font-size:14px}
+.kv span{color:var(--on-surface-variant)}
+.kv b{font-weight:500;text-align:right}
+.sheet-actions{display:flex;gap:8px;margin-top:20px}
+.sheet-actions .btn{flex:1;height:48px;border-radius:24px}
+.reward-art{height:120px;border-radius:16px;display:grid;place-items:center;font-size:36px;margin-bottom:16px}
+.reward-art .ms{font-size:56px}
+
 @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 @media (max-width:360px){.pass-id b{font-size:24px;letter-spacing:2px}.points-top .big,.pts-card .big{font-size:36px;line-height:44px}.tstep{font-size:9px}}
 </style>
@@ -395,6 +485,20 @@ button{cursor:pointer;border:0;background:none;padding:0}
 
 <div class="boot" id="boot" role="status" aria-label="Memuatkan"><svg class="cpi" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20"/></svg></div>
 
+<!-- =================== INTRO (first run) =================== -->
+<section class="hidden" id="intro">
+  <div class="intro-top"><button class="btn btn-text ink" id="introSkip">Langkau</button></div>
+  <div class="slides" id="slides">
+    <div class="slide"><div class="art a1"><span class="ms fill">qr_code_2</span></div><h2 class="headline-s">Satu kad, semua kelebihan</h2><p class="body-l muted">Tunjuk Kad Kroni setiap kali membeli di Meney untuk kumpul XP dan points.</p></div>
+    <div class="slide"><div class="art a2"><span class="ms fill">redeem</span></div><h2 class="headline-s">Tebus reward sebenar</h2><p class="body-l muted">Tukar points dengan diskaun dan merchandise Meney terus di kaunter.</p></div>
+    <div class="slide"><div class="art a3"><span class="ms fill">workspace_premium</span></div><h2 class="headline-s">Naik tahap, lebih istimewa</h2><p class="body-l muted">Dari ROOKIE hingga MYTHIC. Lebih banyak XP, lebih tinggi tahap anda.</p></div>
+  </div>
+  <div class="intro-foot">
+    <div class="dots" id="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+    <button class="btn btn-filled ink" id="introNext">Seterusnya</button>
+  </div>
+</section>
+
 <!-- =================== AUTH =================== -->
 <section class="auth hidden" id="auth">
   <div class="body">
@@ -409,18 +513,23 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <button class="ink" role="tab" aria-selected="false" data-mode="register"><span class="ms">check</span>Daftar</button>
     </div>
 
+    <div class="stepper hidden" id="stepper"><div class="label-m"><span id="stepLbl">Langkah 1 daripada 2</span><span id="stepName">Akaun</span></div><div class="progress"><i id="stepBar" style="width:50%"></i></div></div>
     <form id="authForm" novalidate>
-      <div id="regFields" class="hidden">
-        <div class="tf"><input id="fName" placeholder=" " autocomplete="name"><label for="fName">Nama penuh</label></div>
-        <div class="tf"><input id="fPhone" placeholder=" " inputmode="tel" autocomplete="tel"><label for="fPhone">No. telefon</label><span class="support">Contoh: 012-345 6789</span></div>
+      <div id="acctFields">
+        <div class="tf"><input id="fEmail" type="email" placeholder=" " autocomplete="email" enterkeyhint="next"><label for="fEmail">E-mel</label><span class="support"></span></div>
+        <div class="tf has-trail" id="pwWrap"><input id="fPass" type="password" placeholder=" " autocomplete="current-password" enterkeyhint="go"><label for="fPass">Kata laluan</label>
+          <button type="button" class="icon-btn ink trail" id="pwToggle" aria-label="Tunjuk kata laluan"><span class="ms">visibility</span></button><span class="support"></span></div>
+        <div class="pw-meter hidden" id="pwMeter" aria-live="polite"><div class="bars"><i></i><i></i><i></i></div><span id="pwLbl">Minimum 6 aksara</span></div>
       </div>
-      <div class="tf"><input id="fEmail" type="email" placeholder=" " autocomplete="email"><label for="fEmail">E-mel</label></div>
-      <div class="tf has-trail" id="pwWrap"><input id="fPass" type="password" placeholder=" " autocomplete="current-password"><label for="fPass">Kata laluan</label>
-        <button type="button" class="icon-btn ink trail" id="pwToggle" aria-label="Tunjuk kata laluan"><span class="ms">visibility</span></button></div>
+      <div id="regFields" class="hidden">
+        <div class="tf"><input id="fName" placeholder=" " autocomplete="name" enterkeyhint="next"><label for="fName">Nama penuh</label><span class="support"></span></div>
+        <div class="tf"><input id="fPhone" placeholder=" " inputmode="tel" autocomplete="tel" enterkeyhint="done"><label for="fPhone">No. telefon</label><span class="support">Contoh: 012-345 6789</span></div>
+      </div>
       <div id="forgotRow" style="display:flex;justify-content:flex-end;margin:-12px -12px 8px 0"><button type="button" class="btn btn-text ink" id="forgotBtn">Lupa kata laluan?</button></div>
       <div class="form-msg" id="authMsg" role="alert"></div>
       <button class="btn btn-filled btn-block ink" id="authBtn" type="submit">Log masuk</button>
       <button type="button" class="btn btn-text btn-block ink hidden" id="backLogin" style="margin-top:8px">Kembali ke log masuk</button>
+      <button type="button" class="btn btn-text btn-block ink hidden" id="stepBack" style="margin-top:8px">Kembali</button>
     </form>
 
     <div id="socialBlock">
@@ -440,12 +549,24 @@ button{cursor:pointer;border:0;background:none;padding:0}
       <p class="body-l muted" id="obSub">Lengkapkan maklumat untuk dapatkan Kroni ID, +100 XP dan +50 points bonus.</p>
     </div>
     <form id="obForm" novalidate>
-      <div class="tf"><input id="obName" placeholder=" " autocomplete="name"><label for="obName">Nama penuh</label></div>
+      <div class="tf"><input id="obName" placeholder=" " autocomplete="name" enterkeyhint="next"><label for="obName">Nama penuh</label><span class="support"></span></div>
       <div class="tf"><input id="obPhone" placeholder=" " inputmode="tel" autocomplete="tel"><label for="obPhone">No. telefon</label><span class="support">Contoh: 012-345 6789</span></div>
       <div class="form-msg" id="obMsg" role="alert"></div>
       <button class="btn btn-filled btn-block ink" id="obBtn" type="submit">Aktifkan</button>
       <button type="button" class="btn btn-text btn-block ink" id="obOut" style="margin-top:8px">Guna akaun lain</button>
     </form>
+  </div>
+</section>
+
+<!-- =================== WELCOME (after activation) =================== -->
+<section class="auth hidden" id="welcome">
+  <div class="body" style="text-align:center">
+    <div class="done-mark"><span class="ms">check</span></div>
+    <h1 class="headline-m" style="margin:0">Kroni Pass anda sedia!</h1>
+    <p class="body-l muted" style="margin:8px 0 0" id="wSub">Selamat datang ke KroniMeney.</p>
+    <div class="gain-row"><span class="gain"><span class="ms">trending_up</span>+100 XP</span><span class="gain"><span class="ms">stars</span>+50 points</span></div>
+    <div class="mini-pass" id="wPass"></div>
+    <button class="btn btn-filled btn-block ink" id="wGo" style="margin-top:32px">Mula guna KroniMeney</button>
   </div>
 </section>
 
@@ -491,6 +612,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
         <button class="action ink" data-go="rewards"><span class="bubble"><span class="ms">redeem</span></span>Reward</button>
         <button class="action ink" data-go="activity"><span class="bubble"><span class="ms">receipt_long</span></span>Aktiviti</button>
         <button class="action ink" id="actShare"><span class="bubble"><span class="ms">group_add</span></span>Ajak kawan</button>
+      </div>
+
+      <div class="tipcard hidden" id="tipHow">
+        <span class="ms fill" style="font-size:32px">lightbulb</span>
+        <button class="txt" id="tipHowOpen" style="text-align:left"><b>Baru di sini?</b><span class="body-m">Ketahui cara kumpul XP dan tebus reward.</span></button>
+        <button class="icon-btn ink" id="tipHowClose" aria-label="Tutup petua"><span class="ms">close</span></button>
       </div>
 
       <div id="vouchSec" class="hidden">
@@ -557,10 +684,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
       </div>
 
       <div class="section"><h2 class="title-m">Tahap Kroni</h2></div>
-      <div class="card">
+      <button class="card ink" id="tierCard" style="display:block;width:100%;text-align:left" aria-label="Lihat semua tahap Kroni">
         <div class="tiers" id="tierSteps"></div>
-        <div class="tile two" style="padding-top:0"><div class="txt"><span class="t1" id="tierNow">ROOKIE</span><span class="t2" id="tierHint">500 XP lagi ke PLAYER</span></div></div>
-      </div>
+        <div class="tile two" style="padding-top:0"><div class="txt"><span class="t1" id="tierNow">ROOKIE</span><span class="t2" id="tierHint">500 XP lagi ke PLAYER</span></div><span class="ms trail">chevron_right</span></div>
+      </button>
 
       <div class="section"><h2 class="title-m">Pencapaian</h2></div>
       <div class="card list" id="achList"></div>
@@ -577,6 +704,12 @@ button{cursor:pointer;border:0;background:none;padding:0}
       </div>
       <p class="body-s muted" style="margin:8px 4px 0">Untuk menukar nama atau nombor telefon, sila hubungi staff Meney.</p>
 
+      <div class="section"><h2 class="title-m">Bantuan</h2></div>
+      <div class="card list">
+        <button class="tile ink" data-route="how"><span class="lead n"><span class="ms">lightbulb</span></span><span class="txt"><span class="t1">Cara ia berfungsi</span><span class="t2">Kumpul, naik tahap, tebus</span></span><span class="ms trail">chevron_right</span></button>
+        <button class="tile ink" data-route="help"><span class="lead n"><span class="ms">help</span></span><span class="txt"><span class="t1">Soalan lazim</span><span class="t2">Jawapan kepada soalan biasa</span></span><span class="ms trail">chevron_right</span></button>
+      </div>
+
       <div class="section"><h2 class="title-m">Tetapan</h2></div>
       <div class="card list">
         <button class="tile ink" id="themeBtn"><span class="lead n"><span class="ms">palette</span></span><span class="txt"><span class="t1">Tema</span><span class="t2" id="themeLbl">Ikut sistem</span></span></button>
@@ -584,7 +717,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
         <button class="tile ink" id="resetPw"><span class="lead n"><span class="ms">password</span></span><span class="txt"><span class="t1">Tukar kata laluan</span><span class="t2">Pautan dihantar ke e-mel anda</span></span></button>
         <button class="tile ink" id="logoutBtn" style="color:var(--error)"><span class="lead n" style="color:var(--error)"><span class="ms">logout</span></span><span class="txt"><span class="t1">Log keluar</span></span></button>
       </div>
-      <p class="body-s muted" style="text-align:center;margin-top:24px">KroniMeney 3.0</p>
+      <p class="body-s muted" style="text-align:center;margin-top:24px">KroniMeney 3.1</p>
     </section>
 
   </div>
@@ -613,9 +746,57 @@ button{cursor:pointer;border:0;background:none;padding:0}
     <div class="qr-id num" id="qrId">KRN ––––––</div>
     <div class="body-m muted qr-name" id="qrName">—</div>
     <div class="hint body-m"><span class="ms">light_mode</span><span>Naikkan kecerahan skrin supaya QR mudah diimbas.</span></div>
-    <button class="btn btn-tonal btn-block ink" id="sheetClose" style="margin-top:16px">Tutup</button>
+    <div class="sheet-actions">
+      <button class="btn btn-outlined ink" id="sheetCopy"><span class="ms">content_copy</span>Salin ID</button>
+      <button class="btn btn-tonal ink" id="sheetClose">Tutup</button>
+    </div>
   </div>
 </div>
+
+<!-- Detail sheet (reward / activity) -->
+<div class="sheet" id="infoSheet" role="dialog" aria-modal="true" aria-label="Butiran">
+  <div class="sheet-in"><div class="handle"></div><div id="infoBody"></div></div>
+</div>
+
+<!-- Route: how it works -->
+<section class="route" id="r-how" aria-label="Cara ia berfungsi">
+  <header class="route-bar"><div class="appbar-in"><button class="icon-btn ink" data-back aria-label="Kembali"><span class="ms">arrow_back</span></button><div class="title-l" style="flex:1">Cara ia berfungsi</div></div></header>
+  <div class="body route-body">
+    <div class="hero-note"><span class="ms fill">badge</span><span class="body-l">KroniMeney ialah program ganjaran ahli Meney. Satu Kroni ID untuk semua kelebihan.</span></div>
+    <div class="section"><h2 class="title-m">1 · Kumpul</h2></div>
+    <div class="card steps">
+      <div class="step"><span class="n"><span class="ms">qr_code_2</span></span><div><b>Tunjuk Kad Kroni semasa bayar</b><p class="body-m">Staff akan imbas QR anda di kaunter supaya pembelian dipautkan ke akaun anda.</p></div></div>
+      <div class="step"><span class="n"><span class="ms">trending_up</span></span><div><b>Dapat XP dan points</b><p class="body-m">XP menaikkan tahap anda. Points boleh ditukar dengan reward.</p></div></div>
+      <div class="step"><span class="n"><span class="ms">celebration</span></span><div><b>Bonus selamat datang</b><p class="body-m">+100 XP dan +50 points sebaik sahaja Kroni Pass diaktifkan.</p></div></div>
+    </div>
+    <div class="section"><h2 class="title-m">2 · Naik tahap</h2></div>
+    <div class="card list" id="howTiers"></div>
+    <div class="section"><h2 class="title-m">3 · Tebus</h2></div>
+    <div class="card steps">
+      <div class="step"><span class="n">1</span><div><b>Pilih reward</b><p class="body-m">Lihat katalog di tab Reward dan semak points yang diperlukan.</p></div></div>
+      <div class="step"><span class="n">2</span><div><b>Tunjuk QR di kaunter</b><p class="body-m">Buka butiran reward dan tekan "Tebus di kaunter".</p></div></div>
+      <div class="step"><span class="n">3</span><div><b>Staff sahkan tebusan</b><p class="body-m">Points ditolak dan reward diberikan kepada anda.</p></div></div>
+    </div>
+    <button class="btn btn-filled btn-block ink" data-close-route data-go="rewards" style="margin-top:28px">Lihat katalog reward</button>
+  </div>
+</section>
+
+<!-- Route: FAQ -->
+<section class="route" id="r-help" aria-label="Soalan lazim">
+  <header class="route-bar"><div class="appbar-in"><button class="icon-btn ink" data-back aria-label="Kembali"><span class="ms">arrow_back</span></button><div class="title-l" style="flex:1">Soalan lazim</div></div></header>
+  <div class="body route-body">
+    <div class="card" style="margin-top:8px">
+      <details class="exp"><summary>Apa itu Kroni ID?<span class="ms">expand_more</span></summary><div class="ans body-m">Kroni ID ialah nombor ahli unik anda (contoh: KRN 123456). Ia dipaparkan pada Kroni Pass dan dalam kod QR anda.</div></details>
+      <details class="exp"><summary>Bagaimana nak kumpul XP dan points?<span class="ms">expand_more</span></summary><div class="ans body-m">Tunjuk Kad Kroni kepada staff setiap kali anda membuat pembelian di Meney. Pembelian yang diimbas akan memberi XP dan points kepada akaun anda.</div></details>
+      <details class="exp"><summary>Bagaimana nak tebus reward?<span class="ms">expand_more</span></summary><div class="ans body-m">Buka tab Reward, pilih reward, kemudian tekan "Tebus di kaunter" dan tunjuk QR kepada staff. Staff akan menolak points dan memberikan reward.</div></details>
+      <details class="exp"><summary>Kenapa pembelian saya tidak muncul?<span class="ms">expand_more</span></summary><div class="ans body-m">Pembelian hanya direkodkan jika Kad Kroni anda diimbas semasa pembayaran. Jika terlupa, hubungi staff Meney bersama resit anda.</div></details>
+      <details class="exp"><summary>Boleh saya tukar nama atau telefon?<span class="ms">expand_more</span></summary><div class="ans body-m">Boleh. Untuk keselamatan akaun, perubahan maklumat dibuat oleh staff Meney. Sila hubungi mereka di kaunter.</div></details>
+      <details class="exp"><summary>Saya lupa kata laluan<span class="ms">expand_more</span></summary><div class="ans body-m">Di skrin log masuk, tekan "Lupa kata laluan?" dan masukkan e-mel anda. Pautan untuk set semula akan dihantar ke e-mel tersebut.</div></details>
+    </div>
+  </div>
+</section>
+
+<div class="offline hidden" id="offline" role="status"><span class="ms">cloud_off</span>Luar talian · data mungkin tidak terkini</div>
 
 <!-- Dialog -->
 <div class="dialog-wrap"><div class="dialog" id="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlgTitle">
@@ -631,9 +812,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
 <script type="module">
 /* ICONS used only from JS (kept here so the icon font subset includes them):
    ms("shopping_bag") ms("star") ms("local_fire_department") ms("local_activity") ms("checkroom")
-   ms("lock") ms("check_circle") ms("emoji_events") ms("military_tech") ms("chevron_right")
-   ms("radio_button_checked") ms("radio_button_unchecked") ms("dark_mode") ms("brightness_auto")
-   ms("visibility_off") ms("logout") ms("inbox") ms("sell") ms("celebration") ms("history") ms("check") */
+   ms("lock") ms("check_circle") ms("emoji_events") ms("chevron_right") ms("radio_button_checked")
+   ms("radio_button_unchecked") ms("visibility_off") ms("logout") ms("inbox") ms("sell")
+   ms("celebration") ms("history") ms("check") ms("receipt_long") ms("qr_code_2") ms("info") */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
@@ -645,7 +826,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 /* ------------------------------------------------------------------
-   KroniMeney 3.0
+   KroniMeney 3.1
    DATA SAFETY — this app shares the Firebase project with Meney POS.
    • READS only the signed-in member's own Kroni docs + published publicCatalogue.
    • The ONLY writes: kroniMembers/{uid} and kroniLedger/{uid}_welcome, once,
@@ -673,12 +854,16 @@ const money = n => "RM" + Number(n || 0).toLocaleString("ms-MY", { maximumFracti
 const toDate = v => { try { return v?.toDate ? v.toDate() : v ? new Date(v) : null; } catch { return null; } };
 const tms = v => toDate(v)?.getTime() || 0;
 const fDate = v => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleDateString("ms-MY", { day: "numeric", month: "short", year: "numeric" }) : "—"; };
+const fDateTime = v => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleString("ms-MY", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : "—"; };
 const fMonth = v => { const d = toDate(v); return d && !isNaN(d) ? d.toLocaleDateString("ms-MY", { month: "long", year: "numeric" }) : "Tarikh tidak diketahui"; };
 const fId = id => { const s = String(id || ""); return /^KRN\d{6}$/.test(s) ? `KRN ${s.slice(3)}` : (s || "KRN ––––––"); };
 const ms = (name, cls = "") => `<span class="ms ${cls}">${name}</span>`;
 const normPhone = v => { let n = String(v || "").replace(/\D/g, ""); if (n.startsWith("0")) n = "60" + n.slice(1); return n; };
 const validPhone = v => /^60\d{8,10}$/.test(normPhone(v));
+const validEmail = v => /^\S+@\S+\.\S+$/.test(v);
 const initials = n => String(n || "K").trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "K";
+const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
+const haptic = () => { try { navigator.vibrate?.(8); } catch {} };
 
 /* Ink ripple, like Flutter's InkWell */
 document.addEventListener("pointerdown", e => {
@@ -728,24 +913,45 @@ function tierOf(xp) {
   return { ...t, idx, next: TIERS[idx + 1] || null, pct: Math.max(0, Math.min(100, ((xp - t.min) / (t.max - t.min)) * 100)) };
 }
 const CATALOG = [
-  { id: "RM10", title: "Diskaun RM10", cost: 100, kind: "disc", desc: "Potongan RM10 untuk mana-mana pembelian." },
-  { id: "RM30", title: "Diskaun RM30", cost: 180, kind: "disc", desc: "Potongan RM30 untuk mana-mana pembelian." },
-  { id: "TSHIRT", title: "T-Shirt Meney", cost: 1500, kind: "prod", desc: "T-shirt edisi Kroni. Tertakluk kepada stok." },
-  { id: "HOODIE", title: "Hoodie Meney", cost: 2500, kind: "prod", desc: "Hoodie Kroni premium. Tertakluk kepada stok." }
+  { id: "RM10", title: "Diskaun RM10", cost: 100, kind: "disc", desc: "Potongan RM10 untuk mana-mana pembelian di Meney." },
+  { id: "RM30", title: "Diskaun RM30", cost: 180, kind: "disc", desc: "Potongan RM30 untuk mana-mana pembelian di Meney." },
+  { id: "TSHIRT", title: "T-Shirt Meney", cost: 1500, kind: "prod", desc: "T-shirt edisi Kroni. Tertakluk kepada stok dan saiz yang ada." },
+  { id: "HOODIE", title: "Hoodie Meney", cost: 2500, kind: "prod", desc: "Hoodie Kroni premium. Tertakluk kepada stok dan saiz yang ada." }
 ];
 
 /* ---------------- state ---------------- */
-const S = { user: null, member: null, ledger: [], tx: [], rewards: [], catalogue: [], unsubs: [], mode: "login", pending: null,
+const S = { user: null, member: null, ledger: [], tx: [], rewards: [], catalogue: [], feed: [], unsubs: [],
+  loaded: {}, mode: "login", regStep: 1, pending: null, justJoined: false,
   page: "home", actFilter: "all", vFilter: "available", rFilter: "all", rTab: "catalog", errors: new Set() };
+const isLoaded = () => S.loaded.ledger && S.loaded.tx && S.loaded.rewards;
+
+/* =================================================================
+   Navigator: overlay stack wired to the browser history so the
+   Android back button closes sheets/dialogs/pages (like Flutter).
+   ================================================================= */
+const stack = [];
+let popResolve = null;
+function pushOverlay(close, { replace = false } = {}) {
+  if (replace && stack.length) { stack.pop()(); stack.push(close); return; }
+  stack.push(close);
+  history.pushState({ overlay: stack.length }, "");
+}
+function closeTop() {
+  return new Promise(res => { if (!stack.length) return res(); popResolve = res; history.back(); });
+}
+function clearOverlays() { while (stack.length) stack.pop()(); }
+addEventListener("popstate", () => {
+  if (stack.length) { stack.pop()(); }
+  else if (S.member && S.page !== "home") { go("home", { fromPop: true }); }
+  const r = popResolve; popResolve = null; r?.();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && stack.length) closeTop(); });
 
 /* ---------------- theme ---------------- */
 const THEMES = { system: "Ikut sistem", light: "Cerah", dark: "Gelap" };
-function currentTheme() { return document.documentElement.dataset.theme || "system"; }
+const currentTheme = () => document.documentElement.dataset.theme || "system";
 function syncThemeMeta() {
-  requestAnimationFrame(() => {
-    const bg = getComputedStyle(document.body).backgroundColor;
-    $("metaTheme").setAttribute("content", bg);
-  });
+  requestAnimationFrame(() => $("metaTheme").setAttribute("content", getComputedStyle(document.body).backgroundColor));
   $("themeLbl").textContent = THEMES[currentTheme()];
 }
 function setTheme(t) {
@@ -756,102 +962,242 @@ function setTheme(t) {
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", syncThemeMeta);
 syncThemeMeta();
 
-/* ---------------- dialog ---------------- */
+/* ---------------- scrim / dialog / sheets / routes ---------------- */
+function scrim(on) { $("scrim").classList.toggle("open", on); }
+$("scrim").onclick = () => closeTop();
+
 function openDialog({ icon, title, body, actions }) {
   $("dlgIcon").innerHTML = icon ? ms(icon) : ""; $("dlgIcon").classList.toggle("hidden", !icon);
   $("dlgTitle").textContent = title; $("dlgBody").innerHTML = body || "";
   $("dlgActions").innerHTML = "";
   actions.forEach(a => {
     const b = document.createElement("button"); b.className = "btn btn-text ink" + (a.danger ? " btn-danger" : ""); b.textContent = a.label;
-    b.onclick = () => { closeDialog(); a.onClick?.(); }; $("dlgActions").appendChild(b);
+    b.onclick = async () => { await closeTop(); a.onClick?.(); }; $("dlgActions").appendChild(b);
   });
-  $("scrim").classList.add("open"); $("scrim").dataset.for = "dialog"; $("dialog").classList.add("open");
+  scrim(true); $("dialog").classList.add("open");
+  pushOverlay(() => { $("dialog").classList.remove("open"); scrim(false); });
   $("dlgActions").lastChild?.focus();
 }
-function closeDialog() { $("dialog").classList.remove("open"); if ($("scrim").dataset.for === "dialog") $("scrim").classList.remove("open"); }
+
+let lastFocus = null, wakeLock = null;
+function qrSVG(text) {
+  try { const q = window.qrcode(0, "M"); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); }
+  catch { return `<div style="color:#000;text-align:center;padding:40px 0;font-weight:700">${esc(text)}</div>`; }
+}
+async function openQr({ title, lead, chip } = {}, opt = {}) {
+  const m = S.member; if (!m) return;
+  haptic();
+  if (!opt.replace) lastFocus = document.activeElement;
+  $("sheetTitle").textContent = title || "Kad Kroni";
+  $("sheetLead").textContent = lead || "Tunjuk kod ini kepada staff Meney semasa pembayaran.";
+  $("sheetChip").classList.toggle("hidden", !chip); $("sheetChipLbl").textContent = chip || "";
+  $("qrBox").innerHTML = qrSVG(m.kroniId || "");
+  $("qrId").textContent = fId(m.kroniId); $("qrName").textContent = m.name || "";
+  scrim(true); $("sheet").classList.add("open");
+  pushOverlay(() => {
+    $("sheet").classList.remove("open"); scrim(false);
+    try { wakeLock?.release(); } catch {} wakeLock = null; lastFocus?.focus?.();
+  }, opt);
+  $("sheetClose").focus();
+  try { wakeLock = await navigator.wakeLock?.request("screen"); } catch {}
+}
+function openInfo(html, opt = {}) {
+  if (!opt.replace) lastFocus = document.activeElement;
+  $("infoBody").innerHTML = html;
+  scrim(true); $("infoSheet").classList.add("open");
+  pushOverlay(() => { $("infoSheet").classList.remove("open"); scrim(false); lastFocus?.focus?.(); }, opt);
+  $("infoSheet").querySelector("button")?.focus();
+}
+$("sheetClose").onclick = () => closeTop();
+$("sheetCopy").onclick = () => copyId();
+// swipe down to dismiss any sheet
+document.querySelectorAll(".sheet").forEach(s => {
+  let y0 = null;
+  s.addEventListener("touchstart", e => { y0 = s.querySelector(".sheet-in").scrollTop > 0 ? null : e.touches[0].clientY; }, { passive: true });
+  s.addEventListener("touchend", e => { if (y0 !== null && e.changedTouches[0].clientY - y0 > 80) closeTop(); y0 = null; });
+});
+
+function openRoute(name) {
+  const r = $("r-" + name); if (!r) return;
+  if (name === "how") renderHow();
+  lastFocus = document.activeElement;
+  r.scrollTop = 0; r.classList.add("open");
+  pushOverlay(() => { r.classList.remove("open"); lastFocus?.focus?.(); });
+  r.querySelector("[data-back]")?.focus();
+}
+document.addEventListener("click", async e => {
+  const back = e.target.closest("[data-back]"); if (back) { closeTop(); return; }
+  const rt = e.target.closest("[data-route]"); if (rt) { haptic(); openRoute(rt.dataset.route); return; }
+});
 
 /* ---------------- view switching ---------------- */
+const VIEWS = ["intro", "auth", "onboard", "welcome"];
 function show(view) {
-  ["auth", "onboard"].forEach(v => $(v).classList.toggle("hidden", v !== view));
+  VIEWS.forEach(v => $(v).classList.toggle("hidden", v !== view));
   const inApp = view === "app";
   ["app", "appbar", "navbar"].forEach(id => $(id).classList.toggle("hidden", !inApp));
   document.body.classList.toggle("auth-mode", !inApp);
   $("boot").classList.add("out");
-  updateFab();
+  updateFab(); updateOffline();
+  window.scrollTo(0, 0);
 }
 function go(page, opts = {}) {
-  S.page = page;
+  const prev = S.page; S.page = page;
   document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === "p-" + page));
   document.querySelectorAll(".navbar [data-go]").forEach(b => b.dataset.go === page ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
   $("abTitle").textContent = $("p-" + page).dataset.title;
   $("abQr").classList.toggle("hidden", page === "home");
   if (opts.tab) setRTab(opts.tab);
   window.scrollTo(0, 0); onScroll(); updateFab();
-  try { history.replaceState(null, "", "#" + page); } catch {}
+  if (!opts.fromPop) {
+    try {
+      if (prev === "home" && page !== "home") history.pushState({ tab: page }, "", "#" + page);
+      else history.replaceState(history.state, "", "#" + page);
+    } catch {}
+  } else { try { history.replaceState(null, "", "#home"); } catch {} }
 }
-document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go, { tab: b.dataset.tab }); });
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-go]"); if (!b) return;
+  if (b.classList.contains("dest")) haptic();
+  if (b.hasAttribute("data-close-route")) await closeTop();
+  // Navigating from Rewards/Activity etc. back to Home should just pop the tab entry.
+  if (b.dataset.go === "home" && S.page !== "home" && !stack.length && history.state?.tab) { history.back(); return; }
+  go(b.dataset.go, { tab: b.dataset.tab });
+});
 
 let lastY = 0;
 function onScroll() {
   const y = window.scrollY;
   $("appbar").classList.toggle("scrolled", y > 8);
-  $("appbar").querySelector(".appbar-title").style.opacity = y > 48 ? "" : "0";
+  $("abTitle").style.opacity = y > 48 ? "" : "0";
   $("fab").classList.toggle("shrink", y > 80 && y > lastY);
   if (y < 80) $("fab").classList.remove("shrink");
   lastY = y;
 }
 addEventListener("scroll", onScroll, { passive: true });
 function updateFab() { $("fab").classList.toggle("hidden", !(S.member && S.page === "home" && !$("app").classList.contains("hidden"))); }
+function updateOffline() { $("offline").classList.toggle("hidden", navigator.onLine !== false || $("app").classList.contains("hidden")); }
+addEventListener("online", () => { updateOffline(); snack("Kembali dalam talian"); });
+addEventListener("offline", updateOffline);
 
-/* ---------------- auth ---------------- */
-function setMsg(id, text, ok) { const el = $(id); el.textContent = text || ""; el.classList.toggle("ok", !!ok); }
-function setMode(mode) {
-  S.mode = mode;
-  const reg = mode === "register", reset = mode === "reset";
-  document.querySelectorAll("#authSeg button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.mode === mode)));
-  $("authSeg").classList.toggle("hidden", reset);
-  $("regFields").classList.toggle("hidden", !reg);
-  $("pwWrap").classList.toggle("hidden", reset);
-  $("forgotRow").classList.toggle("hidden", mode !== "login");
-  $("backLogin").classList.toggle("hidden", !reset);
-  $("socialBlock").classList.toggle("hidden", reset);
-  $("fPass").autocomplete = reg ? "new-password" : "current-password";
-  $("authTitle").textContent = reset ? "Set semula kata laluan" : reg ? "Sertai KroniMeney" : "Selamat kembali";
-  $("authSub").textContent = reset ? "Kami akan hantar pautan ke e-mel anda" : reg ? "Daftar percuma dan terus dapat +100 XP & +50 points" : "Log masuk ke akaun KroniMeney anda";
-  $("authBtn").textContent = reset ? "Hantar pautan" : reg ? "Daftar" : "Log masuk";
-  setMsg("authMsg", "");
+/* =================================================================
+   Intro (first run only)
+   ================================================================= */
+const slides = $("slides");
+function slideIdx() { return Math.round(slides.scrollLeft / Math.max(1, slides.clientWidth)); }
+function syncDots() {
+  const i = slideIdx();
+  [...$("dots").children].forEach((d, k) => d.classList.toggle("on", k === i));
+  $("introNext").textContent = i >= 2 ? "Mula sekarang" : "Seterusnya";
 }
+slides.addEventListener("scroll", () => requestAnimationFrame(syncDots), { passive: true });
+function finishIntro(mode) { store.set("kroni-intro", "1"); setMode(mode); show("auth"); }
+$("introNext").onclick = () => { const i = slideIdx(); if (i >= 2) finishIntro("register"); else slides.scrollTo({ left: (i + 1) * slides.clientWidth }); };
+$("introSkip").onclick = () => finishIntro("login");
+
+/* =================================================================
+   Auth: login / 2-step register / reset
+   ================================================================= */
+function setMsg(id, text, ok) { const el = $(id); el.textContent = text || ""; el.classList.toggle("ok", !!ok); }
+function fieldErr(id, msg) {
+  const tf = $(id).closest(".tf"); const sp = tf.querySelector(".support");
+  if (sp && sp.dataset.hint === undefined) sp.dataset.hint = sp.textContent;
+  tf.classList.toggle("err", !!msg);
+  if (sp) sp.textContent = msg || sp.dataset.hint || "";
+  if (msg) $(id).setAttribute("aria-invalid", "true"); else $(id).removeAttribute("aria-invalid");
+}
+document.querySelectorAll(".tf input").forEach(i => i.addEventListener("input", () => fieldErr(i.id, "")));
+function clearErrors() { document.querySelectorAll(".tf input").forEach(i => fieldErr(i.id, "")); }
+
+function pwScore(p) {
+  if (!p) return 0;
+  if (p.length < 6) return 1;
+  let s = 1; if (p.length >= 10) s++; if (/[A-Z]/.test(p) && /[a-z]/.test(p) || /\d/.test(p) && /[^\w]/.test(p) || /\d/.test(p) && /[a-zA-Z]/.test(p)) s++;
+  return Math.min(3, s);
+}
+$("fPass").addEventListener("input", () => {
+  if (S.mode !== "register") return;
+  const sc = pwScore($("fPass").value), m = $("pwMeter");
+  m.className = "pw-meter" + (sc ? " s" + sc : "");
+  $("pwLbl").textContent = ["Minimum 6 aksara", "Terlalu pendek", "Sederhana · tambah nombor atau huruf besar", "Kuat"][sc];
+});
+
+function renderStep() {
+  const reg = S.mode === "register", reset = S.mode === "reset", step2 = reg && S.regStep === 2;
+  document.querySelectorAll("#authSeg button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.mode === S.mode)));
+  $("authSeg").classList.toggle("hidden", reset || step2);
+  $("stepper").classList.toggle("hidden", !reg);
+  $("stepLbl").textContent = `Langkah ${S.regStep} daripada 2`;
+  $("stepName").textContent = S.regStep === 1 ? "Akaun" : "Profil";
+  $("stepBar").style.width = S.regStep === 1 ? "50%" : "100%";
+  $("acctFields").classList.toggle("hidden", step2);
+  $("pwWrap").classList.toggle("hidden", reset);
+  $("pwMeter").classList.toggle("hidden", !reg);
+  $("regFields").classList.toggle("hidden", !step2);
+  $("forgotRow").classList.toggle("hidden", S.mode !== "login");
+  $("backLogin").classList.toggle("hidden", !reset);
+  $("stepBack").classList.toggle("hidden", !step2);
+  $("socialBlock").classList.toggle("hidden", reset || step2);
+  $("fPass").autocomplete = reg ? "new-password" : "current-password";
+  $("fPass").enterKeyHint = reg ? "next" : "go";
+  $("authTitle").textContent = reset ? "Set semula kata laluan" : step2 ? "Sedikit tentang anda" : reg ? "Sertai KroniMeney" : "Selamat kembali";
+  $("authSub").textContent = reset ? "Kami akan hantar pautan ke e-mel anda" : step2 ? "Nama dan telefon digunakan untuk mengenal pasti anda di kaunter" : reg ? "Daftar percuma dan terus dapat +100 XP & +50 points" : "Log masuk ke akaun KroniMeney anda";
+  $("authBtn").textContent = reset ? "Hantar pautan" : step2 ? "Daftar" : reg ? "Seterusnya" : "Log masuk";
+}
+function setMode(mode) { S.mode = mode; S.regStep = 1; setMsg("authMsg", ""); clearErrors(); renderStep(); }
 document.querySelectorAll("#authSeg button").forEach(b => b.onclick = () => setMode(b.dataset.mode));
 $("forgotBtn").onclick = () => setMode("reset");
 $("backLogin").onclick = () => setMode("login");
+$("stepBack").onclick = () => { S.regStep = 1; setMsg("authMsg", ""); renderStep(); $("fPass").focus(); };
 $("pwToggle").onclick = () => {
   const i = $("fPass"), s = i.type === "password"; i.type = s ? "text" : "password";
   $("pwToggle").innerHTML = ms(s ? "visibility_off" : "visibility");
   $("pwToggle").setAttribute("aria-label", s ? "Sorok kata laluan" : "Tunjuk kata laluan");
 };
+// Enter on e-mel moves to password (keyboard "next")
+$("fEmail").addEventListener("keydown", e => { if (e.key === "Enter" && S.mode !== "reset") { e.preventDefault(); $("fPass").focus(); } });
+$("fName").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("fPhone").focus(); } });
+$("obName").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("obPhone").focus(); } });
 
 $("authForm").onsubmit = async e => {
   e.preventDefault(); setMsg("authMsg", "");
   const email = $("fEmail").value.trim(), pass = $("fPass").value;
-  if (!/^\S+@\S+\.\S+$/.test(email)) return setMsg("authMsg", "Sila masukkan e-mel yang sah.");
+  const reg = S.mode === "register";
+  if (!reg || S.regStep === 1) {
+    let bad = false;
+    if (!validEmail(email)) { fieldErr("fEmail", email ? "Format e-mel tidak sah" : "Sila masukkan e-mel"); bad = true; }
+    if (S.mode !== "reset") {
+      if (!pass) { fieldErr("fPass", "Sila masukkan kata laluan"); bad = true; }
+      else if (reg && pass.length < 6) { fieldErr("fPass", "Minimum 6 aksara"); bad = true; }
+    }
+    if (bad) { document.querySelector(".tf.err input")?.focus(); return; }
+    if (reg) { S.regStep = 2; renderStep(); setTimeout(() => $("fName").focus(), 50); return; }
+  } else {
+    const name = $("fName").value.trim(), phone = $("fPhone").value.trim();
+    let bad = false;
+    if (name.length < 2) { fieldErr("fName", "Sila masukkan nama penuh"); bad = true; }
+    if (!validPhone(phone)) { fieldErr("fPhone", phone ? "Nombor telefon Malaysia tidak sah" : "Sila masukkan nombor telefon"); bad = true; }
+    if (bad) { document.querySelector(".tf.err input")?.focus(); return; }
+  }
   const btn = $("authBtn"), label = btn.textContent; btn.disabled = true; btn.textContent = "Sila tunggu…";
   try {
     if (S.mode === "reset") {
       await sendPasswordResetEmail(auth, email);
       setMsg("authMsg", "Pautan telah dihantar. Semak e-mel anda (termasuk folder spam).", true);
-    } else if (S.mode === "register") {
-      const name = $("fName").value.trim(), phone = $("fPhone").value.trim();
-      if (name.length < 2) throw new Error("Sila masukkan nama penuh.");
-      if (!validPhone(phone)) throw new Error("Sila masukkan nombor telefon Malaysia yang sah.");
-      if (pass.length < 6) throw new Error("Kata laluan perlu sekurang-kurangnya 6 aksara.");
-      S.pending = { name, phone };
+    } else if (reg) {
+      S.pending = { name: $("fName").value.trim(), phone: $("fPhone").value.trim() };
       await createUserWithEmailAndPassword(auth, email, pass);
     } else {
-      if (!pass) throw new Error("Sila masukkan kata laluan.");
       await signInWithEmailAndPassword(auth, email, pass);
     }
-  } catch (err) { S.pending = null; setMsg("authMsg", humanError(err)); }
-  finally { btn.disabled = false; btn.textContent = label; }
+  } catch (err) {
+    S.pending = null;
+    const code = err?.code || "";
+    if (reg && (code.includes("email-already-in-use") || code.includes("invalid-email") || code.includes("weak-password"))) {
+      S.regStep = 1; renderStep();
+      fieldErr(code.includes("weak-password") ? "fPass" : "fEmail", humanError(err));
+    } else setMsg("authMsg", humanError(err));
+  } finally { btn.disabled = false; btn.textContent = label; }
 };
 
 const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
@@ -881,28 +1227,47 @@ async function createProfile(user, { name, phone }) {
       xp: 100, points: 50, source: "registration", createdAt: serverTimestamp()
     });
   } catch (e) { console.warn("welcome ledger", e); }
+  S.justJoined = true;
 }
 $("obForm").onsubmit = async e => {
   e.preventDefault(); setMsg("obMsg", "");
   const name = $("obName").value.trim(), phone = $("obPhone").value.trim();
-  if (name.length < 2) return setMsg("obMsg", "Sila masukkan nama penuh.");
-  if (!validPhone(phone)) return setMsg("obMsg", "Sila masukkan nombor telefon Malaysia yang sah.");
+  let bad = false;
+  if (name.length < 2) { fieldErr("obName", "Sila masukkan nama penuh"); bad = true; }
+  if (!validPhone(phone)) { fieldErr("obPhone", phone ? "Nombor telefon Malaysia tidak sah" : "Sila masukkan nombor telefon"); bad = true; }
+  if (bad) { document.querySelector("#onboard .tf.err input")?.focus(); return; }
   const btn = $("obBtn"); btn.disabled = true; btn.textContent = "Mengaktifkan…";
-  try { await createProfile(S.user, { name, phone }); await enter(S.user); snack("Kroni Pass diaktifkan. +100 XP"); }
+  try { await createProfile(S.user, { name, phone }); await enter(S.user); }
   catch (err) { setMsg("obMsg", humanError(err)); }
   finally { btn.disabled = false; btn.textContent = "Aktifkan"; }
 };
 $("obOut").onclick = () => signOut(auth);
 
+function passHTML(m, t) {
+  return `<div class="pass" style="--acc:${t.acc};--ink:${t.ink};--c1:${t.c1};--c2:${t.c2}">
+    <div class="pass-row"><div class="pass-brand"><svg class="logo" width="32" height="32"><use href="#logo"/></svg>Kroni Pass</div><span class="pass-tier">${ms("workspace_premium", "fill")}<span>${t.name}</span></span></div>
+    <div class="pass-id"><small>KRONI ID</small><b class="num">${esc(fId(m.kroniId))}</b></div>
+    <div class="pass-row"><div class="pass-name"><b>${esc(m.name || "Kroni")}</b><small>Ahli baharu</small></div></div></div>`;
+}
+function showWelcome() {
+  const m = S.member, t = tierOf(m.xp);
+  $("wSub").textContent = `Selamat datang ke KroniMeney, ${(m.name || "Kroni").split(" ")[0]}.`;
+  $("wPass").innerHTML = passHTML(m, t);
+  show("welcome"); haptic();
+}
+$("wGo").onclick = () => { S.justJoined = false; show("app"); go("home"); };
+
 /* ---------------- session ---------------- */
 function clearSubs() { S.unsubs.forEach(u => { try { u(); } catch {} }); S.unsubs = []; }
 function listen(uid) {
   clearSubs();
-  const onErr = key => err => { console.warn(key, err); S.errors.add(key); render(); };
+  const onErr = key => err => { console.warn(key, err); S.errors.add(key); S.loaded[key] = true; render(); };
+  const coll = (name, key, sink) => S.unsubs.push(onSnapshot(query(collection(db, name), where("memberId", "==", uid)),
+    s => { S[sink] = s.docs.map(d => ({ id: d.id, ...d.data() })); S.loaded[key] = true; render(); }, onErr(key)));
   S.unsubs.push(onSnapshot(doc(db, "kroniMembers", uid), s => { if (s.exists()) { S.member = { id: s.id, ...s.data() }; render(); } }, onErr("member")));
-  S.unsubs.push(onSnapshot(query(collection(db, "kroniLedger"), where("memberId", "==", uid)), s => { S.ledger = s.docs.map(d => ({ id: d.id, ...d.data() })); render(); }, onErr("ledger")));
-  S.unsubs.push(onSnapshot(query(collection(db, "kroniTransactions"), where("memberId", "==", uid)), s => { S.tx = s.docs.map(d => ({ id: d.id, ...d.data() })); render(); }, onErr("tx")));
-  S.unsubs.push(onSnapshot(query(collection(db, "kroniRewards"), where("memberId", "==", uid)), s => { S.rewards = s.docs.map(d => ({ id: d.id, ...d.data() })); render(); }, onErr("rewards")));
+  coll("kroniLedger", "ledger", "ledger");
+  coll("kroniTransactions", "tx", "tx");
+  coll("kroniRewards", "rewards", "rewards");
   getDocs(query(collection(db, "publicCatalogue"), where("published", "==", true), limit(12)))
     .then(s => { S.catalogue = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.available !== false); renderShop(); })
     .catch(() => {});
@@ -913,16 +1278,19 @@ async function enter(user) {
   const data = snap.data();
   if (data.active === false) { await signOut(auth); setMsg("authMsg", "Akaun Kroni ini tidak aktif. Sila hubungi staff Meney."); return true; }
   S.member = { id: snap.id, ...data };
-  show("app"); render(); listen(user.uid);
-  const h = location.hash.slice(1); go(["home", "activity", "rewards", "profile"].includes(h) ? h : "home");
+  render(); listen(user.uid);
+  if (S.justJoined) { showWelcome(); return true; }
+  show("app");
+  const h = location.hash.slice(1); S.page = "home"; go(["home", "activity", "rewards", "profile"].includes(h) ? h : "home");
   return true;
 }
 onAuthStateChanged(auth, async user => {
-  clearSubs(); Object.assign(S, { user, member: null, ledger: [], tx: [], rewards: [] }); S.errors.clear();
-  if (!user) { show("auth"); return; }
+  clearSubs(); clearOverlays();
+  Object.assign(S, { user, member: null, ledger: [], tx: [], rewards: [], feed: [], loaded: {} }); S.errors.clear();
+  if (!user) { S.justJoined = false; show(store.get("kroni-intro") ? "auth" : "intro"); renderStep(); return; }
   try {
     if (await enter(user)) return;
-    if (S.pending) { const p = S.pending; S.pending = null; await createProfile(user, p); await enter(user); snack("Selamat datang, Kroni! +100 XP"); return; }
+    if (S.pending) { const p = S.pending; S.pending = null; await createProfile(user, p); await enter(user); return; }
     if (user.displayName) $("obName").value = user.displayName;
     $("obSub").textContent = `Log masuk sebagai ${user.email || "akaun ini"}. Lengkapkan maklumat untuk dapatkan Kroni ID, +100 XP dan +50 points bonus.`;
     show("onboard");
@@ -932,7 +1300,8 @@ onAuthStateChanged(auth, async user => {
 /* ---------------- render ---------------- */
 function greeting() { const h = new Date().getHours(); return h < 12 ? "Selamat pagi" : h < 15 ? "Selamat tengah hari" : h < 19 ? "Selamat petang" : "Selamat malam"; }
 const isActiveReward = r => (r.status || "available") === "available";
-const emptyHTML = (icon, title, text) => `<div class="empty">${ms(icon)}<b>${esc(title)}</b><span class="body-m">${esc(text)}</span></div>`;
+const emptyHTML = (icon, title, text, cta) => `<div class="empty">${ms(icon)}<b>${esc(title)}</b><span class="body-m">${esc(text)}</span>${cta || ""}</div>`;
+const skelTiles = n => Array.from({ length: n }, () => `<div class="tile two"><span class="skel" style="width:40px;height:40px;border-radius:20px"></span><span class="txt"><span class="skel" style="width:60%;height:14px;margin-bottom:8px"></span><span class="skel" style="width:40%;height:12px"></span></span></div>`).join(`<div class="divider"></div>`);
 
 function render() {
   const m = S.member; if (!m) return;
@@ -958,6 +1327,8 @@ function render() {
   $("xpNow").textContent = `${nf(xp)} XP · Level ${t.level}`;
   $("xpNext").innerHTML = t.next ? `${nf(t.max - xp)} XP lagi ke <b>${t.next.name}</b>` : `<b>Tahap tertinggi</b>`;
 
+  $("tipHow").classList.toggle("hidden", !!store.get("kroni-tip-how") || !isLoaded() || S.tx.length > 0);
+
   $("vouchSec").classList.toggle("hidden", !active.length);
   $("vouchRow").innerHTML = active.map(voucherHTML).join("");
 
@@ -967,34 +1338,41 @@ function render() {
     ? `<button class="tile two ink" data-reward="${next.id}"><span class="lead p">${ms(next.kind === "disc" ? "sell" : "checkroom")}</span><span class="txt"><span class="t1">${esc(next.title)}</span><span class="t2">${nf(next.cost - pts)} pts lagi${can ? ` · ${can} boleh ditebus sekarang` : ""}</span><div class="progress" style="margin-top:8px"><i style="width:${Math.min(100, pts / next.cost * 100)}%"></i></div></span><span class="trail"><b class="num">${nf(next.cost)}</b>pts</span></button>`
     : `<button class="tile two ink" data-go="rewards"><span class="lead p">${ms("celebration")}</span><span class="txt"><span class="t1">Semua reward boleh ditebus</span><span class="t2">Tunjuk kad Kroni di kaunter</span></span>${ms("chevron_right", "trail")}</button>`;
 
-  const feed = buildFeed();
-  $("recentList").innerHTML = feed.length ? feed.slice(0, 4).map(feedTile).join(`<div class="divider"></div>`)
+  S.feed = buildFeed();
+  $("recentList").innerHTML = !isLoaded() ? skelTiles(3)
+    : S.feed.length ? S.feed.slice(0, 4).map(feedTile).join(`<div class="divider"></div>`)
     : emptyHTML("history", "Belum ada aktiviti", "Tunjuk kad Kroni semasa membeli di Meney untuk kumpul XP.");
 
-  renderActivity(feed); renderRewards(pts); renderProfile(m, t); updateFab();
+  renderActivity(); renderRewards(pts); renderProfile(m, t); updateFab();
 }
 
 function buildFeed() {
-  const L = S.ledger.map(x => ({ kind: "ledger", at: x.createdAt, title: x.title || labelType(x.type), sub: sourceLabel(x.source), xp: Number(x.xp || 0), pts: Number(x.points || 0), icon: x.type === "mission" ? "local_fire_department" : x.type === "welcome" ? "celebration" : "star", lead: "p" }));
-  const T = S.tx.map(x => ({ kind: "tx", at: x.transactionDate || x.createdAt, title: x.receiptNo || x.transactionNo || "Pembelian", sub: (x.type || "POS") + (x.branch ? " · " + x.branch : ""), amount: Number(x.total || 0), xp: Number(x.xpEarned || 0), icon: "shopping_bag", lead: "" }));
-  const R = S.rewards.map(x => ({ kind: "reward", at: x.redeemedAt || x.usedAt || x.createdAt, title: x.title || "Reward", sub: isActiveReward(x) ? "Voucher diterima" : "Voucher digunakan", pts: x.pointsCost ? -Number(x.pointsCost) : 0, icon: "local_activity", lead: "t" }));
+  const L = S.ledger.map(x => ({ kind: "ledger", at: x.createdAt, title: x.title || labelType(x.type), typeLabel: labelType(x.type), sub: sourceLabel(x.source), xp: Number(x.xp || 0), pts: Number(x.points || 0), icon: x.type === "mission" ? "local_fire_department" : x.type === "welcome" ? "celebration" : "star", lead: "p", note: x.note || x.description || "" }));
+  const T = S.tx.map(x => ({ kind: "tx", at: x.transactionDate || x.createdAt, title: x.receiptNo || x.transactionNo || "Pembelian", typeLabel: "Pembelian", sub: (x.type || "POS") + (x.branch ? " · " + x.branch : ""), amount: Number(x.total || 0), xp: Number(x.xpEarned || 0), pts: Number(x.pointsEarned || 0), icon: "shopping_bag", lead: "", ref: x.receiptNo || x.transactionNo || "", branch: x.branch || "" }));
+  const R = S.rewards.map(x => ({ kind: "reward", at: x.redeemedAt || x.usedAt || x.createdAt, title: x.title || "Reward", typeLabel: "Reward", sub: isActiveReward(x) ? "Voucher diterima" : "Voucher digunakan", pts: x.pointsCost ? -Number(x.pointsCost) : 0, icon: "local_activity", lead: "t", rewardId: x.id }));
   return [...L, ...T, ...R].sort((a, b) => tms(b.at) - tms(a.at));
 }
 function labelType(t) { return ({ welcome: "Bonus selamat datang", purchase: "Pembelian", mission: "Misi selesai", referral: "Bonus referral", redeem: "Tebusan reward", adjustment: "Pelarasan" })[t] || "Aktiviti"; }
 function sourceLabel(s) { return ({ registration: "Pendaftaran", pos: "Kaunter Meney", website: "Online", referral: "Referral" })[s] || s || "KroniMeney"; }
+function gainsText(f) {
+  const g = [];
+  if (f.xp) g.push(`+${nf(f.xp)} XP`);
+  if (f.pts) g.push(`${f.pts > 0 ? "+" : ""}${nf(f.pts)} pts`);
+  return g.join(" · ");
+}
 function feedTile(f) {
-  const gains = [];
-  if (f.xp) gains.push(`+${nf(f.xp)} XP`);
-  if (f.pts) gains.push(`${f.pts > 0 ? "+" : ""}${nf(f.pts)} pts`);
+  const i = S.feed.indexOf(f), g = gainsText(f);
   const main = f.amount ? `<b class="num">${money(f.amount)}</b>` : "";
-  return `<div class="tile two"><span class="lead ${f.lead}">${ms(f.icon)}</span><span class="txt"><span class="t1">${esc(f.title)}</span><span class="t2">${esc(f.sub)} · ${fDate(f.at)}</span></span><span class="trail num">${main}${gains.length ? `<span class="plus">${gains.join(" · ")}</span>` : ""}</span></div>`;
+  return `<button class="tile two ink" data-fi="${i}"><span class="lead ${f.lead}">${ms(f.icon)}</span><span class="txt"><span class="t1">${esc(f.title)}</span><span class="t2">${esc(f.sub)} · ${fDate(f.at)}</span></span><span class="trail num">${main}${g ? `<span class="plus">${g}</span>` : ""}</span></button>`;
 }
 
-function renderActivity(feed) {
-  const f = S.actFilter === "all" ? feed : feed.filter(x => x.kind === S.actFilter);
+function renderActivity() {
+  if (!isLoaded()) { $("actList").innerHTML = `<div class="card list" style="margin-top:12px">${skelTiles(5)}</div>`; return; }
+  const f = S.actFilter === "all" ? S.feed : S.feed.filter(x => x.kind === S.actFilter);
   if (!f.length) {
     const e = { all: ["history", "Belum ada aktiviti", "Aktiviti anda akan muncul di sini."], tx: ["shopping_bag", "Belum ada pembelian", "Tunjuk kad Kroni semasa bayar supaya pembelian dipautkan ke akaun anda."], ledger: ["star", "Belum ada XP atau points", "Kumpul XP setiap kali membeli di Meney."], reward: ["local_activity", "Belum ada reward", "Kumpul points dan tebus reward di kaunter."] }[S.actFilter];
-    $("actList").innerHTML = `<div class="card" style="margin-top:12px">${emptyHTML(...e)}</div>`; return;
+    const cta = S.actFilter === "reward" ? `<button class="btn btn-tonal ink" data-go="rewards" style="margin-top:16px">Lihat katalog</button>` : `<button class="btn btn-tonal ink" data-route="how" style="margin-top:16px">Cara kumpul XP</button>`;
+    $("actList").innerHTML = `<div class="card" style="margin-top:12px">${emptyHTML(...e, cta)}</div>`; return;
   }
   const groups = new Map();
   f.forEach(x => { const k = fMonth(x.at); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(x); });
@@ -1015,11 +1393,12 @@ function setRTab(tab) {
 document.querySelectorAll("#rTabs button").forEach(b => b.onclick = () => setRTab(b.dataset.tab));
 function renderRewards(pts) {
   const vs = S.rewards.filter(r => S.vFilter === "available" ? isActiveReward(r) : !isActiveReward(r)).sort((a, b) => tms(b.createdAt) - tms(a.createdAt));
-  $("vList").innerHTML = vs.length ? vs.map(voucherHTML).join("").replaceAll('class="voucher', 'style="flex:none;width:100%" class="voucher')
+  $("vList").innerHTML = !S.loaded.rewards ? `<div class="card list">${skelTiles(2)}</div>`
+    : vs.length ? vs.map(voucherHTML).join("").replaceAll('class="voucher', 'style="flex:none;width:100%" class="voucher')
     : `<div class="card">${emptyHTML("inbox", S.vFilter === "available" ? "Tiada voucher aktif" : "Tiada sejarah voucher", S.vFilter === "available" ? "Voucher yang anda tebus akan muncul di sini." : "Voucher yang telah digunakan akan muncul di sini.")}</div>`;
   $("rGrid").innerHTML = CATALOG.filter(c => S.rFilter === "all" || c.kind === S.rFilter).map(c => {
     const ok = pts >= c.cost, pct = Math.min(100, pts / c.cost * 100);
-    return `<div class="rcard"><div class="rart ${c.kind}">${c.kind === "disc" ? esc(c.id.replace("RM", "RM ")) : ms("checkroom")}</div><div class="rb"><span class="rt">${esc(c.title)}</span><span class="rc num">${nf(c.cost)} pts</span><div class="progress"><i style="width:${pct}%"></i></div><span class="rh">${ok ? "Boleh ditebus" : nf(c.cost - pts) + " pts lagi"}</span><button class="btn ${ok ? "btn-filled" : "btn-tonal"} ink" data-reward="${c.id}">${ok ? "Tebus" : "Lihat"}</button></div></div>`;
+    return `<div class="rcard"><div class="rart ${c.kind}">${c.kind === "disc" ? esc(c.id.replace("RM", "RM ")) : ms("checkroom")}</div><div class="rb"><span class="rt">${esc(c.title)}</span><span class="rc num">${nf(c.cost)} pts</span><div class="progress"><i style="width:${pct}%"></i></div><span class="rh">${ok ? "Boleh ditebus" : nf(c.cost - pts) + " pts lagi"}</span><button class="btn ${ok ? "btn-filled" : "btn-tonal"} ink" data-reward="${c.id}">${ok ? "Tebus" : "Butiran"}</button></div></div>`;
   }).join("");
 }
 
@@ -1046,6 +1425,15 @@ function renderProfile(m, t) {
   $("achList").innerHTML = ach.map(a => `<div class="tile two"><span class="lead ${a.ok ? "p" : ""}" style="${a.ok ? "" : "background:var(--surface-c-high);color:var(--outline)"}">${ms(a.ok ? "emoji_events" : "lock", a.ok ? "fill" : "")}</span><span class="txt"><span class="t1" style="${a.ok ? "" : "color:var(--on-surface-variant)"}">${esc(a.t)}</span><span class="t2">${esc(a.d)}</span></span><span class="badge ${a.ok ? "on" : "off"}">${a.ok ? "Selesai" : "Terkunci"}</span></div>`).join(`<div class="divider"></div>`);
 }
 
+function renderHow() {
+  const m = S.member, t = m ? tierOf(m.xp) : null;
+  $("howTiers").innerHTML = TIERS.map((x, i) => {
+    const here = t && t.idx === i;
+    const range = x.level === 6 ? `${nf(x.min)}+ XP` : `${nf(x.min)} – ${nf(x.max - 1)} XP`;
+    return `<div class="tile"><span class="lead" style="background:${x.acc};color:${x.ink}"><b style="font-weight:500">${x.level}</b></span><span class="txt"><span class="t1">${x.name}${here ? `<span class="here">Anda di sini</span>` : ""}</span><span class="t2">${range}</span></span></div>`;
+  }).join(`<div class="divider"></div>`);
+}
+
 function renderShop() {
   const items = S.catalogue.slice(0, 10);
   $("shopSec").classList.toggle("hidden", !items.length);
@@ -1063,59 +1451,65 @@ function bindChips(groupId, key, after) {
     S[key] = b.dataset.f; after();
   });
 }
-bindChips("actFilters", "actFilter", () => renderActivity(buildFeed()));
+bindChips("actFilters", "actFilter", renderActivity);
 bindChips("vFilters", "vFilter", () => renderRewards(Number(S.member?.points || 0)));
 bindChips("rFilters", "rFilter", () => renderRewards(Number(S.member?.points || 0)));
 
-/* ---------------- QR bottom sheet ---------------- */
-function qrSVG(text) {
-  try { const q = window.qrcode(0, "M"); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); }
-  catch { return `<div style="color:#000;text-align:center;padding:40px 0;font-weight:700">${esc(text)}</div>`; }
+/* ---------------- detail sheets ---------------- */
+function rewardDetail(c) {
+  const pts = Number(S.member?.points || 0), ok = pts >= c.cost, pct = Math.min(100, pts / c.cost * 100);
+  return `<div class="reward-art rart ${c.kind}" style="${c.kind === "disc" ? "background:var(--primary-container);color:var(--on-primary-container)" : "background:var(--tertiary-container);color:var(--on-tertiary-container)"}">${c.kind === "disc" ? esc(c.id.replace("RM", "RM ")) : ms("checkroom")}</div>
+    <h3 class="headline-s" style="text-align:center">${esc(c.title)}</h3>
+    <p class="body-m muted lead">${esc(c.desc)}</p>
+    <div class="kv"><span>Kos</span><b class="num">${nf(c.cost)} pts</b></div>
+    <div class="kv"><span>Points anda</span><b class="num">${nf(pts)} pts</b></div>
+    <div class="progress" style="margin:8px 4px 4px"><i style="width:${pct}%"></i></div>
+    <p class="body-s muted" style="margin:8px 4px 0">${ok ? "Anda layak menebus reward ini. Points akan ditolak oleh staff di kaunter." : `Kumpul ${nf(c.cost - pts)} pts lagi untuk menebus reward ini.`}</p>
+    <div class="sheet-actions">
+      <button class="btn btn-tonal ink" data-sheet-close>Tutup</button>
+      ${ok ? `<button class="btn btn-filled ink" data-redeem="${c.id}">${ms("qr_code_2")}Tebus di kaunter</button>` : `<button class="btn btn-filled ink" disabled>${ms("lock")}Perlu ${nf(c.cost - pts)} pts</button>`}
+    </div>`;
 }
-let lastFocus = null, wakeLock = null;
-async function openSheet({ title, lead, chip } = {}) {
-  const m = S.member; if (!m) return;
-  lastFocus = document.activeElement;
-  $("sheetTitle").textContent = title || "Kad Kroni";
-  $("sheetLead").textContent = lead || "Tunjuk kod ini kepada staff Meney semasa pembayaran.";
-  $("sheetChip").classList.toggle("hidden", !chip); $("sheetChipLbl").textContent = chip || "";
-  $("qrBox").innerHTML = qrSVG(m.kroniId || "");
-  $("qrId").textContent = fId(m.kroniId); $("qrName").textContent = m.name || "";
-  $("scrim").dataset.for = "sheet"; $("scrim").classList.add("open"); $("sheet").classList.add("open");
-  $("sheetClose").focus();
-  try { wakeLock = await navigator.wakeLock?.request("screen"); } catch {}
+function activityDetail(f) {
+  const rows = [["Jenis", f.typeLabel], ["Tarikh", fDateTime(f.at)]];
+  if (f.kind === "tx") { if (f.ref) rows.push(["No. resit", f.ref]); if (f.branch) rows.push(["Cawangan", f.branch]); rows.push(["Jumlah", money(f.amount)]); }
+  else rows.push(["Sumber", f.sub]);
+  if (f.xp) rows.push(["XP", `+${nf(f.xp)}`]);
+  if (f.pts) rows.push(["Points", `${f.pts > 0 ? "+" : ""}${nf(f.pts)}`]);
+  if (f.note) rows.push(["Nota", f.note]);
+  const leadStyle = f.lead === "p" ? "background:var(--primary-container);color:var(--on-primary-container)" : f.lead === "t" ? "background:var(--tertiary-container);color:var(--on-tertiary-container)" : "background:var(--secondary-container);color:var(--on-secondary-container)";
+  return `<div class="detail-head"><span class="lead" style="${leadStyle}">${ms(f.icon)}</span><h3 class="headline-s" style="margin:0">${esc(f.title)}</h3>${gainsText(f) ? `<span class="badge on num">${gainsText(f)}</span>` : ""}</div>
+    ${rows.map(([k, v]) => `<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}
+    <div class="sheet-actions"><button class="btn btn-tonal ink" data-sheet-close>Tutup</button></div>`;
 }
-function closeSheet() {
-  $("sheet").classList.remove("open"); if ($("scrim").dataset.for === "sheet") $("scrim").classList.remove("open");
-  try { wakeLock?.release(); } catch {} wakeLock = null; lastFocus?.focus?.();
-}
-["passCard", "fab", "abQr", "actQr"].forEach(id => $(id).onclick = () => openSheet());
-$("sheetClose").onclick = closeSheet;
-$("scrim").onclick = () => $("scrim").dataset.for === "dialog" ? closeDialog() : closeSheet();
-document.addEventListener("keydown", e => { if (e.key === "Escape") { closeSheet(); closeDialog(); } });
-(() => { let y0 = null; const s = $("sheet"); s.addEventListener("touchstart", e => { y0 = e.touches[0].clientY; }, { passive: true }); s.addEventListener("touchend", e => { if (y0 !== null && e.changedTouches[0].clientY - y0 > 80) closeSheet(); y0 = null; }); })();
+
+["passCard", "fab", "abQr", "actQr"].forEach(id => $(id).onclick = () => openQr());
 
 document.addEventListener("click", e => {
-  const r = e.target.closest("[data-reward]");
-  if (r) {
-    const c = CATALOG.find(x => x.id === r.dataset.reward); if (!c) return;
-    const pts = Number(S.member?.points || 0);
-    if (pts < c.cost) {
-      openDialog({ icon: "lock", title: c.title, body: `<p class="body-m">${esc(c.desc)}</p><p class="body-m" style="margin-top:12px">Anda perlukan <b style="color:var(--on-surface)">${nf(c.cost - pts)} pts lagi</b> untuk menebus reward ini.</p>`, actions: [{ label: "OK" }] });
-      return;
-    }
-    openSheet({ title: c.title, lead: `${c.desc} Tunjuk QR ini kepada staff untuk tebus ${nf(c.cost)} pts.`, chip: `Tebus · ${nf(c.cost)} pts` });
+  if (e.target.closest("[data-sheet-close]")) { closeTop(); return; }
+  const rd = e.target.closest("[data-redeem]");
+  if (rd) {
+    const c = CATALOG.find(x => x.id === rd.dataset.redeem); if (!c) return;
+    openQr({ title: c.title, lead: `Tunjuk QR ini kepada staff untuk tebus ${nf(c.cost)} pts.`, chip: `Tebus · ${nf(c.cost)} pts` }, { replace: true });
     return;
   }
+  const r = e.target.closest("[data-reward]");
+  if (r) { const c = CATALOG.find(x => x.id === r.dataset.reward); if (c) { haptic(); openInfo(rewardDetail(c)); } return; }
+  const fi = e.target.closest("[data-fi]");
+  if (fi) { const f = S.feed[Number(fi.dataset.fi)]; if (f) openInfo(activityDetail(f)); return; }
   const v = e.target.closest("[data-voucher]");
   if (v) {
     const rw = S.rewards.find(x => x.id === v.dataset.voucher); if (!rw) return;
     if (!isActiveReward(rw)) { snack("Voucher ini telah digunakan"); return; }
-    openSheet({ title: rw.title || "Voucher", lead: (rw.description || "Tunjuk QR ini kepada staff semasa pembayaran untuk guna voucher.") + (rw.code ? ` Kod: ${rw.code}` : ""), chip: "Voucher" + (rw.value ? " · " + money(rw.value) : "") });
+    openQr({ title: rw.title || "Voucher", lead: (rw.description || "Tunjuk QR ini kepada staff semasa pembayaran untuk guna voucher.") + (rw.code ? ` Kod: ${rw.code}` : ""), chip: "Voucher" + (rw.value ? " · " + money(rw.value) : "") });
   }
 });
 
-/* ---------------- profile actions ---------------- */
+/* ---------------- home tip, profile actions ---------------- */
+$("tipHowOpen").onclick = () => openRoute("how");
+$("tipHowClose").onclick = () => { store.set("kroni-tip-how", "1"); $("tipHow").classList.add("hidden"); };
+$("tierCard").onclick = () => openRoute("how");
+
 async function shareReferral() {
   const code = S.member?.referralCode || referralFrom(S.member?.kroniId);
   const text = `Jom jadi Kroni di Meney! Guna kod referral saya ${code} semasa daftar.`;
@@ -1126,7 +1520,8 @@ async function shareReferral() {
   } catch {}
 }
 $("shareRef").onclick = shareReferral; $("actShare").onclick = shareReferral;
-$("copyId").onclick = async () => { try { await navigator.clipboard.writeText(S.member?.kroniId || ""); snack("Kroni ID disalin"); } catch { snack("Tidak dapat menyalin"); } };
+async function copyId() { try { await navigator.clipboard.writeText(S.member?.kroniId || ""); haptic(); snack("Kroni ID disalin"); } catch { snack("Tidak dapat menyalin"); } }
+$("copyId").onclick = copyId;
 $("themeBtn").onclick = () => {
   const cur = currentTheme();
   openDialog({
@@ -1135,10 +1530,10 @@ $("themeBtn").onclick = () => {
     actions: [{ label: "Tutup" }]
   });
 };
-document.addEventListener("click", e => { const o = e.target.closest("[data-theme-opt]"); if (o) { setTheme(o.dataset.themeOpt); closeDialog(); } });
+document.addEventListener("click", async e => { const o = e.target.closest("[data-theme-opt]"); if (o) { setTheme(o.dataset.themeOpt); await closeTop(); } });
 $("logoutBtn").onclick = () => openDialog({
   icon: "logout", title: "Log keluar?", body: `<p class="body-m" style="text-align:center">Anda perlu log masuk semula untuk melihat kad Kroni anda.</p>`,
-  actions: [{ label: "Batal" }, { label: "Log keluar", danger: true, onClick: async () => { await signOut(auth); go("home"); snack("Anda telah log keluar"); } }]
+  actions: [{ label: "Batal" }, { label: "Log keluar", danger: true, onClick: async () => { await signOut(auth); snack("Anda telah log keluar"); } }]
 });
 $("resetPw").onclick = async () => {
   const email = S.user?.email; if (!email) return snack("Akaun ini tiada e-mel");
