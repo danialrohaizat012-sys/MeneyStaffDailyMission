@@ -6,8 +6,8 @@
   "start_url": "/MeneyStaffDailyMission/KroniMeney.html",
   "scope": "/MeneyStaffDailyMission/",
   "display": "standalone",
-  "background_color": "#050705",
-  "theme_color": "#050705",
+  "background_color": "#07090a",
+  "theme_color": "#07090a",
   "orientation": "portrait-primary",
   "icons": [
     {

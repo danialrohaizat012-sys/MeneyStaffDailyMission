@@ -1,11 +1,17 @@
-KroniMeney V13 — Functional Loading Bar Fix
+KroniMeney v2.0 — Wallet redesign
 
-This fixes the exact issue in the approved splash image:
-- The baked/static 'LOADING... 73%' artwork has been removed from the JPG.
-- A real live loading bar is overlaid in the same location.
-- Percentage updates continuously from 0% to 100%.
-- Splash exits only after the live progress completes.
-- V10/V11 A2HS routing and standalone fixes remain intact.
-- Flat/root deployment structure retained.
+- Splash screen dibuang; app terus buka (loader kecil semasa semak log masuk sahaja).
+- UI gaya wallet: Kroni Pass (warna ikut tier), QR sebenar Kroni ID, voucher macam pass.
+- Page: Wallet, Aktiviti (tapis + ikut bulan), Reward (katalog + voucher), Profil.
+- Lupa/tukar kata laluan, log masuk Google, aktifkan Kroni Pass untuk akaun tanpa profil.
+- Data palsu dibuang (Ranking "Top 8%", promo Double XP).
 
-Upload all files to the root of MeneyStaffDailyMission repo and replace previous KroniMeney files.
+KESELAMATAN DATA POS
+- App hanya BACA data Kroni milik ahli sendiri + publicCatalogue (published sahaja).
+- Satu-satunya tulisan: kroniMembers/{uid} dan kroniLedger/{uid}_welcome semasa daftar
+  (skema sama seperti v1, ikut Firestore rules sedia ada).
+- Tiada koleksi POS (sales, products, customers, dll.) disentuh.
+- Tebus reward dibuat oleh staff di kaunter (imbas QR Kroni ID).
+
+Fail: KroniMeney.html, sw-kroni.js (skop /KroniMeney sahaja, network-first),
+kroni-avatar.jpg, kroni-reward.jpg, KroniMeney.webmanifest.
